@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
 
 export const CommentsRanking = () => {
@@ -60,6 +60,33 @@ export const CommentsRanking = () => {
     }
   ];
 
+  const CommentCell = ({ comment, isPositive, index }: { comment: any, isPositive: boolean, index: number }) => (
+    <div className={`border ${isPositive ? 'border-green-500 bg-blue-600' : 'border-red-500 bg-blue-600'} rounded-lg p-3`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center space-x-2">
+          <span className={`${isPositive ? 'bg-green-600' : 'bg-red-600'} text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center`}>
+            {index + 1}
+          </span>
+          <span className="font-medium text-white text-sm">{comment.user}</span>
+          <span className="text-xs text-blue-300 bg-blue-700 px-2 py-1 rounded">{comment.platform}</span>
+        </div>
+        <Button size="sm" variant="outline" className="h-6 px-1 border-blue-500 text-blue-300 hover:bg-blue-500 text-xs">
+          <ExternalLink className="h-3 w-3" />
+        </Button>
+      </div>
+      <p className="text-xs text-blue-300 mb-2 italic line-clamp-3">"{comment.comment}"</p>
+      <div className="flex items-center justify-between">
+        <span className={`text-xs ${isPositive ? 'text-green-400' : 'text-red-400'} font-medium`}>
+          {comment.engagement} interações
+        </span>
+        {isPositive ? 
+          <ThumbsUp className="h-3 w-3 text-green-400" /> : 
+          <ThumbsDown className="h-3 w-3 text-red-400" />
+        }
+      </div>
+    </div>
+  );
+
   return (
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
@@ -69,72 +96,50 @@ export const CommentsRanking = () => {
         <p className="text-sm text-blue-300">Melhores e piores interações</p>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="top" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-blue-600">
-            <TabsTrigger value="top" className="flex items-center space-x-2 data-[state=active]:bg-blue-500 text-white">
-              <ThumbsUp className="h-4 w-4" />
-              <span>Top Comentários</span>
-            </TabsTrigger>
-            <TabsTrigger value="flop" className="flex items-center space-x-2 data-[state=active]:bg-blue-500 text-white">
-              <ThumbsDown className="h-4 w-4" />
-              <span>Flop Comentários</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="top" className="space-y-4 mt-4">
-            {topComments.map((comment, index) => (
-              <div key={comment.id} className="border border-green-500 bg-blue-600 rounded-lg p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <span className="font-medium text-white">{comment.user}</span>
-                    <span className="text-xs text-blue-300 bg-blue-700 px-2 py-1 rounded">{comment.platform}</span>
+        <div className="overflow-x-auto">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="border-blue-600 hover:bg-transparent">
+                <TableHead className="text-red-400 font-semibold text-center border-r border-blue-600 w-1/2">
+                  <div className="flex items-center justify-center space-x-2">
+                    <ThumbsDown className="h-4 w-4" />
+                    <span>Flop Comentários</span>
                   </div>
-                  <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Ver Perfil
-                  </Button>
-                </div>
-                <p className="text-sm text-blue-300 mb-3 italic">"{comment.comment}"</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-400 font-medium">
-                    {comment.engagement} interações
-                  </span>
-                  <ThumbsUp className="h-4 w-4 text-green-400" />
-                </div>
-              </div>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="flop" className="space-y-4 mt-4">
-            {flopComments.map((comment, index) => (
-              <div key={comment.id} className="border border-red-500 bg-blue-600 rounded-lg p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <span className="font-medium text-white">{comment.user}</span>
-                    <span className="text-xs text-blue-300 bg-blue-700 px-2 py-1 rounded">{comment.platform}</span>
+                </TableHead>
+                <TableHead className="text-green-400 font-semibold text-center w-1/2">
+                  <div className="flex items-center justify-center space-x-2">
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>Top Comentários</span>
                   </div>
-                  <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Ver Perfil
-                  </Button>
-                </div>
-                <p className="text-sm text-blue-300 mb-3 italic">"{comment.comment}"</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-red-400 font-medium">
-                    {comment.engagement} interações
-                  </span>
-                  <ThumbsDown className="h-4 w-4 text-red-400" />
-                </div>
-              </div>
-            ))}
-          </TabsContent>
-        </Tabs>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[0, 1, 2].map((index) => (
+                <TableRow key={index} className="border-blue-600 hover:bg-transparent">
+                  <TableCell className="border-r border-blue-600 p-3 align-top">
+                    {flopComments[index] && (
+                      <CommentCell 
+                        comment={flopComments[index]} 
+                        isPositive={false} 
+                        index={index}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell className="p-3 align-top">
+                    {topComments[index] && (
+                      <CommentCell 
+                        comment={topComments[index]} 
+                        isPositive={true} 
+                        index={index}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
