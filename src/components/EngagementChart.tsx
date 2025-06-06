@@ -22,20 +22,20 @@ export const EngagementChart = () => {
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+        <CardTitle className="text-lg font-semibold text-white flex items-center">
           📈 Postagens e Engajamento
         </CardTitle>
-        <p className="text-sm text-slate-600">Últimos 7 dias</p>
+        <p className="text-sm text-blue-300">Últimos 7 dias</p>
       </CardHeader>
       <CardContent>
         <div className="h-48 mb-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="day" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="day" stroke="#93c5fd" fontSize={12} />
+              <YAxis stroke="#93c5fd" fontSize={12} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#1e293b', 
@@ -44,20 +44,20 @@ export const EngagementChart = () => {
                   color: 'white'
                 }}
               />
-              <Bar dataKey="posts" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="posts" fill="#60a5fa" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Top Post */}
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
-          <h4 className="font-semibold text-slate-800 mb-2">🏆 Post com Maior Engajamento</h4>
+        <div className="bg-blue-600 border border-blue-500 rounded-lg p-4">
+          <h4 className="font-semibold text-white mb-2">🏆 Post com Maior Engajamento</h4>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-700">{topPost.type}</p>
-            <p className="text-xs text-slate-600">{topPost.date}</p>
+            <p className="text-sm font-medium text-blue-300">{topPost.type}</p>
+            <p className="text-xs text-blue-300">{topPost.date}</p>
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-orange-600">{topPost.engagement.toLocaleString()} interações</span>
-              <button className="text-xs text-blue-600 hover:underline">Ver Post</button>
+              <span className="text-lg font-bold text-blue-400">{topPost.engagement.toLocaleString()} interações</span>
+              <button className="text-xs text-blue-400 hover:underline">Ver Post</button>
             </div>
           </div>
         </div>

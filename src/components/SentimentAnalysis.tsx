@@ -11,12 +11,12 @@ export const SentimentAnalysis = () => {
   ];
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+        <CardTitle className="text-lg font-semibold text-white flex items-center">
           📊 Análise de Sentimento
         </CardTitle>
-        <p className="text-sm text-slate-600">Instagram + Web (últimas 24h)</p>
+        <p className="text-sm text-blue-300">Instagram + Web (últimas 24h)</p>
       </CardHeader>
       <CardContent>
         <div className="h-64">
@@ -42,8 +42,8 @@ export const SentimentAnalysis = () => {
           {data.map((item) => (
             <div key={item.name} className="text-center">
               <div className={`w-3 h-3 rounded-full mx-auto mb-1`} style={{ backgroundColor: item.color }} />
-              <p className="text-xs text-slate-600">{item.name}</p>
-              <p className="text-sm font-semibold">{item.value}%</p>
+              <p className="text-xs text-blue-300">{item.name}</p>
+              <p className="text-sm font-semibold text-white">{item.value}%</p>
             </div>
           ))}
         </div>

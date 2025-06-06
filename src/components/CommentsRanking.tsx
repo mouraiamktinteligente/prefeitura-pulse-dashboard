@@ -61,21 +61,21 @@ export const CommentsRanking = () => {
   ];
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+        <CardTitle className="text-lg font-semibold text-white flex items-center">
           🏆 Ranking de Comentários
         </CardTitle>
-        <p className="text-sm text-slate-600">Melhores e piores interações</p>
+        <p className="text-sm text-blue-300">Melhores e piores interações</p>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="top" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="top" className="flex items-center space-x-2">
+          <TabsList className="grid w-full grid-cols-2 bg-blue-600">
+            <TabsTrigger value="top" className="flex items-center space-x-2 data-[state=active]:bg-blue-500 text-white">
               <ThumbsUp className="h-4 w-4" />
               <span>Top Comentários</span>
             </TabsTrigger>
-            <TabsTrigger value="flop" className="flex items-center space-x-2">
+            <TabsTrigger value="flop" className="flex items-center space-x-2 data-[state=active]:bg-blue-500 text-white">
               <ThumbsDown className="h-4 w-4" />
               <span>Flop Comentários</span>
             </TabsTrigger>
@@ -83,26 +83,26 @@ export const CommentsRanking = () => {
 
           <TabsContent value="top" className="space-y-4 mt-4">
             {topComments.map((comment, index) => (
-              <div key={comment.id} className="border border-green-200 bg-green-50 rounded-lg p-4">
+              <div key={comment.id} className="border border-green-500 bg-blue-600 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <span className="font-medium text-slate-700">{comment.user}</span>
-                    <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded">{comment.platform}</span>
+                    <span className="font-medium text-white">{comment.user}</span>
+                    <span className="text-xs text-blue-300 bg-blue-700 px-2 py-1 rounded">{comment.platform}</span>
                   </div>
-                  <Button size="sm" variant="outline" className="h-7 px-2">
+                  <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Ver Perfil
                   </Button>
                 </div>
-                <p className="text-sm text-slate-700 mb-3 italic">"{comment.comment}"</p>
+                <p className="text-sm text-blue-300 mb-3 italic">"{comment.comment}"</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-600 font-medium">
+                  <span className="text-xs text-green-400 font-medium">
                     {comment.engagement} interações
                   </span>
-                  <ThumbsUp className="h-4 w-4 text-green-600" />
+                  <ThumbsUp className="h-4 w-4 text-green-400" />
                 </div>
               </div>
             ))}
@@ -110,26 +110,26 @@ export const CommentsRanking = () => {
 
           <TabsContent value="flop" className="space-y-4 mt-4">
             {flopComments.map((comment, index) => (
-              <div key={comment.id} className="border border-red-200 bg-red-50 rounded-lg p-4">
+              <div key={comment.id} className="border border-red-500 bg-blue-600 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <span className="font-medium text-slate-700">{comment.user}</span>
-                    <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded">{comment.platform}</span>
+                    <span className="font-medium text-white">{comment.user}</span>
+                    <span className="text-xs text-blue-300 bg-blue-700 px-2 py-1 rounded">{comment.platform}</span>
                   </div>
-                  <Button size="sm" variant="outline" className="h-7 px-2">
+                  <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Ver Perfil
                   </Button>
                 </div>
-                <p className="text-sm text-slate-700 mb-3 italic">"{comment.comment}"</p>
+                <p className="text-sm text-blue-300 mb-3 italic">"{comment.comment}"</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-red-600 font-medium">
+                  <span className="text-xs text-red-400 font-medium">
                     {comment.engagement} interações
                   </span>
-                  <ThumbsDown className="h-4 w-4 text-red-600" />
+                  <ThumbsDown className="h-4 w-4 text-red-400" />
                 </div>
               </div>
             ))}

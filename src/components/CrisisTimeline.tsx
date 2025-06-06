@@ -14,20 +14,20 @@ export const CrisisTimeline = () => {
   ];
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+        <CardTitle className="text-lg font-semibold text-white flex items-center">
           📉 Linha do Tempo de Crise
         </CardTitle>
-        <p className="text-sm text-slate-600">Picos de comentários negativos</p>
+        <p className="text-sm text-blue-300">Picos de comentários negativos</p>
       </CardHeader>
       <CardContent>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="day" stroke="#64748b" fontSize={10} />
-              <YAxis stroke="#64748b" fontSize={10} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="day" stroke="#93c5fd" fontSize={10} />
+              <YAxis stroke="#93c5fd" fontSize={10} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#1e293b', 
@@ -55,15 +55,15 @@ export const CrisisTimeline = () => {
         
         {/* Event Markers */}
         <div className="mt-4 space-y-2">
-          <h4 className="text-sm font-semibold text-slate-700">Eventos Detectados:</h4>
+          <h4 className="text-sm font-semibold text-white">Eventos Detectados:</h4>
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-red-500 rounded-full" />
-              <span className="text-xs text-slate-600">03/06 - Protesto sobre trânsito (pico: 45 comentários)</span>
+              <span className="text-xs text-blue-300">03/06 - Protesto sobre trânsito (pico: 45 comentários)</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-orange-500 rounded-full" />
-              <span className="text-xs text-slate-600">04/06 - Repercussão nas redes sociais</span>
+              <span className="text-xs text-blue-300">04/06 - Repercussão nas redes sociais</span>
             </div>
           </div>
         </div>

@@ -19,12 +19,12 @@ export const HeatMap = () => {
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+        <CardTitle className="text-lg font-semibold text-white flex items-center">
           🗺️ Mapa de Calor por Região
         </CardTitle>
-        <p className="text-sm text-slate-600">Volume de interações por área</p>
+        <p className="text-sm text-blue-300">Volume de interações por área</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -32,10 +32,10 @@ export const HeatMap = () => {
             <div key={region.name} className="flex items-center space-x-3">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-slate-700">{region.name}</span>
-                  <span className="text-xs text-slate-500">{region.interactions} interações</span>
+                  <span className="text-sm font-medium text-white">{region.name}</span>
+                  <span className="text-xs text-blue-300">{region.interactions} interações</span>
                 </div>
-                <div className="w-full bg-slate-200 rounded-full h-2">
+                <div className="w-full bg-blue-600 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full ${getIntensityColor(region.intensity)} transition-all duration-1000`}
                     style={{ width: `${region.intensity}%` }}
@@ -47,8 +47,8 @@ export const HeatMap = () => {
           ))}
         </div>
         
-        <div className="mt-4 pt-4 border-t border-slate-200">
-          <div className="flex items-center justify-between text-xs text-slate-500">
+        <div className="mt-4 pt-4 border-t border-blue-600">
+          <div className="flex items-center justify-between text-xs text-blue-300">
             <span>Baixo</span>
             <div className="flex space-x-1">
               <div className="w-3 h-3 bg-green-500 rounded-full" />
