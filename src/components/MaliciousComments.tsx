@@ -19,17 +19,9 @@ export const MaliciousComments = () => {
       id: 2,
       user: '@maria_santos',
       platform: 'Web',
-      comment: 'Quando vão arrumar as ruas do centro?',
+      comment: 'Quando vão arrumar as ruas?',
       severity: 'baixa',
       timestamp: '4h atrás'
-    },
-    {
-      id: 3,
-      user: '@carlos_oliveira',
-      platform: 'Instagram',
-      comment: 'Imposto alto e serviço ruim!',
-      severity: 'alta',
-      timestamp: '6h atrás'
     }
   ];
 
@@ -43,7 +35,7 @@ export const MaliciousComments = () => {
   };
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
           ⚠️ Alertas de Comentários
