@@ -22,7 +22,7 @@ export const EngagementChart = () => {
   };
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-96">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
           📈 Postagens e Engajamento
@@ -30,7 +30,7 @@ export const EngagementChart = () => {
         <p className="text-sm text-blue-300">Últimos 7 dias</p>
       </CardHeader>
       <CardContent>
-        <div className="h-32 mb-4">
+        <div className="h-48 mb-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
