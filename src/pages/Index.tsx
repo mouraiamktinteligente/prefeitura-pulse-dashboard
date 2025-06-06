@@ -24,7 +24,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-blue-900">
+    <div className="min-h-screen bg-slate-900">
       <Header isConnected={isConnected} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
@@ -47,7 +47,24 @@ const Index = () => {
           
           {/* Right Column */}
           <div className="space-y-6">
-            <MaliciousComments />
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium">@carlos_oliveira</span>
+                  <span className="text-xs text-blue-400 bg-blue-600 px-2 py-1 rounded">Instagram</span>
+                  <span className="text-xs text-red-400 bg-red-900 px-2 py-1 rounded">alta</span>
+                </div>
+              </div>
+              <p className="text-sm text-blue-300 mb-3 italic">"Imposto alto e serviço ruim!"</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-blue-300">6h atrás</span>
+                <div className="flex space-x-2">
+                  <button className="text-xs text-blue-400 hover:underline px-2 py-1 border border-blue-600 rounded">👥 Equipe</button>
+                  <button className="text-xs text-blue-400 hover:underline px-2 py-1 border border-blue-600 rounded">💬 Responder</button>
+                  <button className="text-xs text-blue-400 hover:underline px-2 py-1 border border-blue-600 rounded">👁️ Ocultar</button>
+                </div>
+              </div>
+            </div>
             <CrisisTimeline />
           </div>
         </div>
