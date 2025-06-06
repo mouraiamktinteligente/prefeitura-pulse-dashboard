@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,7 +92,6 @@ export const CommentsRanking = () => {
         <CardTitle className="text-lg font-semibold text-white flex items-center">
           🏆 Ranking de Comentários
         </CardTitle>
-        <p className="text-sm text-blue-300">Melhores e piores interações</p>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
