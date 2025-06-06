@@ -24,17 +24,10 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header isConnected={isConnected} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Main Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Análise de Satisfação dos Cidadãos
-          </h1>
-        </div>
-        
         {/* Metrics Cards */}
         <MetricsCards />
         
