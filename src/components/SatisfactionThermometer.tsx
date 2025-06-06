@@ -1,62 +1,75 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
 
 export const SatisfactionThermometer = () => {
-  const satisfaction = 72; // Out of 100
-  const trend = +5; // Compared to yesterday
-
-  const getColor = (value: number) => {
-    if (value >= 70) return 'bg-green-500';
-    if (value >= 40) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const satisfaction = 73; // Out of 100
+  
+  // Calculate colors for the circular progress
+  const getProgressColor = (value: number) => {
+    if (value >= 70) return '#4ECDC4'; // Teal
+    if (value >= 50) return '#FFA726'; // Orange
+    if (value >= 30) return '#FF6B6B'; // Red
+    return '#FF6B6B';
   };
 
-  const getTextColor = (value: number) => {
-    if (value >= 70) return 'text-green-600';
-    if (value >= 40) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const strokeColor = getProgressColor(satisfaction);
+  const circumference = 2 * Math.PI * 45;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (satisfaction / 100) * circumference;
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
-          🌡️ Termômetro de Satisfação
+    <Card className="bg-dashboard-card border-border/50">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-foreground text-center">
+          Satisfação dos Cidadãos
         </CardTitle>
-        <p className="text-sm text-slate-600">Baseado nas últimas 24h</p>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col items-center space-y-4">
-          {/* Thermometer Visual */}
-          <div className="relative w-8 h-48 bg-slate-200 rounded-full overflow-hidden">
-            <div 
-              className={`absolute bottom-0 w-full transition-all duration-1000 ${getColor(satisfaction)}`}
-              style={{ height: `${satisfaction}%` }}
-            />
-            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-slate-300 rounded-full" />
-          </div>
-
-          {/* Satisfaction Score */}
-          <div className="text-center">
-            <div className={`text-3xl font-bold ${getTextColor(satisfaction)}`}>
-              {satisfaction}%
+        <div className="flex flex-col items-center space-y-6">
+          {/* Circular Progress */}
+          <div className="relative w-32 h-32">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              {/* Background circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="hsl(var(--border))"
+                strokeWidth="8"
+                fill="none"
+              />
+              {/* Progress circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke={strokeColor}
+                strokeWidth="8"
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-1000"
+              />
+            </svg>
+            {/* Center value */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-3xl font-bold text-foreground">{satisfaction}</span>
             </div>
-            <p className="text-sm text-slate-600">Satisfação Popular</p>
           </div>
 
-          {/* Trend Indicator */}
-          <div className="flex items-center space-x-2 text-green-600">
-            <TrendingUp className="h-4 w-4" />
-            <span className="text-sm font-medium">+{trend}% vs ontem</span>
-          </div>
-
-          {/* Scale */}
-          <div className="w-full flex justify-between text-xs text-slate-500 mt-4">
-            <span>0%</span>
-            <span>50%</span>
-            <span>100%</span>
+          {/* Progress bar at bottom */}
+          <div className="w-full max-w-[200px]">
+            <div className="h-2 bg-border rounded-full overflow-hidden">
+              <div 
+                className="h-full transition-all duration-1000 rounded-full"
+                style={{ 
+                  width: `${satisfaction}%`,
+                  background: `linear-gradient(90deg, #FF6B6B 0%, #FFA726 50%, #4ECDC4 100%)`
+                }}
+              />
+            </div>
           </div>
         </div>
       </CardContent>

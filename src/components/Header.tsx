@@ -25,32 +25,32 @@ export const Header: React.FC<HeaderProps> = ({ isConnected }) => {
   };
 
   return (
-    <header className="bg-slate-900 text-white shadow-xl border-b-4 border-orange-500 sticky top-0 z-50">
+    <header className="bg-dashboard-card border-b border-border/50 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-xl font-bold">🏛️</span>
+            <div className="w-12 h-12 bg-dashboard-orange rounded-full flex items-center justify-center">
+              <span className="text-xl font-bold text-dashboard-card">🏛️</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-orange-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-foreground">
                 Prefeitura de São Paulo
               </h1>
-              <p className="text-slate-300 text-sm">Dashboard de Engajamento Social</p>
+              <p className="text-muted-foreground text-sm">Dashboard de Engajamento Social</p>
             </div>
           </div>
 
           {/* Date/Time and Status */}
           <div className="text-right space-y-2">
-            <div className="text-sm text-slate-300">
+            <div className="text-sm text-muted-foreground">
               {formatDateTime(currentTime)}
             </div>
             <Badge 
               variant={isConnected ? "default" : "destructive"}
-              className={`${isConnected ? 'bg-green-600' : 'bg-red-600'} text-white`}
+              className={`${isConnected ? 'bg-dashboard-green' : 'bg-dashboard-red'} text-dashboard-card border-0`}
             >
-              <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`} />
+              <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-dashboard-card' : 'bg-dashboard-card'} animate-pulse`} />
               {isConnected ? 'Sistema Online' : 'Desconectado'}
             </Badge>
           </div>
