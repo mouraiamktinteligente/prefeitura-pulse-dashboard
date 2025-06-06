@@ -27,7 +27,7 @@ const Index = () => {
     <div className="min-h-screen bg-blue-900">
       <Header isConnected={isConnected} />
       
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="px-4 py-6 space-y-6">
         {/* Metrics Cards */}
         <MetricsCards />
         
