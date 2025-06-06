@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ isConnected }) => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">
                 Prefeitura de São Paulo
               </h1>
-              <p className="text-blue-300 text-sm">Dashboard de Engajamento Social</p>
+              <p className="text-blue-300 text-sm">Plataforma de Inteligência Digital para Governos Estratégicos</p>
             </div>
           </div>
 
