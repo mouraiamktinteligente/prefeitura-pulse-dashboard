@@ -103,7 +103,7 @@ const Login = () => {
             <Lock className="w-10 h-10 text-white" />
           </div>
           <CardTitle className="text-3xl font-bold text-slate-800 mb-2">
-            Moura IA Marketing
+            MourIA Marketing
           </CardTitle>
           <p className="text-slate-600 text-lg">Faça login em sua conta</p>
         </CardHeader>

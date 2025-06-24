@@ -97,7 +97,7 @@ export function TopNavigation() {
           </div>
           <div>
             <h1 className="text-white font-bold text-lg hover:text-blue-200 transition-colors">Dashboard</h1>
-            <p className="text-blue-300 text-xs">Moura IA Marketing Inteligente</p>
+            <p className="text-blue-300 text-xs">MourIA Marketing Inteligente</p>
           </div>
         </div>
 
