@@ -24,16 +24,16 @@ export const useUserPermissions = (): UserPermissions => {
       return;
     }
 
-    // Como o login já verificou a tabela usuarios_sistema, podemos usar os dados do usuário
+    // Usar os dados do usuário autenticado
     const userData: UsuarioSistema = {
       id: user.id,
-      tipo_usuario: user.user_metadata.tipo_usuario,
+      tipo_usuario: user.tipo_usuario,
       tipo_pessoa: 'fisica',
-      nome_completo: user.user_metadata.nome_completo,
+      nome_completo: user.nome_completo,
       cpf_cnpj: '00000000000',
       email: user.email,
       ativo: true,
-      permissoes: user.user_metadata.permissoes || {},
+      permissoes: user.permissoes || {},
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -43,7 +43,6 @@ export const useUserPermissions = (): UserPermissions => {
     setLoading(false);
   }, [user]);
 
-  // Verificar se tem permissão "Full" para ser administrador
   const isAdmin = userSystem?.tipo_usuario === 'administrador' || 
                   (userSystem?.permissoes && typeof userSystem.permissoes === 'object' && userSystem.permissoes.Full === true);
 

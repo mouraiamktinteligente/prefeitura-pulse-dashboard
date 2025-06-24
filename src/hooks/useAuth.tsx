@@ -9,7 +9,6 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   setFirstPassword: (email: string, newPassword: string) => Promise<{ error: any }>;
-  checkFirstAccess: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,36 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const checkFirstAccess = async (email: string): Promise<boolean> => {
-    try {
-      const { data: userData, error } = await supabase
-        .from('usuarios_sistema')
-        .select('senha_hash')
-        .eq('email', email)
-        .eq('ativo', true)
-        .maybeSingle();
-
-      if (error || !userData) {
-        return false;
-      }
-
-      // Se não tem senha_hash, é primeiro acesso
-      return !userData.senha_hash;
-    } catch (error) {
-      console.error('Erro ao verificar primeiro acesso:', error);
-      return false;
-    }
-  };
-
   const setFirstPassword = async (email: string, newPassword: string) => {
     try {
       console.log('Definindo primeira senha para:', email);
       
-      // Gerar hash da senha
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
       
-      // Atualizar senha no banco
       const { error } = await supabase
         .from('usuarios_sistema')
         .update({ senha_hash: hashedPassword })
@@ -108,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Iniciando processo de login para:', email);
       
-      // Verificar se existe usuário ativo
+      // Buscar usuário na tabela usuarios_sistema
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
         .select('*')
@@ -123,38 +99,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!userData) {
         console.error('Usuário não encontrado ou inativo');
-        return { error: { message: 'Usuário não encontrado ou inativo no sistema' } };
+        return { error: { message: 'E-mail ou senha incorretos' } };
       }
 
-      // Verificar se é primeiro acesso
+      // Verificar se é primeiro acesso (sem senha)
       if (!userData.senha_hash) {
         return { error: { message: 'FIRST_ACCESS', user: userData } };
       }
 
-      // Verificar senha com hash
+      // Verificar senha
       const isPasswordValid = await bcrypt.compare(password, userData.senha_hash);
       if (!isPasswordValid) {
         console.error('Senha incorreta');
         return { error: { message: 'E-mail ou senha incorretos' } };
       }
 
-      console.log('Usuário autenticado:', userData);
+      console.log('Usuário autenticado com sucesso:', userData.email);
       
-      // Simular objeto de usuário
-      const simulatedUser = {
+      // Criar objeto de usuário simples
+      const authenticatedUser = {
         id: userData.id,
         email: userData.email,
-        user_metadata: {
-          nome_completo: userData.nome_completo,
-          tipo_usuario: userData.tipo_usuario,
-          permissoes: userData.permissoes
-        }
+        nome_completo: userData.nome_completo,
+        tipo_usuario: userData.tipo_usuario,
+        permissoes: userData.permissoes
       };
 
-      setUser(simulatedUser);
-      
-      // Salvar no localStorage para persistência
-      localStorage.setItem('auth_user', JSON.stringify(simulatedUser));
+      setUser(authenticatedUser);
+      localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
       
       // Registrar log de acesso
       await logAccess(email);
@@ -178,7 +150,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('Verificando sessão existente...');
     
-    // Verificar se há usuário salvo no localStorage
     const savedUser = localStorage.getItem('auth_user');
     if (savedUser) {
       try {
@@ -195,7 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, logout, isLoading, signIn, setFirstPassword, checkFirstAccess }}>
+    <AuthContext.Provider value={{ user, logout, isLoading, signIn, setFirstPassword }}>
       {children}
     </AuthContext.Provider>
   );
