@@ -26,12 +26,15 @@ export const useUserPermissions = (): UserPermissions => {
       }
 
       try {
+        // Aguardar um pouco para garantir que o JWT seja processado
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const { data, error } = await supabase
           .from('usuarios_sistema')
           .select('*')
           .eq('email', user.email)
           .eq('ativo', true)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Erro ao buscar dados do usuário:', error);
