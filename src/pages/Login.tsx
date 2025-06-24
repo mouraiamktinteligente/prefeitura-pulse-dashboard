@@ -35,47 +35,11 @@ const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        console.error('Erro no login:', error);
-        
-        // Verificar se é primeiro acesso
-        if (error.message === 'FIRST_ACCESS') {
-          toast({
-            title: "Primeiro Acesso",
-            description: "Você precisa definir sua senha de acesso.",
-          });
-          navigate('/first-access', { state: { user: error.user } });
-          return;
-        }
-        
-        // Outros tipos de erro
-        if (error.message?.includes('Email not confirmed') || 
-            error.code === 'email_not_confirmed') {
-          toast({
-            title: "Email não confirmado",
-            description: "Você precisa confirmar seu email antes de fazer login. Verifique sua caixa de entrada e spam.",
-            variant: "destructive"
-          });
-        } else if (error.message?.includes('Invalid login credentials') || 
-                   error.message?.includes('invalid_credentials') ||
-                   error.message?.includes('E-mail ou senha incorretos')) {
-          toast({
-            title: "Credenciais inválidas",
-            description: "E-mail ou senha incorretos. Verifique os dados e tente novamente.",
-            variant: "destructive"
-          });
-        } else if (error.message?.includes('Usuário não encontrado')) {
-          toast({
-            title: "Usuário não encontrado",
-            description: "Este usuário não está cadastrado no sistema. Entre em contato com o administrador.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Erro no login",
-            description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Credenciais inválidas",
+          description: "E-mail ou senha incorretos. Verifique os dados e tente novamente.",
+          variant: "destructive"
+        });
       } else {
         toast({
           title: "Sucesso",
