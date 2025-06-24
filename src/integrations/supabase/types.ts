@@ -367,7 +367,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       tipo_pessoa: "fisica" | "juridica"
