@@ -5,9 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Eye, EyeOff } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Mail, AlertCircle } from "lucide-react";
 
-export const CreateAuthUser = () => {
+interface CreateAuthUserProps {
+  onUserCreated?: () => void;
+}
+
+export const CreateAuthUser = ({ onUserCreated }: CreateAuthUserProps) => {
   const [email, setEmail] = useState('admin@sistema.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -51,21 +55,29 @@ export const CreateAuthUser = () => {
         if (error.message.includes('User already registered')) {
           toast({
             title: "Informação",
-            description: "Usuário já existe no sistema de autenticação. Tente fazer login.",
+            description: "Usuário já existe no sistema de autenticação.",
             variant: "default"
           });
         } else {
           throw error;
         }
-      } else {
+      } else if (data.user) {
+        const needsConfirmation = !data.user.email_confirmed_at;
+        
         toast({
           title: "Sucesso",
-          description: `Usuário ${email} criado com sucesso no sistema de autenticação!`,
+          description: needsConfirmation 
+            ? `Usuário ${email} criado! Verifique o email para confirmar a conta.`
+            : `Usuário ${email} criado e confirmado com sucesso!`,
         });
         
         // Limpar formulário
-        setEmail('');
         setPassword('');
+        
+        // Notificar componente pai
+        if (onUserCreated) {
+          onUserCreated();
+        }
       }
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);
@@ -80,32 +92,35 @@ export const CreateAuthUser = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-blue-800/60 border-blue-600/50 shadow-xl backdrop-blur-sm">
-      <CardHeader className="bg-blue-700/60 text-blue-100 border-b border-blue-600/50">
+    <Card className="w-full bg-slate-800/90 border-slate-600/50 shadow-xl backdrop-blur-sm">
+      <CardHeader className="bg-slate-700/60 text-slate-100 border-b border-slate-600/50">
         <CardTitle className="flex items-center gap-2">
-          <UserPlus className="w-5 h-5 text-blue-300" />
+          <UserPlus className="w-5 h-5 text-blue-400" />
           Criar Usuário no Auth
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleCreateUser} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-blue-200">
+            <label htmlFor="email" className="text-sm font-medium text-slate-200">
               E-mail
             </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-blue-900/50 border-blue-600/50 text-blue-100 placeholder:text-blue-400 focus:border-blue-400 focus:ring-blue-400/50"
-              required
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10 bg-slate-700/50 border-slate-600/50 text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400/50"
+                required
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-blue-200">
+            <label htmlFor="password" className="text-sm font-medium text-slate-200">
               Senha
             </label>
             <div className="relative">
@@ -115,13 +130,13 @@ export const CreateAuthUser = () => {
                 placeholder="Senha (mín. 6 caracteres)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-10 bg-blue-900/50 border-blue-600/50 text-blue-100 placeholder:text-blue-400 focus:border-blue-400 focus:ring-blue-400/50"
+                className="pr-10 bg-slate-700/50 border-slate-600/50 text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400/50"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -137,11 +152,18 @@ export const CreateAuthUser = () => {
           </Button>
         </form>
         
-        <div className="mt-4 p-4 bg-blue-700/40 border border-blue-600/40 rounded-lg">
-          <p className="text-sm text-blue-200 leading-relaxed">
-            <strong className="text-blue-100">Nota:</strong> Este formulário cria usuários no sistema de autenticação do Supabase. 
-            Certifique-se de que o usuário já existe na tabela usuarios_sistema.
-          </p>
+        <div className="mt-4 p-4 bg-amber-900/30 border border-amber-600/40 rounded-lg">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-amber-200 leading-relaxed">
+              <p className="font-semibold mb-1">⚠️ Importante:</p>
+              <p>
+                Por padrão, o Supabase envia um email de confirmação. O usuário precisará 
+                confirmar o email antes de fazer login. Para desenvolvimento, você pode 
+                desabilitar isso nas configurações do Supabase.
+              </p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
