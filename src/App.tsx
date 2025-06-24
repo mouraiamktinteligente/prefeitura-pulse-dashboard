@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import AuthSetup from "./pages/AuthSetup";
 import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
 import UserManagement from "./pages/UserManagement";
@@ -31,6 +32,8 @@ const AppRoutes = () => {
       <Route path="/login" element={
         user ? <Navigate to="/dashboard" replace /> : <Login />
       } />
+      
+      <Route path="/auth-setup" element={<AuthSetup />} />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>

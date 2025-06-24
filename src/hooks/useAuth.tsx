@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Iniciando processo de login para:', email);
       
-      // Tentar fazer login no Supabase Auth primeiro
+      // Tentar fazer login no Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -73,37 +73,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
-      console.log('Login no Auth bem-sucedido, verificando usuário no sistema...');
+      console.log('Login no Auth bem-sucedido para:', email);
 
-      // Após login bem-sucedido no Auth, verificar se usuário existe na tabela usuarios_sistema
-      // Aguardar um pouco para garantir que o token JWT esteja disponível
-      setTimeout(async () => {
-        try {
-          const { data: userSystem, error: userSystemError } = await supabase
-            .from('usuarios_sistema')
-            .select('*')
-            .eq('email', email)
-            .eq('ativo', true)
-            .single();
+      // Verificar se usuário existe na tabela usuarios_sistema após login bem-sucedido
+      try {
+        const { data: userSystem, error: userSystemError } = await supabase
+          .from('usuarios_sistema')
+          .select('*')
+          .eq('email', email)
+          .eq('ativo', true)
+          .single();
 
-          if (userSystemError || !userSystem) {
-            console.error('Usuário não encontrado na tabela usuarios_sistema:', userSystemError);
-            // Se usuário não existe no sistema, fazer logout
-            await supabase.auth.signOut();
-            return { 
-              error: { 
-                message: 'Usuário não encontrado ou inativo no sistema.' 
-              } 
-            };
-          }
-
-          console.log('Usuário encontrado no sistema:', userSystem);
-          // Se chegou até aqui, registrar log de acesso
-          await logAccess(email);
-        } catch (error) {
-          console.error('Erro na verificação do usuário:', error);
+        if (userSystemError || !userSystem) {
+          console.error('Usuário não encontrado na tabela usuarios_sistema:', userSystemError);
+          // Se usuário não existe no sistema, fazer logout
+          await supabase.auth.signOut();
+          return { 
+            error: { 
+              message: 'Usuário não encontrado ou inativo no sistema.' 
+            } 
+          };
         }
-      }, 500);
+
+        console.log('Usuário encontrado no sistema:', userSystem);
+        // Se chegou até aqui, registrar log de acesso
+        await logAccess(email);
+      } catch (error) {
+        console.error('Erro na verificação do usuário:', error);
+        // Em caso de erro na verificação, fazer logout por segurança
+        await supabase.auth.signOut();
+        return { 
+          error: { 
+            message: 'Erro na verificação do usuário no sistema.' 
+          } 
+        };
+      }
 
       return { error: null };
     } catch (error) {

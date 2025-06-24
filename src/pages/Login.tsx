@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Settings } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,11 +35,23 @@ const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        toast({
-          title: "Erro no login",
-          description: error.message || "Credenciais inválidas.",
-          variant: "destructive"
-        });
+        console.error('Erro no login:', error);
+        
+        // Verificar se é erro de credenciais inválidas
+        if (error.message?.includes('Invalid login credentials') || 
+            error.message?.includes('invalid_credentials')) {
+          toast({
+            title: "Erro no login",
+            description: "E-mail ou senha incorretos. Se você é o administrador, pode ser necessário criar sua conta no sistema de autenticação.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro no login",
+            description: error.message || "Credenciais inválidas.",
+            variant: "destructive"
+          });
+        }
       } else {
         toast({
           title: "Sucesso",
@@ -48,6 +60,7 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Erro inesperado:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -124,13 +137,24 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-8 text-center border-t border-blue-100 pt-6">
-            <p className="text-sm text-blue-700 mb-1">
-              Para teste, use: <strong className="text-blue-900">admin@sistema.com</strong>
-            </p>
-            <p className="text-xs text-blue-500">
-              (A senha deve ser criada no Supabase Auth)
-            </p>
+          <div className="mt-8 space-y-4">
+            <div className="text-center border-t border-blue-100 pt-6">
+              <p className="text-sm text-blue-700 mb-2">
+                Para teste, use: <strong className="text-blue-900">admin@sistema.com</strong>
+              </p>
+              <p className="text-xs text-blue-500 mb-4">
+                (Se ainda não criou a conta, use o botão abaixo)
+              </p>
+              
+              <Button
+                onClick={() => navigate('/auth-setup')}
+                variant="outline"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Configurar Autenticação
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
