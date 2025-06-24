@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import type { UsuarioSistema } from "./useUsers";
 
@@ -18,116 +17,38 @@ export const useUserPermissions = (): UserPermissions => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserSystem = async () => {
-      if (!user?.email) {
-        console.log('useUserPermissions: Nenhum usuário logado');
-        setUserSystem(null);
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      console.log('useUserPermissions: Nenhum usuário logado');
+      setUserSystem(null);
+      setLoading(false);
+      return;
+    }
 
-      try {
-        console.log('useUserPermissions: Buscando dados do usuário para:', user.email);
-        
-        // Para o usuário admin, vamos criar/buscar diretamente
-        if (user.email === 'admin@sistema.com') {
-          console.log('useUserPermissions: Processando usuário admin...');
-          
-          // Primeiro, tentar buscar
-          const { data: existingUser } = await supabase
-            .from('usuarios_sistema')
-            .select('*')
-            .eq('email', 'admin@sistema.com')
-            .eq('ativo', true)
-            .maybeSingle();
-
-          if (existingUser) {
-            console.log('useUserPermissions: Admin encontrado:', existingUser);
-            setUserSystem(existingUser);
-          } else {
-            console.log('useUserPermissions: Criando usuário admin...');
-            // Se não encontrou, criar
-            const { data: newAdmin, error: insertError } = await supabase
-              .from('usuarios_sistema')
-              .insert({
-                tipo_usuario: 'administrador',
-                tipo_pessoa: 'fisica',
-                nome_completo: 'Administrador do Sistema',
-                cpf_cnpj: '00000000000',
-                email: 'admin@sistema.com',
-                ativo: true
-              })
-              .select()
-              .maybeSingle();
-
-            if (insertError) {
-              console.error('useUserPermissions: Erro ao criar admin:', insertError);
-              // Se não conseguir criar, vamos simular um usuário admin para continuar
-              const simulatedAdmin: UsuarioSistema = {
-                id: 'simulated-admin',
-                tipo_usuario: 'administrador',
-                tipo_pessoa: 'fisica',
-                nome_completo: 'Administrador do Sistema',
-                cpf_cnpj: '00000000000',
-                email: 'admin@sistema.com',
-                ativo: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              console.log('useUserPermissions: Usando admin simulado devido ao erro RLS');
-              setUserSystem(simulatedAdmin);
-            } else {
-              console.log('useUserPermissions: Admin criado com sucesso:', newAdmin);
-              setUserSystem(newAdmin);
-            }
-          }
-        } else {
-          // Para outros usuários, tentar busca normal
-          const { data, error } = await supabase
-            .from('usuarios_sistema')
-            .select('*')
-            .eq('email', user.email)
-            .eq('ativo', true)
-            .maybeSingle();
-
-          if (error) {
-            console.error('useUserPermissions: Erro ao buscar usuário:', error);
-            setUserSystem(null);
-          } else {
-            setUserSystem(data);
-          }
-        }
-      } catch (error) {
-        console.error('useUserPermissions: Erro inesperado:', error);
-        // Para admin, sempre permitir acesso mesmo com erro
-        if (user.email === 'admin@sistema.com') {
-          const simulatedAdmin: UsuarioSistema = {
-            id: 'simulated-admin',
-            tipo_usuario: 'administrador',
-            tipo_pessoa: 'fisica',
-            nome_completo: 'Administrador do Sistema',
-            cpf_cnpj: '00000000000',
-            email: 'admin@sistema.com',
-            ativo: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          console.log('useUserPermissions: Usando admin simulado devido ao erro geral');
-          setUserSystem(simulatedAdmin);
-        } else {
-          setUserSystem(null);
-        }
-      } finally {
-        setLoading(false);
-      }
+    // Como o login já verificou a tabela usuarios_sistema, podemos usar os dados do usuário
+    const userData: UsuarioSistema = {
+      id: user.id,
+      tipo_usuario: user.user_metadata.tipo_usuario,
+      tipo_pessoa: 'fisica', // valor padrão
+      nome_completo: user.user_metadata.nome_completo,
+      cpf_cnpj: '00000000000', // valor padrão
+      email: user.email,
+      ativo: true,
+      permissoes: user.user_metadata.permissoes || {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    fetchUserSystem();
-  }, [user?.email]);
+    console.log('useUserPermissions: Dados do usuário:', userData);
+    setUserSystem(userData);
+    setLoading(false);
+  }, [user]);
+
+  // Verificar se tem permissão "Full" para ser administrador
+  const isAdmin = userSystem?.tipo_usuario === 'administrador' || userSystem?.permissoes?.Full === true;
 
   return {
     userSystem,
-    isAdmin: userSystem?.tipo_usuario === 'administrador',
+    isAdmin,
     isUser: userSystem?.tipo_usuario === 'usuario',
     isClient: userSystem?.tipo_usuario === 'cliente',
     loading
