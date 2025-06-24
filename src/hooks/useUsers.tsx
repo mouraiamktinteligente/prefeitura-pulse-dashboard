@@ -2,7 +2,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
 
+// Tipo para inserção que corresponde ao schema do Supabase
+type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
+
+// Tipo para os dados do usuário retornados pelo Supabase
 export interface UsuarioSistema {
   id: string;
   tipo_usuario: 'administrador' | 'usuario' | 'cliente';
@@ -52,7 +57,7 @@ export const useUsers = () => {
     }
   };
 
-  const createUser = async (userData: Partial<UsuarioSistema>) => {
+  const createUser = async (userData: UsuarioInsert) => {
     try {
       const { data, error } = await supabase
         .from('usuarios_sistema')
@@ -79,7 +84,7 @@ export const useUsers = () => {
     }
   };
 
-  const updateUser = async (id: string, userData: Partial<UsuarioSistema>) => {
+  const updateUser = async (id: string, userData: Partial<UsuarioInsert>) => {
     try {
       const { data, error } = await supabase
         .from('usuarios_sistema')

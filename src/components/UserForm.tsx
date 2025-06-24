@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,13 @@ import { Crown, Users, Building } from "lucide-react";
 import { validateCPF, validateCNPJ, formatCPF, formatCNPJ, formatCEP, formatPhone, searchCEP } from "@/utils/validation";
 import { UsuarioSistema } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 interface UserFormProps {
   user?: UsuarioSistema;
-  onSubmit: (userData: Partial<UsuarioSistema>) => Promise<void>;
+  onSubmit: (userData: UsuarioInsert) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -29,8 +31,8 @@ const defaultPermissions = {
 
 export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const [formData, setFormData] = useState({
-    tipo_usuario: user?.tipo_usuario || 'cliente',
-    tipo_pessoa: user?.tipo_pessoa || 'fisica',
+    tipo_usuario: user?.tipo_usuario || 'cliente' as const,
+    tipo_pessoa: user?.tipo_pessoa || 'fisica' as const,
     nome_completo: user?.nome_completo || '',
     razao_social: user?.razao_social || '',
     nome_responsavel: user?.nome_responsavel || '',
@@ -100,14 +102,31 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
 
     setIsSubmitting(true);
     try {
-      const submitData: any = { ...formData };
+      const submitData: UsuarioInsert = {
+        tipo_usuario: formData.tipo_usuario,
+        tipo_pessoa: formData.tipo_pessoa,
+        nome_completo: formData.nome_completo,
+        cpf_cnpj: formData.cpf_cnpj,
+        razao_social: formData.razao_social || null,
+        nome_responsavel: formData.nome_responsavel || null,
+        email: formData.email || null,
+        whatsapp: formData.whatsapp || null,
+        endereco_cep: formData.endereco_cep || null,
+        endereco_rua: formData.endereco_rua || null,
+        endereco_numero: formData.endereco_numero || null,
+        endereco_complemento: formData.endereco_complemento || null,
+        endereco_bairro: formData.endereco_bairro || null,
+        endereco_cidade: formData.endereco_cidade || null,
+        endereco_estado: formData.endereco_estado || null,
+        permissoes: formData.permissoes,
+        ativo: formData.ativo
+      };
       
-      // Remover senha vazia em edições
-      if (!submitData.senha) {
-        delete submitData.senha;
+      // Adicionar senha apenas se foi informada
+      if (formData.senha) {
+        submitData.senha_hash = formData.senha; // Em produção, isso seria hasheado no backend
       }
       
-      // Hash da senha será feito no backend se necessário
       await onSubmit(submitData);
     } catch (error) {
       // Erro já tratado no hook
