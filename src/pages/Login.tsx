@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,23 +15,88 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Verificar se o usuário já está logado
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/dashboard');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  const createAccessLog = async (userEmail: string, sessionId: string) => {
+    try {
+      const userAgent = navigator.userAgent;
+      let ipAddress = null;
+      
+      // Tentar obter IP (funciona apenas em desenvolvimento local)
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        ipAddress = data.ip;
+      } catch (error) {
+        console.log('Não foi possível obter o IP:', error);
+      }
+
+      await supabase.from('logs_acesso').insert({
+        email_usuario: userEmail,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        session_id: sessionId
+      });
+    } catch (error) {
+      console.error('Erro ao criar log de acesso:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      alert('Por favor, preencha todos os campos');
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos",
+        variant: "destructive"
+      });
       return;
     }
 
     setIsLoading(true);
     
-    // Simulação de login - em produção, conectar com Supabase
-    setTimeout(() => {
-      console.log('Login realizado:', { email, password });
-      navigate('/dashboard');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user && data.session) {
+        // Criar log de acesso
+        await createAccessLog(data.user.email!, data.session.access_token);
+        
+        toast({
+          title: "Sucesso",
+          description: "Login realizado com sucesso!",
+        });
+        
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro no login",
+        description: error.message || "Credenciais inválidas",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -44,7 +111,7 @@ const Login = () => {
             Bem-vindo à Plataforma
           </h1>
           <p className="text-blue-300 text-lg">
-            Gestão Municipal
+            Moura IA Marketing Inteligente
           </p>
         </div>
 
@@ -122,7 +189,10 @@ const Login = () => {
                 <button
                   type="button"
                   className="text-blue-300 hover:text-blue-200 text-sm font-medium transition-colors duration-200 hover:underline"
-                  onClick={() => alert('Funcionalidade de recuperação de senha em desenvolvimento')}
+                  onClick={() => toast({
+                    title: "Em desenvolvimento",
+                    description: "Funcionalidade de recuperação de senha em desenvolvimento"
+                  })}
                 >
                   Esqueceu sua senha?
                 </button>
@@ -134,7 +204,7 @@ const Login = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-blue-400 text-sm">
-            © 2024 Dashboard - Gestão Municipal
+            © 2024 Moura IA Marketing Inteligente
           </p>
         </div>
       </div>

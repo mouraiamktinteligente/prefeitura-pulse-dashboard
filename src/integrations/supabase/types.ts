@@ -75,6 +75,42 @@ export type Database = {
         }
         Relationships: []
       }
+      logs_acesso: {
+        Row: {
+          created_at: string
+          data_hora_login: string
+          data_hora_logout: string | null
+          email_usuario: string
+          id: string
+          ip_address: string | null
+          session_id: string | null
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_hora_login?: string
+          data_hora_logout?: string | null
+          email_usuario: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_hora_login?: string
+          data_hora_logout?: string | null
+          email_usuario?: string
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       "perfil-negative": {
         Row: {
           comment: string | null
