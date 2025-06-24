@@ -56,7 +56,7 @@ export const useUsers = () => {
     try {
       const { data, error } = await supabase
         .from('usuarios_sistema')
-        .insert([userData])
+        .insert(userData)
         .select()
         .single();
 
