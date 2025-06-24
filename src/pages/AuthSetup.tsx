@@ -16,17 +16,17 @@ const AuthSetup = () => {
           <Button
             onClick={() => navigate('/login')}
             variant="ghost"
-            className="text-white hover:bg-blue-700/50 mb-4"
+            className="text-blue-100 hover:bg-blue-700/50 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar ao Login
           </Button>
           
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-              <Shield className="w-8 h-8 text-white" />
+            <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Shield className="w-8 h-8 text-blue-100" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-blue-50 mb-2">
               Configuração de Autenticação
             </h1>
             <p className="text-blue-200">
@@ -41,48 +41,48 @@ const AuthSetup = () => {
           </div>
           
           <div className="space-y-6">
-            <Card className="bg-white border-gray-200 shadow-lg">
-              <CardHeader className="bg-gray-50 border-b border-gray-200">
-                <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <Users className="w-5 h-5 text-blue-600" />
+            <Card className="bg-blue-800/60 border-blue-600/50 shadow-xl backdrop-blur-sm">
+              <CardHeader className="bg-blue-700/50 border-b border-blue-600/50">
+                <CardTitle className="flex items-center gap-2 text-blue-100">
+                  <Users className="w-5 h-5 text-blue-300" />
                   Usuários Cadastrados
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-6">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="p-4 bg-blue-700/40 border border-blue-500/40 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">admin@sistema.com</span>
-                    <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                    <span className="font-medium text-blue-100">admin@sistema.com</span>
+                    <span className="text-sm bg-blue-600/70 text-blue-100 px-3 py-1 rounded-full font-medium">
                       Administrador
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 mt-2">
+                  <p className="text-sm text-blue-200 mt-2">
                     Administrador Principal
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-gray-200 shadow-lg">
-              <CardHeader className="bg-gray-50 border-b border-gray-200">
-                <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <Key className="w-5 h-5 text-blue-600" />
+            <Card className="bg-blue-800/60 border-blue-600/50 shadow-xl backdrop-blur-sm">
+              <CardHeader className="bg-blue-700/50 border-b border-blue-600/50">
+                <CardTitle className="flex items-center gap-2 text-blue-100">
+                  <Key className="w-5 h-5 text-blue-300" />
                   Instruções
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-6">
-                <div className="text-sm space-y-3 text-gray-700 leading-relaxed">
+                <div className="text-sm space-y-3 text-blue-200 leading-relaxed">
                   <p>
-                    <strong className="text-gray-900">1.</strong> Use este formulário para criar o usuário <code className="bg-gray-100 px-2 py-1 rounded text-blue-700 font-mono text-xs">admin@sistema.com</code> no sistema de autenticação.
+                    <strong className="text-blue-100">1.</strong> Use este formulário para criar o usuário <code className="bg-blue-700/50 px-2 py-1 rounded text-blue-300 font-mono text-xs">admin@sistema.com</code> no sistema de autenticação.
                   </p>
                   <p>
-                    <strong className="text-gray-900">2.</strong> Defina uma senha segura (mínimo 6 caracteres).
+                    <strong className="text-blue-100">2.</strong> Defina uma senha segura (mínimo 6 caracteres).
                   </p>
                   <p>
-                    <strong className="text-gray-900">3.</strong> Após criar, volte à tela de login e faça o login normalmente.
+                    <strong className="text-blue-100">3.</strong> Após criar, volte à tela de login e faça o login normalmente.
                   </p>
                   <p>
-                    <strong className="text-gray-900">4.</strong> Este usuário já está cadastrado na tabela de usuários do sistema.
+                    <strong className="text-blue-100">4.</strong> Este usuário já está cadastrado na tabela de usuários do sistema.
                   </p>
                 </div>
               </CardContent>
