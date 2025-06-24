@@ -4,9 +4,10 @@ import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   isConnected: boolean;
+  clientName?: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isConnected }) => {
+export const Header: React.FC<HeaderProps> = ({ isConnected, clientName }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -35,9 +36,8 @@ export const Header: React.FC<HeaderProps> = ({ isConnected }) => {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">
-                Prefeitura de São Paulo
+                {clientName || 'Dashboard'}
               </h1>
-              <p className="text-blue-300 text-sm">Plataforma de Inteligência Digital para Governos Estratégicos</p>
             </div>
           </div>
 

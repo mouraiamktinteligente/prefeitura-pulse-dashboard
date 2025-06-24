@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { MetricsCards } from '../components/MetricsCards';
 import { SentimentAnalysis } from '../components/SentimentAnalysis';
@@ -9,9 +10,14 @@ import { MaliciousComments } from '../components/MaliciousComments';
 import { CommentsRanking } from '../components/CommentsRanking';
 import { HeatMap } from '../components/HeatMap';
 import { CrisisTimeline } from '../components/CrisisTimeline';
+import { useClients } from '@/hooks/useClients';
 
 const DetailedDashboard = () => {
   const [isConnected, setIsConnected] = useState(true);
+  const { clientId } = useParams<{ clientId: string }>();
+  const { clients } = useClients();
+  
+  const selectedClient = clients.find(client => client.id === clientId);
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -25,7 +31,7 @@ const DetailedDashboard = () => {
 
   return (
     <div className="min-h-screen bg-blue-900">
-      <Header isConnected={isConnected} />
+      <Header isConnected={isConnected} clientName={selectedClient?.nome_completo} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Metrics Cards */}
