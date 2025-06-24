@@ -60,7 +60,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-white">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-8 h-8 text-white" />
@@ -84,7 +84,7 @@ const Login = () => {
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white border-gray-300 text-gray-900"
                   required
                 />
               </div>
@@ -102,7 +102,7 @@ const Login = () => {
                   placeholder="Sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 bg-white border-gray-300 text-gray-900"
                   required
                 />
                 <button
@@ -117,7 +117,7 @@ const Login = () => {
 
             <Button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={isLoading}
             >
               {isLoading ? "Entrando..." : "Entrar"}
