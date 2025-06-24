@@ -5,25 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { UserPlus, Edit, Trash2, Search, Filter, Instagram } from "lucide-react";
-import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
-import { UserForm } from "@/components/UserForm";
+import { UserPlus, Edit, Trash2, Search, Instagram } from "lucide-react";
+import { useClients, Cliente, ClienteInsert } from "@/hooks/useClients";
+import { ClientForm } from "@/components/ClientForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
-import type { Database } from "@/integrations/supabase/types";
-
-type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 const ClientRegistration = () => {
-  const { users, loading, createUser, updateUser, deleteUser } = useUsers();
-  const [selectedClient, setSelectedClient] = useState<UsuarioSistema | null>(null);
+  const { clients, loading, createClient, updateClient, deleteClient } = useClients();
+  const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Filtrar apenas clientes
-  const clients = users.filter(user => user.tipo_usuario === 'cliente');
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,19 +27,14 @@ const ClientRegistration = () => {
     return matchesSearch;
   });
 
-  const handleCreateClient = async (userData: UsuarioInsert) => {
-    const clientData = {
-      ...userData,
-      tipo_usuario: 'cliente'
-    } as UsuarioInsert;
-    
-    await createUser(clientData);
+  const handleCreateClient = async (clientData: ClienteInsert) => {
+    await createClient(clientData);
     setIsFormOpen(false);
   };
 
-  const handleUpdateClient = async (userData: UsuarioInsert) => {
+  const handleUpdateClient = async (clientData: ClienteInsert) => {
     if (selectedClient) {
-      await updateUser(selectedClient.id, userData);
+      await updateClient(selectedClient.id, clientData);
       setSelectedClient(null);
       setIsFormOpen(false);
     }
@@ -228,8 +216,8 @@ const ClientRegistration = () => {
                 {selectedClient ? 'Editar Cliente' : 'Novo Cliente'}
               </DialogTitle>
             </DialogHeader>
-            <UserForm
-              user={selectedClient || undefined}
+            <ClientForm
+              client={selectedClient || undefined}
               onSubmit={selectedClient ? handleUpdateClient : handleCreateClient}
               onCancel={() => {
                 setIsFormOpen(false);

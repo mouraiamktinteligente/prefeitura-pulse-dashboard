@@ -75,6 +75,72 @@ export type Database = {
         }
         Relationships: []
       }
+      cadastro_clientes: {
+        Row: {
+          ativo: boolean
+          cpf_cnpj: string
+          created_at: string
+          email: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_complemento: string | null
+          endereco_estado: string | null
+          endereco_numero: string | null
+          endereco_rua: string | null
+          id: string
+          instagram: string | null
+          nome_completo: string
+          nome_responsavel: string | null
+          razao_social: string | null
+          tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"]
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          cpf_cnpj: string
+          created_at?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          instagram?: string | null
+          nome_completo: string
+          nome_responsavel?: string | null
+          razao_social?: string | null
+          tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"]
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          cpf_cnpj?: string
+          created_at?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          instagram?: string | null
+          nome_completo?: string
+          nome_responsavel?: string | null
+          razao_social?: string | null
+          tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"]
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       logs_acesso: {
         Row: {
           created_at: string
