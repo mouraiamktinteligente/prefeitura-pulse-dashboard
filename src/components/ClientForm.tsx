@@ -112,26 +112,26 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
+    <Card className="w-full max-w-4xl mx-auto bg-slate-800 border-slate-700">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-white text-lg">
           {getTypeIcon()}
-          {client ? 'Editar' : 'Novo'} Cliente
+          Novo Cliente
         </CardTitle>
       </CardHeader>
       
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="px-6 pb-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Tipo de Pessoa */}
           <div>
-            <Label htmlFor="tipo_pessoa" className="text-blue-100">Tipo de Pessoa</Label>
+            <Label htmlFor="tipo_pessoa" className="text-white text-sm font-medium mb-2 block">Tipo de Pessoa</Label>
             <Select value={formData.tipo_pessoa} onValueChange={(value: any) => 
               setFormData(prev => ({ ...prev, tipo_pessoa: value }))
             }>
-              <SelectTrigger className="bg-blue-900/50 border-blue-600/50 text-white">
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-blue-800 border-blue-700">
+              <SelectContent className="bg-slate-800 border-slate-700">
                 <SelectItem value="fisica">👤 Pessoa Física</SelectItem>
                 <SelectItem value="juridica">🏢 Pessoa Jurídica</SelectItem>
               </SelectContent>
@@ -141,7 +141,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
           {/* Dados Básicos */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="nome_completo" className="text-blue-100">
+              <Label htmlFor="nome_completo" className="text-white text-sm font-medium mb-2 block">
                 {formData.tipo_pessoa === 'fisica' ? 'Nome Completo' : 'Nome Fantasia'}
               </Label>
               <Input
@@ -149,12 +149,12 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
                 value={formData.nome_completo}
                 onChange={(e) => setFormData(prev => ({ ...prev, nome_completo: e.target.value }))}
                 required
-                className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
 
             <div>
-              <Label htmlFor="cpf_cnpj" className="text-blue-100">
+              <Label htmlFor="cpf_cnpj" className="text-white text-sm font-medium mb-2 block">
                 {formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}
               </Label>
               <Input
@@ -168,7 +168,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
                 }}
                 placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
                 required
-                className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -177,22 +177,22 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
           {formData.tipo_pessoa === 'juridica' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="razao_social" className="text-blue-100">Razão Social</Label>
+                <Label htmlFor="razao_social" className="text-white text-sm font-medium mb-2 block">Razão Social</Label>
                 <Input
                   id="razao_social"
                   value={formData.razao_social}
                   onChange={(e) => setFormData(prev => ({ ...prev, razao_social: e.target.value }))}
                   required
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label htmlFor="nome_responsavel" className="text-blue-100">Nome do Responsável</Label>
+                <Label htmlFor="nome_responsavel" className="text-white text-sm font-medium mb-2 block">Nome do Responsável</Label>
                 <Input
                   id="nome_responsavel"
                   value={formData.nome_responsavel}
                   onChange={(e) => setFormData(prev => ({ ...prev, nome_responsavel: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -201,35 +201,35 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
           {/* Contato */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="email" className="text-blue-100">E-mail</Label>
+              <Label htmlFor="email" className="text-white text-sm font-medium mb-2 block">E-mail</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
             <div>
-              <Label htmlFor="whatsapp" className="text-blue-100">WhatsApp</Label>
+              <Label htmlFor="whatsapp" className="text-white text-sm font-medium mb-2 block">WhatsApp</Label>
               <Input
                 id="whatsapp"
                 value={formData.whatsapp}
                 onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: formatPhone(e.target.value) }))}
                 placeholder="(11) 99999-9999"
-                className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
             <div>
-              <Label htmlFor="instagram" className="text-blue-100">Instagram</Label>
+              <Label htmlFor="instagram" className="text-white text-sm font-medium mb-2 block">Instagram</Label>
               <div className="relative">
-                <Instagram className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
+                <Instagram className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
                   id="instagram"
                   value={formData.instagram}
                   onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
                   placeholder="@usuario"
-                  className="pl-10 bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
             <h3 className="text-lg font-semibold text-white">Endereço</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="endereco_cep" className="text-blue-100">CEP</Label>
+                <Label htmlFor="endereco_cep" className="text-white text-sm font-medium mb-2 block">CEP</Label>
                 <Input
                   id="endereco_cep"
                   value={formData.endereco_cep}
@@ -250,79 +250,79 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
                     handleCEPSearch(formatted);
                   }}
                   placeholder="00000-000"
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor="endereco_rua" className="text-blue-100">Rua</Label>
+                <Label htmlFor="endereco_rua" className="text-white text-sm font-medium mb-2 block">Rua</Label>
                 <Input
                   id="endereco_rua"
                   value={formData.endereco_rua}
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco_rua: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="endereco_numero" className="text-blue-100">Número</Label>
+                <Label htmlFor="endereco_numero" className="text-white text-sm font-medium mb-2 block">Número</Label>
                 <Input
                   id="endereco_numero"
                   value={formData.endereco_numero}
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco_numero: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label htmlFor="endereco_complemento" className="text-blue-100">Complemento</Label>
+                <Label htmlFor="endereco_complemento" className="text-white text-sm font-medium mb-2 block">Complemento</Label>
                 <Input
                   id="endereco_complemento"
                   value={formData.endereco_complemento}
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco_complemento: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label htmlFor="endereco_bairro" className="text-blue-100">Bairro</Label>
+                <Label htmlFor="endereco_bairro" className="text-white text-sm font-medium mb-2 block">Bairro</Label>
                 <Input
                   id="endereco_bairro"
                   value={formData.endereco_bairro}
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco_bairro: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
               <div>
-                <Label htmlFor="endereco_cidade" className="text-blue-100">Cidade</Label>
+                <Label htmlFor="endereco_cidade" className="text-white text-sm font-medium mb-2 block">Cidade</Label>
                 <Input
                   id="endereco_cidade"
                   value={formData.endereco_cidade}
                   onChange={(e) => setFormData(prev => ({ ...prev, endereco_cidade: e.target.value }))}
-                  className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="endereco_estado" className="text-blue-100">Estado</Label>
+              <Label htmlFor="endereco_estado" className="text-white text-sm font-medium mb-2 block">Estado</Label>
               <Input
                 id="endereco_estado"
                 value={formData.endereco_estado}
                 onChange={(e) => setFormData(prev => ({ ...prev, endereco_estado: e.target.value }))}
                 maxLength={2}
                 placeholder="SP"
-                className="bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
           </div>
 
           {/* Botões */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end space-x-4 pt-4">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
-              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
             >
               Cancelar
             </Button>
