@@ -42,6 +42,8 @@ export const CreateAuthUser = ({ onUserCreated }: CreateAuthUserProps) => {
     setIsLoading(true);
 
     try {
+      console.log('Criando usuário no Auth:', email);
+      
       // Criar usuário no Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,11 +53,13 @@ export const CreateAuthUser = ({ onUserCreated }: CreateAuthUserProps) => {
         }
       });
 
+      console.log('Resultado do signUp:', { data, error });
+
       if (error) {
         if (error.message.includes('User already registered')) {
           toast({
             title: "Informação",
-            description: "Usuário já existe no sistema de autenticação.",
+            description: `Usuário ${email} já existe no sistema de autenticação. Você pode tentar fazer login diretamente.`,
             variant: "default"
           });
         } else {
@@ -67,11 +71,17 @@ export const CreateAuthUser = ({ onUserCreated }: CreateAuthUserProps) => {
         toast({
           title: "Sucesso",
           description: needsConfirmation 
-            ? `Usuário ${email} criado! Verifique o email para confirmar a conta.`
+            ? `Usuário ${email} criado! ${needsConfirmation ? 'Verifique o email para confirmar a conta.' : 'Conta confirmada automaticamente.'}`
             : `Usuário ${email} criado e confirmado com sucesso!`,
         });
         
-        // Limpar formulário
+        console.log('Usuário criado com sucesso:', {
+          id: data.user.id,
+          email: data.user.email,
+          confirmed: !needsConfirmation
+        });
+        
+        // Limpar formulário apenas a senha
         setPassword('');
         
         // Notificar componente pai
@@ -158,9 +168,8 @@ export const CreateAuthUser = ({ onUserCreated }: CreateAuthUserProps) => {
             <div className="text-sm text-amber-200 leading-relaxed">
               <p className="font-semibold mb-1">⚠️ Importante:</p>
               <p>
-                Por padrão, o Supabase envia um email de confirmação. O usuário precisará 
-                confirmar o email antes de fazer login. Para desenvolvimento, você pode 
-                desabilitar isso nas configurações do Supabase.
+                Se o usuário já existir, você pode tentar fazer login diretamente. 
+                O sistema verificará automaticamente se o usuário tem permissões no sistema.
               </p>
             </div>
           </div>

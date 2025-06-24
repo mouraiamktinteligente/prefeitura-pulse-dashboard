@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logAccess = async (userEmail: string, isLogin: boolean = true) => {
     try {
       if (isLogin) {
-        // Registrar login
+        console.log('Registrando log de acesso para:', userEmail);
         await supabase
           .from('logs_acesso')
           .insert({
@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ip_address: null,
             user_agent: navigator.userAgent
           });
+        console.log('Log de acesso registrado com sucesso');
       }
     } catch (error) {
       console.error('Erro ao registrar log de acesso:', error);
@@ -73,12 +74,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log('Login no Auth bem-sucedido para:', email);
+      console.log('Dados do usuário:', data.user);
 
       // Aguardar um pouco para garantir que o JWT seja processado
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Verificar se usuário existe na tabela usuarios_sistema após login bem-sucedido
       try {
+        console.log('Verificando usuário na tabela usuarios_sistema...');
         const { data: userSystem, error: userSystemError } = await supabase
           .from('usuarios_sistema')
           .select('*')
@@ -86,12 +89,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .eq('ativo', true)
           .maybeSingle();
 
+        console.log('Resultado da consulta usuarios_sistema:', { userSystem, userSystemError });
+
         if (userSystemError) {
           console.error('Erro ao verificar usuário na tabela usuarios_sistema:', userSystemError);
           await supabase.auth.signOut();
           return { 
             error: { 
-              message: 'Erro na verificação do usuário no sistema.' 
+              message: 'Erro na verificação do usuário no sistema: ' + userSystemError.message 
             } 
           };
         }
@@ -109,12 +114,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Usuário encontrado no sistema:', userSystem);
         // Se chegou até aqui, registrar log de acesso
         await logAccess(email);
+        console.log('Login concluído com sucesso');
       } catch (error) {
         console.error('Erro na verificação do usuário:', error);
         await supabase.auth.signOut();
         return { 
           error: { 
-            message: 'Erro na verificação do usuário no sistema.' 
+            message: 'Erro na verificação do usuário no sistema: ' + (error as Error).message 
           } 
         };
       }
@@ -134,6 +140,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    console.log('Configurando listener de autenticação...');
+    
     // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
