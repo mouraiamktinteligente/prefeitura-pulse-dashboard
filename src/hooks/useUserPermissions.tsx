@@ -20,6 +20,7 @@ export const useUserPermissions = (): UserPermissions => {
   useEffect(() => {
     const fetchUserSystem = async () => {
       if (!user?.email) {
+        console.log('Nenhum usuário logado');
         setUserSystem(null);
         setLoading(false);
         return;
@@ -28,28 +29,28 @@ export const useUserPermissions = (): UserPermissions => {
       try {
         console.log('Buscando dados do usuário do sistema para:', user.email);
         
-        // Aguardar um pouco para garantir que o JWT seja processado
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Aguardar um pouco para garantir que as políticas RLS estejam ativas
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Usar select simples sem maybeSingle
         const { data, error } = await supabase
           .from('usuarios_sistema')
           .select('*')
           .eq('email', user.email)
-          .eq('ativo', true);
+          .eq('ativo', true)
+          .maybeSingle();
 
         if (error) {
-          console.error('Erro ao buscar dados do usuário:', error);
+          console.error('Erro ao buscar dados do usuário:', error.message);
           setUserSystem(null);
-        } else if (data && data.length > 0) {
-          console.log('Dados do usuário encontrados:', data[0]);
-          setUserSystem(data[0]);
+        } else if (data) {
+          console.log('Dados do usuário encontrados:', data);
+          setUserSystem(data);
         } else {
           console.log('Nenhum dado encontrado para o usuário');
           setUserSystem(null);
         }
       } catch (error) {
-        console.error('Erro ao buscar usuário do sistema:', error);
+        console.error('Erro inesperado ao buscar usuário do sistema:', error);
         setUserSystem(null);
       } finally {
         setLoading(false);

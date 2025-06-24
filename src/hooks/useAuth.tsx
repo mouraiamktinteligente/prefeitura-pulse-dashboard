@@ -79,21 +79,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log('Login no Auth bem-sucedido para:', email);
-      console.log('Dados do usuário:', data.user);
 
       // Aguardar um pouco para garantir que a sessão seja estabelecida
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Verificar se usuário existe na tabela usuarios_sistema
       try {
         console.log('Verificando usuário na tabela usuarios_sistema...');
         
-        // Usar uma consulta mais simples, sem usar maybeSingle que pode causar problemas
         const { data: userSystemData, error: userSystemError } = await supabase
           .from('usuarios_sistema')
           .select('*')
           .eq('email', email)
-          .eq('ativo', true);
+          .eq('ativo', true)
+          .maybeSingle();
 
         console.log('Resultado da consulta usuarios_sistema:', { userSystemData, userSystemError });
 
@@ -107,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           };
         }
 
-        if (!userSystemData || userSystemData.length === 0) {
+        if (!userSystemData) {
           console.error('Usuário não encontrado na tabela usuarios_sistema');
           await supabase.auth.signOut();
           return { 
@@ -117,8 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           };
         }
 
-        const userSystem = userSystemData[0];
-        console.log('Usuário encontrado no sistema:', userSystem);
+        console.log('Usuário encontrado no sistema:', userSystemData);
         
         // Registrar log de acesso
         await logAccess(email);
