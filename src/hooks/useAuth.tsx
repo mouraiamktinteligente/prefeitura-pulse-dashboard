@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   logout: () => Promise<void>;
   isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,6 +17,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const logAccess = async (userEmail: string, isLogin: boolean = true) => {
+    try {
+      if (isLogin) {
+        // Registrar login
+        await supabase
+          .from('logs_acesso')
+          .insert({
+            email_usuario: userEmail,
+            data_hora_login: new Date().toISOString(),
+            ip_address: null, // Pode ser implementado posteriormente
+            user_agent: navigator.userAgent
+          });
+      }
+    } catch (error) {
+      console.error('Erro ao registrar log de acesso:', error);
+    }
+  };
 
   const updateLogoutTime = async (userEmail: string) => {
     try {
@@ -39,6 +58,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signIn = async (email: string, password: string) => {
+    try {
+      // Primeiro, verificar se o usuário existe na tabela usuarios_sistema
+      const { data: userSystem, error: userSystemError } = await supabase
+        .from('usuarios_sistema')
+        .select('*')
+        .eq('email', email)
+        .eq('ativo', true)
+        .single();
+
+      if (userSystemError || !userSystem) {
+        return { 
+          error: { 
+            message: 'Usuário não encontrado ou inativo no sistema.' 
+          } 
+        };
+      }
+
+      // Tentar fazer login no Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      // Se login bem-sucedido, registrar log de acesso
+      if (data.user) {
+        await logAccess(email);
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const logout = async () => {
     if (user?.email) {
       await updateLogoutTime(user.email);
@@ -53,6 +111,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
+        
+        // Registrar login quando sessão é criada
+        if (event === 'SIGNED_IN' && session?.user?.email) {
+          setTimeout(() => {
+            logAccess(session.user.email!);
+          }, 0);
+        }
       }
     );
 
@@ -67,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, session, logout, isLoading, signIn }}>
       {children}
     </AuthContext.Provider>
   );

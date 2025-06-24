@@ -1,7 +1,10 @@
+
 import React from 'react';
 import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useNavigate } from "react-router-dom";
 import {
   NavigationMenu,
@@ -35,6 +38,9 @@ const menuItems = [
     icon: UserPlus,
     url: "#",
   },
+];
+
+const adminMenuItems = [
   {
     title: "Gestão de Usuários",
     icon: Users,
@@ -48,13 +54,38 @@ const menuItems = [
 ];
 
 export function TopNavigation() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const { userSystem, isAdmin } = useUserPermissions();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  const getUserTypeBadge = () => {
+    if (!userSystem) return null;
+    
+    const variants = {
+      administrador: 'default',
+      usuario: 'secondary',
+      cliente: 'outline'
+    };
+    
+    const labels = {
+      administrador: 'Admin',
+      usuario: 'Usuário',
+      cliente: 'Cliente'
+    };
+
+    return (
+      <Badge variant={variants[userSystem.tipo_usuario as keyof typeof variants] as any}>
+        {labels[userSystem.tipo_usuario as keyof typeof labels]}
+      </Badge>
+    );
+  };
+
+  const availableMenuItems = [...menuItems, ...(isAdmin ? adminMenuItems : [])];
 
   return (
     <header className="bg-blue-800/90 backdrop-blur-sm border-b border-blue-700/50 px-4 py-3">
@@ -74,7 +105,7 @@ export function TopNavigation() {
         <div className="flex items-center space-x-4">
           <NavigationMenu>
             <NavigationMenuList>
-              {menuItems.map((item) => (
+              {availableMenuItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
                   <NavigationMenuLink
                     href={item.url}
@@ -92,8 +123,18 @@ export function TopNavigation() {
           </NavigationMenu>
 
           {/* User Info and Logout */}
-          <div className="flex items-center space-x-2 text-blue-200">
-            <span className="text-sm">{user?.email}</span>
+          <div className="flex items-center space-x-3 text-blue-200">
+            <div className="text-right">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium">
+                  {userSystem?.nome_completo || 'Usuário'}
+                </span>
+                {getUserTypeBadge()}
+              </div>
+              <span className="text-xs text-blue-300">
+                {userSystem?.email}
+              </span>
+            </div>
             <Button
               onClick={handleLogout}
               variant="ghost"
