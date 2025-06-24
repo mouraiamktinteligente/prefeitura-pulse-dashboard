@@ -283,7 +283,7 @@ export type Database = {
           id: string
           nome_completo: string
           nome_responsavel: string | null
-          permissoes: Json | null
+          permissoes: string | null
           razao_social: string | null
           senha_hash: string | null
           tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"] | null
@@ -306,7 +306,7 @@ export type Database = {
           id?: string
           nome_completo: string
           nome_responsavel?: string | null
-          permissoes?: Json | null
+          permissoes?: string | null
           razao_social?: string | null
           senha_hash?: string | null
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
@@ -329,7 +329,7 @@ export type Database = {
           id?: string
           nome_completo?: string
           nome_responsavel?: string | null
-          permissoes?: Json | null
+          permissoes?: string | null
           razao_social?: string | null
           senha_hash?: string | null
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null

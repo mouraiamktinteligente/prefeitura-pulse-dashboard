@@ -75,10 +75,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error: { message: 'Usuário não encontrado ou inativo no sistema' } };
       }
 
-      // Por enquanto, aceitar qualquer senha para teste (você pode implementar hash depois)
+      // Aceitar qualquer senha para teste (implementar hash depois se necessário)
       console.log('Usuário encontrado:', userData);
       
-      // Simular objeto de usuário similar ao Supabase
+      // Simular objeto de usuário
       const simulatedUser = {
         id: userData.id,
         email: userData.email,
