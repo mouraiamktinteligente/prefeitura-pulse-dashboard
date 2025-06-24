@@ -94,171 +94,188 @@ const PlatformUsers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-blue-900 p-4">
+      <div className="container mx-auto space-y-6">
         {/* Header */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl font-bold text-blue-900">
-                Usuários da Plataforma
-              </CardTitle>
-              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setSelectedUser(null)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Usuário
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {selectedUser ? 'Editar Usuário' : 'Novo Usuário da Plataforma'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <UserForm
-                    user={selectedUser || undefined}
-                    onSubmit={selectedUser ? handleUpdateUser : handleCreateUser}
-                    onCancel={() => {
-                      setIsFormOpen(false);
-                      setSelectedUser(null);
-                    }}
-                    restrictToFlatform={true}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-        </Card>
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Usuários da Plataforma</h1>
+            <p className="text-blue-300">Gestão de usuários administradores e operadores</p>
+          </div>
+        </div>
 
         {/* Filtros */}
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
                   <Input
                     placeholder="Buscar por nome, e-mail ou documento..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
                   />
                 </div>
               </div>
               <div className="w-full md:w-48">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-blue-900/50 border-blue-600/50 text-white">
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-blue-800 border-blue-700">
                     <SelectItem value="platform">Todos da plataforma</SelectItem>
                     <SelectItem value="administrador">👑 Administradores</SelectItem>
                     <SelectItem value="usuario">👥 Usuários</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              <Button
+                onClick={() => setIsFormOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Usuário
+              </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Tabela de Usuários */}
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">
+              Lista de Usuários ({filteredUsers.length} usuários)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {loading ? (
-              <div className="text-center py-8">Carregando usuários...</div>
+              <div className="text-center py-8 text-white">Carregando usuários...</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>WhatsApp</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        {getUserTypeBadge(user.tipo_usuario)}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{user.nome_completo}</div>
-                          {user.razao_social && (
-                            <div className="text-sm text-gray-500">{user.razao_social}</div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {formatDocument(user.cpf_cnpj, user.tipo_pessoa)}
-                      </TableCell>
-                      <TableCell>{user.email || '-'}</TableCell>
-                      <TableCell>
-                        {user.whatsapp ? formatPhone(user.whatsapp) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={user.ativo ? 'default' : 'destructive'}>
-                          {user.ativo ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setIsFormOpen(true);
-                            }}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o usuário "{user.nome_completo}"?
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteUser(user.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+              <div className="rounded-md border border-blue-700/50 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-700/50">
+                      <TableHead className="text-blue-100">Tipo</TableHead>
+                      <TableHead className="text-blue-100">Nome</TableHead>
+                      <TableHead className="text-blue-100">Documento</TableHead>
+                      <TableHead className="text-blue-100">E-mail</TableHead>
+                      <TableHead className="text-blue-100">WhatsApp</TableHead>
+                      <TableHead className="text-blue-100">Status</TableHead>
+                      <TableHead className="text-blue-100">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id} className="border-blue-700/50 hover:bg-blue-700/25">
+                        <TableCell>
+                          {getUserTypeBadge(user.tipo_usuario)}
+                        </TableCell>
+                        <TableCell className="text-white">
+                          <div>
+                            <div className="font-medium">{user.nome_completo}</div>
+                            {user.razao_social && (
+                              <div className="text-sm text-blue-300">{user.razao_social}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-blue-200">
+                          {formatDocument(user.cpf_cnpj, user.tipo_pessoa)}
+                        </TableCell>
+                        <TableCell className="text-blue-200">{user.email || '-'}</TableCell>
+                        <TableCell className="text-blue-200">
+                          {user.whatsapp ? formatPhone(user.whatsapp) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={user.ativo ? 'default' : 'destructive'}>
+                            {user.ativo ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsFormOpen(true);
+                              }}
+                              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="border-red-600 text-red-400 hover:bg-red-700/50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-blue-800 border-blue-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-blue-300">
+                                    Tem certeza que deseja excluir o usuário "{user.nome_completo}"?
+                                    Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
 
             {filteredUsers.length === 0 && !loading && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-blue-300">
                 Nenhum usuário encontrado
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Dialog do Formulário */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-blue-800 border-blue-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">
+                {selectedUser ? 'Editar Usuário' : 'Novo Usuário da Plataforma'}
+              </DialogTitle>
+            </DialogHeader>
+            <UserForm
+              user={selectedUser || undefined}
+              onSubmit={selectedUser ? handleUpdateUser : handleCreateUser}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setSelectedUser(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

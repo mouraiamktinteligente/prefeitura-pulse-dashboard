@@ -3,404 +3,241 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useUsers } from "@/hooks/useUsers";
-import { UserPlus, Instagram, Mail, Phone, MapPin, Building, User, FileText } from "lucide-react";
-import { validateCPF, validateCNPJ, formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { UserPlus, Edit, Trash2, Search, Filter, Instagram } from "lucide-react";
+import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
+import { UserForm } from "@/components/UserForm";
+import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
 import type { Database } from "@/integrations/supabase/types";
 
 type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 const ClientRegistration = () => {
-  const [formData, setFormData] = useState({
-    tipo_pessoa: 'fisica' as 'fisica' | 'juridica',
-    nome_completo: '',
-    razao_social: '',
-    nome_responsavel: '',
-    cpf_cnpj: '',
-    email: '',
-    whatsapp: '',
-    instagram: '',
-    endereco_cep: '',
-    endereco_rua: '',
-    endereco_numero: '',
-    endereco_complemento: '',
-    endereco_bairro: '',
-    endereco_cidade: '',
-    endereco_estado: ''
+  const { users, loading, createUser, updateUser, deleteUser } = useUsers();
+  const [selectedClient, setSelectedClient] = useState<UsuarioSistema | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filtrar apenas clientes
+  const clients = users.filter(user => user.tipo_usuario === 'cliente');
+
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = client.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         client.cpf_cnpj.includes(searchTerm) ||
+                         client.instagram?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesSearch;
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const { createUser } = useUsers();
-  const { toast } = useToast();
+  const handleCreateClient = async (userData: UsuarioInsert) => {
+    const clientData = {
+      ...userData,
+      tipo_usuario: 'cliente'
+    } as UsuarioInsert;
+    
+    await createUser(clientData);
+    setIsFormOpen(false);
+  };
 
-  const handleInputChange = (field: string, value: string) => {
-    if (field === 'cpf_cnpj') {
-      // Aplicar formatação baseada no tipo de pessoa
-      const formatted = formData.tipo_pessoa === 'fisica' 
-        ? formatCPF(value) 
-        : formatCNPJ(value);
-      setFormData(prev => ({ ...prev, [field]: formatted }));
-    } else if (field === 'whatsapp') {
-      setFormData(prev => ({ ...prev, [field]: formatPhone(value) }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+  const handleUpdateClient = async (userData: UsuarioInsert) => {
+    if (selectedClient) {
+      await updateUser(selectedClient.id, userData);
+      setSelectedClient(null);
+      setIsFormOpen(false);
     }
   };
 
-  const validateForm = () => {
-    if (!formData.nome_completo.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome completo é obrigatório.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (formData.tipo_pessoa === 'juridica' && !formData.razao_social?.trim()) {
-      toast({
-        title: "Erro",
-        description: "Razão social é obrigatória para pessoa jurídica.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (!formData.cpf_cnpj.trim()) {
-      toast({
-        title: "Erro",
-        description: formData.tipo_pessoa === 'fisica' ? "CPF é obrigatório." : "CNPJ é obrigatório.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    // Validar CPF/CNPJ
-    const isValid = formData.tipo_pessoa === 'fisica' 
-      ? validateCPF(formData.cpf_cnpj)
-      : validateCNPJ(formData.cpf_cnpj);
-    
-    if (!isValid) {
-      toast({
-        title: "Erro",
-        description: formData.tipo_pessoa === 'fisica' ? "CPF inválido." : "CNPJ inválido.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast({
-        title: "Erro",
-        description: "E-mail inválido.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    return true;
+  const handleDeleteClient = async (clientId: string) => {
+    await deleteClient(clientId);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    try {
-      const userData: UsuarioInsert = {
-        tipo_usuario: 'cliente',
-        tipo_pessoa: formData.tipo_pessoa,
-        nome_completo: formData.nome_completo.trim(),
-        razao_social: formData.razao_social?.trim() || null,
-        nome_responsavel: formData.nome_responsavel?.trim() || null,
-        cpf_cnpj: formData.cpf_cnpj.replace(/\D/g, ''), // Remove formatação
-        email: formData.email?.trim() || null,
-        whatsapp: formData.whatsapp?.trim() || null,
-        endereco_cep: formData.endereco_cep?.trim() || null,
-        endereco_rua: formData.endereco_rua?.trim() || null,
-        endereco_numero: formData.endereco_numero?.trim() || null,
-        endereco_complemento: formData.endereco_complemento?.trim() || null,
-        endereco_bairro: formData.endereco_bairro?.trim() || null,
-        endereco_cidade: formData.endereco_cidade?.trim() || null,
-        endereco_estado: formData.endereco_estado?.trim() || null,
-        permissoes: JSON.stringify({ instagram: formData.instagram?.trim() || null }),
-        ativo: true
-      };
-
-      await createUser(userData);
-      
-      // Limpar formulário
-      setFormData({
-        tipo_pessoa: 'fisica',
-        nome_completo: '',
-        razao_social: '',
-        nome_responsavel: '',
-        cpf_cnpj: '',
-        email: '',
-        whatsapp: '',
-        instagram: '',
-        endereco_cep: '',
-        endereco_rua: '',
-        endereco_numero: '',
-        endereco_complemento: '',
-        endereco_bairro: '',
-        endereco_cidade: '',
-        endereco_estado: ''
-      });
-
-    } catch (error) {
-      console.error('Erro ao cadastrar cliente:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const formatDocument = (document: string, type: string) => {
+    return type === 'fisica' ? formatCPF(document) : formatCNPJ(document);
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Card>
+    <div className="min-h-screen bg-blue-900 p-4">
+      <div className="container mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+            <UserPlus className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Cadastro de Clientes</h1>
+            <p className="text-blue-300">Gestão de clientes e prospects</p>
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-blue-900 flex items-center gap-2">
-              <UserPlus className="w-6 h-6" />
-              Cadastro de Cliente
+            <CardTitle className="text-white">Filtros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
+                  <Input
+                    placeholder="Buscar por nome, e-mail, documento ou Instagram..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setSelectedClient(null);
+                  setIsFormOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Novo Cliente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabela de Clientes */}
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">
+              Lista de Clientes ({filteredClients.length} clientes)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Tipo de Pessoa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    Tipo de Pessoa *
-                  </label>
-                  <Select 
-                    value={formData.tipo_pessoa} 
-                    onValueChange={(value: 'fisica' | 'juridica') => {
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        tipo_pessoa: value,
-                        cpf_cnpj: '', // Limpar documento ao trocar tipo
-                        razao_social: '',
-                        nome_responsavel: ''
-                      }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fisica">👤 Pessoa Física</SelectItem>
-                      <SelectItem value="juridica">🏢 Pessoa Jurídica</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            {loading ? (
+              <div className="text-center py-8 text-white">Carregando clientes...</div>
+            ) : (
+              <div className="rounded-md border border-blue-700/50 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-700/50">
+                      <TableHead className="text-blue-100">Nome</TableHead>
+                      <TableHead className="text-blue-100">Documento</TableHead>
+                      <TableHead className="text-blue-100">E-mail</TableHead>
+                      <TableHead className="text-blue-100">WhatsApp</TableHead>
+                      <TableHead className="text-blue-100">Instagram</TableHead>
+                      <TableHead className="text-blue-100">Status</TableHead>
+                      <TableHead className="text-blue-100">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.map((client) => (
+                      <TableRow key={client.id} className="border-blue-700/50 hover:bg-blue-700/25">
+                        <TableCell className="text-white">
+                          <div>
+                            <div className="font-medium">{client.nome_completo}</div>
+                            {client.razao_social && (
+                              <div className="text-sm text-blue-300">{client.razao_social}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-blue-200">
+                          {formatDocument(client.cpf_cnpj, client.tipo_pessoa)}
+                        </TableCell>
+                        <TableCell className="text-blue-200">{client.email || '-'}</TableCell>
+                        <TableCell className="text-blue-200">
+                          {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
+                        </TableCell>
+                        <TableCell className="text-blue-200">
+                          {client.instagram ? (
+                            <div className="flex items-center gap-1">
+                              <Instagram className="w-4 h-4" />
+                              <span>{client.instagram}</span>
+                            </div>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={client.ativo ? 'default' : 'destructive'}>
+                            {client.ativo ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedClient(client);
+                                setIsFormOpen(true);
+                              }}
+                              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="border-red-600 text-red-400 hover:bg-red-700/50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-blue-800 border-blue-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-blue-300">
+                                    Tem certeza que deseja excluir o cliente "{client.nome_completo}"?
+                                    Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteClient(client.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
+            )}
 
-              {/* Dados Pessoais/Empresariais */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    <User className="w-4 h-4 inline mr-1" />
-                    {formData.tipo_pessoa === 'fisica' ? 'Nome Completo *' : 'Nome do Responsável *'}
-                  </label>
-                  <Input
-                    value={formData.nome_completo}
-                    onChange={(e) => handleInputChange('nome_completo', e.target.value)}
-                    placeholder={formData.tipo_pessoa === 'fisica' ? 'João Silva' : 'João Silva (Responsável)'}
-                    required
-                  />
-                </div>
-
-                {formData.tipo_pessoa === 'juridica' && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      <Building className="w-4 h-4 inline mr-1" />
-                      Razão Social *
-                    </label>
-                    <Input
-                      value={formData.razao_social}
-                      onChange={(e) => handleInputChange('razao_social', e.target.value)}
-                      placeholder="Empresa LTDA"
-                      required
-                    />
-                  </div>
-                )}
+            {filteredClients.length === 0 && !loading && (
+              <div className="text-center py-8 text-blue-300">
+                Nenhum cliente encontrado
               </div>
-
-              {/* Documento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    <FileText className="w-4 h-4 inline mr-1" />
-                    {formData.tipo_pessoa === 'fisica' ? 'CPF *' : 'CNPJ *'}
-                  </label>
-                  <Input
-                    value={formData.cpf_cnpj}
-                    onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
-                    placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Contato */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    <Mail className="w-4 h-4 inline mr-1" />
-                    E-mail
-                  </label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="cliente@email.com"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    <Phone className="w-4 h-4 inline mr-1" />
-                    WhatsApp
-                  </label>
-                  <Input
-                    value={formData.whatsapp}
-                    onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    <Instagram className="w-4 h-4 inline mr-1" />
-                    Instagram
-                  </label>
-                  <Input
-                    value={formData.instagram}
-                    onChange={(e) => handleInputChange('instagram', e.target.value)}
-                    placeholder="@cliente_instagram"
-                  />
-                </div>
-              </div>
-
-              {/* Endereço */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
-                  Endereço (Opcional)
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">CEP</label>
-                    <Input
-                      value={formData.endereco_cep}
-                      onChange={(e) => handleInputChange('endereco_cep', e.target.value)}
-                      placeholder="00000-000"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Rua</label>
-                    <Input
-                      value={formData.endereco_rua}
-                      onChange={(e) => handleInputChange('endereco_rua', e.target.value)}
-                      placeholder="Nome da rua"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Número</label>
-                    <Input
-                      value={formData.endereco_numero}
-                      onChange={(e) => handleInputChange('endereco_numero', e.target.value)}
-                      placeholder="123"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Complemento</label>
-                    <Input
-                      value={formData.endereco_complemento}
-                      onChange={(e) => handleInputChange('endereco_complemento', e.target.value)}
-                      placeholder="Apto, sala, etc."
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Bairro</label>
-                    <Input
-                      value={formData.endereco_bairro}
-                      onChange={(e) => handleInputChange('endereco_bairro', e.target.value)}
-                      placeholder="Nome do bairro"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Cidade</label>
-                    <Input
-                      value={formData.endereco_cidade}
-                      onChange={(e) => handleInputChange('endereco_cidade', e.target.value)}
-                      placeholder="Nome da cidade"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">Estado</label>
-                    <Input
-                      value={formData.endereco_estado}
-                      onChange={(e) => handleInputChange('endereco_estado', e.target.value)}
-                      placeholder="SP"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Botões */}
-              <div className="flex justify-end space-x-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setFormData({
-                    tipo_pessoa: 'fisica',
-                    nome_completo: '',
-                    razao_social: '',
-                    nome_responsavel: '',
-                    cpf_cnpj: '',
-                    email: '',
-                    whatsapp: '',
-                    instagram: '',
-                    endereco_cep: '',
-                    endereco_rua: '',
-                    endereco_numero: '',
-                    endereco_complemento: '',
-                    endereco_bairro: '',
-                    endereco_cidade: '',
-                    endereco_estado: ''
-                  })}
-                  disabled={isLoading}
-                >
-                  Limpar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isLoading ? "Cadastrando..." : "Cadastrar Cliente"}
-                </Button>
-              </div>
-            </form>
+            )}
           </CardContent>
         </Card>
+
+        {/* Dialog do Formulário */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-blue-800 border-blue-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">
+                {selectedClient ? 'Editar Cliente' : 'Novo Cliente'}
+              </DialogTitle>
+            </DialogHeader>
+            <UserForm
+              user={selectedClient || undefined}
+              onSubmit={selectedClient ? handleUpdateClient : handleCreateClient}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setSelectedClient(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
