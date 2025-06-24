@@ -267,6 +267,78 @@ export type Database = {
         }
         Relationships: []
       }
+      usuarios_sistema: {
+        Row: {
+          ativo: boolean | null
+          cpf_cnpj: string
+          created_at: string
+          email: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_complemento: string | null
+          endereco_estado: string | null
+          endereco_numero: string | null
+          endereco_rua: string | null
+          id: string
+          nome_completo: string
+          nome_responsavel: string | null
+          permissoes: Json | null
+          razao_social: string | null
+          senha_hash: string | null
+          tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"] | null
+          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cpf_cnpj: string
+          created_at?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          nome_completo: string
+          nome_responsavel?: string | null
+          permissoes?: Json | null
+          razao_social?: string | null
+          senha_hash?: string | null
+          tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
+          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cpf_cnpj?: string
+          created_at?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          id?: string
+          nome_completo?: string
+          nome_responsavel?: string | null
+          permissoes?: Json | null
+          razao_social?: string | null
+          senha_hash?: string | null
+          tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
+          tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       resumo_sentimento_por_post: {
@@ -298,7 +370,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tipo_pessoa: "fisica" | "juridica"
+      tipo_usuario: "administrador" | "usuario" | "cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -413,6 +486,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tipo_pessoa: ["fisica", "juridica"],
+      tipo_usuario: ["administrador", "usuario", "cliente"],
+    },
   },
 } as const

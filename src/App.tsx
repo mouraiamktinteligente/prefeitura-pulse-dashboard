@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
+import UserManagement from "./pages/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +56,14 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <AccessLogs />
+          </main>
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/users" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <UserManagement />
           </main>
         </ProtectedRoute>
       } />

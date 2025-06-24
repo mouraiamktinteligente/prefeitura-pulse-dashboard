@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield } from "lucide-react";
+import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +34,11 @@ const menuItems = [
     title: "Cadastro",
     icon: UserPlus,
     url: "#",
+  },
+  {
+    title: "Gestão de Usuários",
+    icon: Users,
+    url: "/admin/users",
   },
   {
     title: "Logs de Acesso",
