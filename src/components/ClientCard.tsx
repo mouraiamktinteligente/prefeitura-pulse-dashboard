@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -36,7 +35,6 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
         <CardTitle className="text-white text-lg font-bold">
           {client.nome_completo}
         </CardTitle>
-        <p className="text-blue-300 text-sm">Prefeitura Municipal</p>
       </CardHeader>
 
       <CardContent className="space-y-4">
