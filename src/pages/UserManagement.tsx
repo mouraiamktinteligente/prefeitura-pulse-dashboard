@@ -11,6 +11,9 @@ import { Crown, Users, Building, Plus, Edit, Trash2, Search, Filter } from "luci
 import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
 import { UserForm } from "@/components/UserForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
+import type { Database } from "@/integrations/supabase/types";
+
+type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 const UserManagement = () => {
   const { users, loading, createUser, updateUser, deleteUser } = useUsers();
@@ -29,12 +32,12 @@ const UserManagement = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleCreateUser = async (userData: Partial<UsuarioSistema>) => {
+  const handleCreateUser = async (userData: UsuarioInsert) => {
     await createUser(userData);
     setIsFormOpen(false);
   };
 
-  const handleUpdateUser = async (userData: Partial<UsuarioSistema>) => {
+  const handleUpdateUser = async (userData: UsuarioInsert) => {
     if (selectedUser) {
       await updateUser(selectedUser.id, userData);
       setSelectedUser(null);
