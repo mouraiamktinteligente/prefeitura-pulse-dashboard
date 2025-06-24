@@ -15,6 +15,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const registerAccessLog = async (email: string, isLogin: boolean = true) => {
+    try {
+      if (isLogin) {
+        // Registrar login
+        await supabase
+          .from('logs_acesso')
+          .insert({
+            email_usuario: email,
+            data_hora_login: new Date().toISOString(),
+            ip_address: null, // Pode ser implementado se necessário
+            user_agent: navigator.userAgent,
+            session_id: null
+          });
+      } else {
+        // Atualizar logout
+        const { data: latestLog } = await supabase
+          .from('logs_acesso')
+          .select('*')
+          .eq('email_usuario', email)
+          .is('data_hora_logout', null)
+          .order('data_hora_login', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (latestLog) {
+          await supabase
+            .from('logs_acesso')
+            .update({ 
+              data_hora_logout: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', latestLog.id);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao registrar log de acesso:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Verificando login para:', email);
@@ -57,6 +96,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(authenticatedUser);
       localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
       
+      // Registrar log de acesso
+      await registerAccessLog(userData.email, true);
+      
       return { error: null };
     } catch (error) {
       console.error('Erro no login:', error);
@@ -65,8 +107,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
+    const currentUser = user;
     setUser(null);
     localStorage.removeItem('auth_user');
+    
+    // Registrar logout se houver usuário logado
+    if (currentUser?.email) {
+      await registerAccessLog(currentUser.email, false);
+    }
   };
 
   useEffect(() => {

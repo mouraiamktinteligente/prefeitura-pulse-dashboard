@@ -10,7 +10,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import MainDashboard from "./pages/MainDashboard";
 import DetailedDashboard from "./pages/DetailedDashboard";
 import Login from "./pages/Login";
-import FirstAccess from "./pages/FirstAccess";
 import AuthSetup from "./pages/AuthSetup";
 import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
@@ -36,7 +35,6 @@ const AppRoutes = () => {
         user ? <Navigate to="/dashboard" replace /> : <Login />
       } />
       
-      <Route path="/first-access" element={<FirstAccess />} />
       <Route path="/auth-setup" element={<AuthSetup />} />
       
       <Route path="/dashboard" element={
