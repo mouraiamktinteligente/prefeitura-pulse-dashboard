@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Building2 } from 'lucide-react';
 import { getClientIcon } from '@/utils/clientIconUtils';
 
 interface HeaderProps {
