@@ -1,12 +1,15 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import bcrypt from 'bcryptjs';
 
 interface AuthContextType {
   user: any | null;
   logout: () => Promise<void>;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  setFirstPassword: (email: string, newPassword: string) => Promise<{ error: any }>;
+  checkFirstAccess: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,11 +56,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const checkFirstAccess = async (email: string): Promise<boolean> => {
+    try {
+      const { data: userData, error } = await supabase
+        .from('usuarios_sistema')
+        .select('senha_hash')
+        .eq('email', email)
+        .eq('ativo', true)
+        .maybeSingle();
+
+      if (error || !userData) {
+        return false;
+      }
+
+      // Se não tem senha_hash, é primeiro acesso
+      return !userData.senha_hash;
+    } catch (error) {
+      console.error('Erro ao verificar primeiro acesso:', error);
+      return false;
+    }
+  };
+
+  const setFirstPassword = async (email: string, newPassword: string) => {
+    try {
+      console.log('Definindo primeira senha para:', email);
+      
+      // Gerar hash da senha
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      
+      // Atualizar senha no banco
+      const { error } = await supabase
+        .from('usuarios_sistema')
+        .update({ senha_hash: hashedPassword })
+        .eq('email', email);
+
+      if (error) {
+        console.error('Erro ao definir primeira senha:', error);
+        return { error: { message: 'Erro ao definir senha' } };
+      }
+
+      console.log('Primeira senha definida com sucesso');
+      return { error: null };
+    } catch (error) {
+      console.error('Erro geral ao definir primeira senha:', error);
+      return { error: { message: 'Erro inesperado ao definir senha' } };
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Iniciando processo de login para:', email);
       
-      // Verificar diretamente na tabela usuarios_sistema
+      // Verificar se existe usuário ativo
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
         .select('*')
@@ -75,8 +126,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error: { message: 'Usuário não encontrado ou inativo no sistema' } };
       }
 
-      // Aceitar qualquer senha para teste (implementar hash depois se necessário)
-      console.log('Usuário encontrado:', userData);
+      // Verificar se é primeiro acesso
+      if (!userData.senha_hash) {
+        return { error: { message: 'FIRST_ACCESS', user: userData } };
+      }
+
+      // Verificar senha com hash
+      const isPasswordValid = await bcrypt.compare(password, userData.senha_hash);
+      if (!isPasswordValid) {
+        console.error('Senha incorreta');
+        return { error: { message: 'E-mail ou senha incorretos' } };
+      }
+
+      console.log('Usuário autenticado:', userData);
       
       // Simular objeto de usuário
       const simulatedUser = {
@@ -133,7 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, logout, isLoading, signIn }}>
+    <AuthContext.Provider value={{ user, logout, isLoading, signIn, setFirstPassword, checkFirstAccess }}>
       {children}
     </AuthContext.Provider>
   );

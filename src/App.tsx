@@ -9,10 +9,12 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import FirstAccess from "./pages/FirstAccess";
 import AuthSetup from "./pages/AuthSetup";
 import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
-import UserManagement from "./pages/UserManagement";
+import PlatformUsers from "./pages/PlatformUsers";
+import ClientRegistration from "./pages/ClientRegistration";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,7 @@ const AppRoutes = () => {
         user ? <Navigate to="/dashboard" replace /> : <Login />
       } />
       
+      <Route path="/first-access" element={<FirstAccess />} />
       <Route path="/auth-setup" element={<AuthSetup />} />
       
       <Route path="/dashboard" element={
@@ -40,6 +43,15 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <Index />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/cadastro" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <ClientRegistration />
           </main>
         </ProtectedRoute>
       } />
@@ -53,11 +65,11 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/admin/users" element={
+      <Route path="/admin/platform-users" element={
         <ProtectedRoute requireAdmin={true}>
           <TopNavigation />
           <main className="flex-1">
-            <UserManagement />
+            <PlatformUsers />
           </main>
         </ProtectedRoute>
       } />

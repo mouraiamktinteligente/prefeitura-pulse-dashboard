@@ -37,7 +37,17 @@ const Login = () => {
       if (error) {
         console.error('Erro no login:', error);
         
-        // Verificar tipos específicos de erro
+        // Verificar se é primeiro acesso
+        if (error.message === 'FIRST_ACCESS') {
+          toast({
+            title: "Primeiro Acesso",
+            description: "Você precisa definir sua senha de acesso.",
+          });
+          navigate('/first-access', { state: { user: error.user } });
+          return;
+        }
+        
+        // Outros tipos de erro
         if (error.message?.includes('Email not confirmed') || 
             error.code === 'email_not_confirmed') {
           toast({
@@ -46,7 +56,8 @@ const Login = () => {
             variant: "destructive"
           });
         } else if (error.message?.includes('Invalid login credentials') || 
-                   error.message?.includes('invalid_credentials')) {
+                   error.message?.includes('invalid_credentials') ||
+                   error.message?.includes('E-mail ou senha incorretos')) {
           toast({
             title: "Credenciais inválidas",
             description: "E-mail ou senha incorretos. Verifique os dados e tente novamente.",
@@ -156,7 +167,7 @@ const Login = () => {
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-amber-800">
                   <p className="font-semibold">Problema no login?</p>
-                  <p>Se você criou a conta recentemente, verifique seu email para confirmar a conta.</p>
+                  <p>Se é seu primeiro acesso, você será direcionado para definir sua senha.</p>
                 </div>
               </div>
             </div>
