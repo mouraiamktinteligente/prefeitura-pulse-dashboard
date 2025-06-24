@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { CreateAuthUser } from '@/components/CreateAuthUser';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, Users, Key, CheckCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase from "@/integrations/supabase/client";
 
 interface AuthUser {
   id: string;
-  email: string;
+  email: string | undefined;
   email_confirmed_at: string | null;
   created_at: string;
 }
@@ -27,7 +26,14 @@ const AuthSetup = () => {
       if (error) {
         console.error('Erro ao buscar usuários:', error);
       } else {
-        setAuthUsers(data.users || []);
+        // Mapear os usuários do Supabase para o formato AuthUser
+        const mappedUsers: AuthUser[] = (data.users || []).map(user => ({
+          id: user.id,
+          email: user.email,
+          email_confirmed_at: user.email_confirmed_at,
+          created_at: user.created_at
+        }));
+        setAuthUsers(mappedUsers);
       }
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
@@ -96,7 +102,7 @@ const AuthSetup = () => {
                     {authUsers.map((user) => (
                       <div key={user.id} className="p-4 bg-slate-700/60 border border-slate-500/40 rounded-lg">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-100">{user.email}</span>
+                          <span className="font-medium text-slate-100">{user.email || 'Email não disponível'}</span>
                           <div className="flex items-center gap-2">
                             {user.email_confirmed_at ? (
                               <span className="text-xs bg-green-600/70 text-green-100 px-3 py-1 rounded-full font-medium flex items-center gap-1">
