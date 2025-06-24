@@ -7,7 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TopNavigation } from "@/components/TopNavigation";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
+import MainDashboard from "./pages/MainDashboard";
+import DetailedDashboard from "./pages/DetailedDashboard";
 import Login from "./pages/Login";
 import FirstAccess from "./pages/FirstAccess";
 import AuthSetup from "./pages/AuthSetup";
@@ -42,7 +43,16 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <TopNavigation />
           <main className="flex-1">
-            <Index />
+            <MainDashboard />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/dashboard/:clientId" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <DetailedDashboard />
           </main>
         </ProtectedRoute>
       } />
