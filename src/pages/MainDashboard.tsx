@@ -29,22 +29,6 @@ const MainDashboard = () => {
 
   return (
     <div className="min-h-screen bg-blue-900">
-      <header className="bg-blue-800/90 backdrop-blur-sm border-b border-blue-700/50 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-white font-bold text-2xl">MourIA Marketing Inteligente</h1>
-            <p className="text-blue-300">Dashboard Principal - Monitoramento de Clientes</p>
-          </div>
-          <Button
-            onClick={handleAddClient}
-            className="bg-blue-600 hover:bg-blue-500 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Cliente
-          </Button>
-        </div>
-      </header>
-
       <main className="container mx-auto px-6 py-8">
         {clients.length === 0 ? (
           <div className="text-center py-12">
