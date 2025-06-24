@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { getClientIcon } from '@/utils/clientIconUtils';
 
 interface HeaderProps {
   isConnected: boolean;
@@ -25,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({ isConnected, clientName }) => {
     }).format(date);
   };
 
+  const IconComponent = clientName ? getClientIcon(clientName) : Building2;
+
   return (
     <header className="bg-blue-800 text-white shadow-2xl border-b border-blue-600 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -32,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ isConnected, clientName }) => {
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold">🏛️</span>
+              <IconComponent className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">
