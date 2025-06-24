@@ -26,21 +26,27 @@ export const useUserPermissions = (): UserPermissions => {
       }
 
       try {
+        console.log('Buscando dados do usuário do sistema para:', user.email);
+        
         // Aguardar um pouco para garantir que o JWT seja processado
         await new Promise(resolve => setTimeout(resolve, 500));
         
+        // Usar select simples sem maybeSingle
         const { data, error } = await supabase
           .from('usuarios_sistema')
           .select('*')
           .eq('email', user.email)
-          .eq('ativo', true)
-          .maybeSingle();
+          .eq('ativo', true);
 
         if (error) {
           console.error('Erro ao buscar dados do usuário:', error);
           setUserSystem(null);
+        } else if (data && data.length > 0) {
+          console.log('Dados do usuário encontrados:', data[0]);
+          setUserSystem(data[0]);
         } else {
-          setUserSystem(data);
+          console.log('Nenhum dado encontrado para o usuário');
+          setUserSystem(null);
         }
       } catch (error) {
         console.error('Erro ao buscar usuário do sistema:', error);

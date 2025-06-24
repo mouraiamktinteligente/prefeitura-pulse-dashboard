@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Iniciando processo de login para:', email);
       
-      // Tentar fazer login no Supabase Auth
+      // Fazer login no Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -73,23 +73,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
+      if (!data.user) {
+        console.error('Login falhou: nenhum usuário retornado');
+        return { error: { message: 'Login falhou' } };
+      }
+
       console.log('Login no Auth bem-sucedido para:', email);
       console.log('Dados do usuário:', data.user);
 
-      // Aguardar um pouco para garantir que o JWT seja processado
+      // Aguardar um pouco para garantir que a sessão seja estabelecida
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Verificar se usuário existe na tabela usuarios_sistema após login bem-sucedido
+      // Verificar se usuário existe na tabela usuarios_sistema
       try {
         console.log('Verificando usuário na tabela usuarios_sistema...');
-        const { data: userSystem, error: userSystemError } = await supabase
+        
+        // Usar uma consulta mais simples, sem usar maybeSingle que pode causar problemas
+        const { data: userSystemData, error: userSystemError } = await supabase
           .from('usuarios_sistema')
           .select('*')
           .eq('email', email)
-          .eq('ativo', true)
-          .maybeSingle();
+          .eq('ativo', true);
 
-        console.log('Resultado da consulta usuarios_sistema:', { userSystem, userSystemError });
+        console.log('Resultado da consulta usuarios_sistema:', { userSystemData, userSystemError });
 
         if (userSystemError) {
           console.error('Erro ao verificar usuário na tabela usuarios_sistema:', userSystemError);
@@ -101,7 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           };
         }
 
-        if (!userSystem) {
+        if (!userSystemData || userSystemData.length === 0) {
           console.error('Usuário não encontrado na tabela usuarios_sistema');
           await supabase.auth.signOut();
           return { 
@@ -111,10 +117,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           };
         }
 
+        const userSystem = userSystemData[0];
         console.log('Usuário encontrado no sistema:', userSystem);
-        // Se chegou até aqui, registrar log de acesso
+        
+        // Registrar log de acesso
         await logAccess(email);
         console.log('Login concluído com sucesso');
+        
+        return { error: null };
       } catch (error) {
         console.error('Erro na verificação do usuário:', error);
         await supabase.auth.signOut();
@@ -124,8 +134,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } 
         };
       }
-
-      return { error: null };
     } catch (error) {
       console.error('Erro geral no signIn:', error);
       return { error };
