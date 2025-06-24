@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Lock, Mail, Settings, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -160,36 +160,6 @@ const Login = () => {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-
-          <div className="mt-8 space-y-4">
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-semibold">Problema no login?</p>
-                  <p>Se é seu primeiro acesso, você será direcionado para definir sua senha.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center border-t border-slate-200 pt-6">
-              <p className="text-sm text-slate-600 mb-2">
-                Para teste, use: <strong className="text-slate-800">admin@sistema.com</strong>
-              </p>
-              <p className="text-xs text-slate-500 mb-4">
-                (Se ainda não criou a conta, use o botão abaixo)
-              </p>
-              
-              <Button
-                onClick={() => navigate('/auth-setup')}
-                variant="outline"
-                className="w-full border-slate-300 text-slate-700 hover:bg-slate-50"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Configurar Autenticação
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
