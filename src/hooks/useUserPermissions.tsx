@@ -20,17 +20,17 @@ export const useUserPermissions = (): UserPermissions => {
   useEffect(() => {
     const fetchUserSystem = async () => {
       if (!user?.email) {
-        console.log('Nenhum usuário logado');
+        console.log('useUserPermissions: Nenhum usuário logado');
         setUserSystem(null);
         setLoading(false);
         return;
       }
 
       try {
-        console.log('Buscando dados do usuário do sistema para:', user.email);
+        console.log('useUserPermissions: Buscando dados do usuário para:', user.email);
         
         // Aguardar um pouco para garantir que as políticas RLS estejam ativas
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         const { data, error } = await supabase
           .from('usuarios_sistema')
@@ -39,18 +39,80 @@ export const useUserPermissions = (): UserPermissions => {
           .eq('ativo', true)
           .maybeSingle();
 
+        console.log('useUserPermissions: Resultado da consulta:', { data, error });
+
         if (error) {
-          console.error('Erro ao buscar dados do usuário:', error.message);
-          setUserSystem(null);
+          console.error('useUserPermissions: Erro ao buscar dados do usuário:', error);
+          // Se houver erro RLS, vamos tentar criar o usuário admin automaticamente
+          if (user.email === 'admin@sistema.com' && error.message.includes('RLS')) {
+            console.log('useUserPermissions: Tentando criar usuário admin automaticamente...');
+            try {
+              const { data: insertData, error: insertError } = await supabase
+                .from('usuarios_sistema')
+                .insert({
+                  tipo_usuario: 'administrador',
+                  tipo_pessoa: 'fisica',
+                  nome_completo: 'Administrador do Sistema',
+                  cpf_cnpj: '00000000000',
+                  email: 'admin@sistema.com',
+                  ativo: true
+                })
+                .select()
+                .maybeSingle();
+
+              if (insertError) {
+                console.error('useUserPermissions: Erro ao criar admin:', insertError);
+                setUserSystem(null);
+              } else {
+                console.log('useUserPermissions: Admin criado com sucesso:', insertData);
+                setUserSystem(insertData);
+              }
+            } catch (createError) {
+              console.error('useUserPermissions: Erro ao criar admin:', createError);
+              setUserSystem(null);
+            }
+          } else {
+            setUserSystem(null);
+          }
         } else if (data) {
-          console.log('Dados do usuário encontrados:', data);
+          console.log('useUserPermissions: Dados do usuário encontrados:', data);
           setUserSystem(data);
         } else {
-          console.log('Nenhum dado encontrado para o usuário');
-          setUserSystem(null);
+          console.log('useUserPermissions: Nenhum dado encontrado para o usuário');
+          // Se for o admin e não encontrou dados, vamos criar
+          if (user.email === 'admin@sistema.com') {
+            console.log('useUserPermissions: Criando usuário admin...');
+            try {
+              const { data: insertData, error: insertError } = await supabase
+                .from('usuarios_sistema')
+                .insert({
+                  tipo_usuario: 'administrador',
+                  tipo_pessoa: 'fisica',
+                  nome_completo: 'Administrador do Sistema',
+                  cpf_cnpj: '00000000000',
+                  email: 'admin@sistema.com',
+                  ativo: true
+                })
+                .select()
+                .maybeSingle();
+
+              if (insertError) {
+                console.error('useUserPermissions: Erro ao criar admin:', insertError);
+                setUserSystem(null);
+              } else {
+                console.log('useUserPermissions: Admin criado com sucesso:', insertData);
+                setUserSystem(insertData);
+              }
+            } catch (createError) {
+              console.error('useUserPermissions: Erro ao criar admin:', createError);
+              setUserSystem(null);
+            }
+          } else {
+            setUserSystem(null);
+          }
         }
       } catch (error) {
-        console.error('Erro inesperado ao buscar usuário do sistema:', error);
+        console.error('useUserPermissions: Erro inesperado:', error);
         setUserSystem(null);
       } finally {
         setLoading(false);
