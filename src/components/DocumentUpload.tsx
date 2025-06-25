@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Download, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Upload, FileText, Download, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +16,7 @@ export const DocumentUpload = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { clients, loading: clientsLoading } = useClients();
-  const { documentos, loading: docsLoading, fetchDocumentos, uploadDocument, downloadAnalise } = useDocumentosAnalisados();
+  const { documentos, loading: docsLoading, fetchDocumentos, uploadDocument, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
   const { toast } = useToast();
 
   const selectedClient = clients.find(client => client.id === selectedClientId);
@@ -115,31 +116,31 @@ export const DocumentUpload = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card border-border">
+      <Card className="bg-slate-900/50 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-foreground">
-            <Upload className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center space-x-2 text-slate-200">
+            <Upload className="w-5 h-5 text-blue-400" />
             <span>Upload de Documentos para Análise</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Seleção de Cliente */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
+            <label className="text-sm font-medium text-slate-300">
               Selecionar Cliente
             </label>
             <Select onValueChange={handleClientSelect} value={selectedClientId}>
-              <SelectTrigger className="bg-background border-border">
+              <SelectTrigger className="bg-slate-800/50 border-slate-600/50 text-slate-200">
                 <SelectValue placeholder="Escolha um cliente..." />
               </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
+              <SelectContent className="bg-slate-800 border-slate-600">
                 {clientsLoading ? (
                   <SelectItem value="loading" disabled>
                     Carregando clientes...
                   </SelectItem>
                 ) : (
                   clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
+                    <SelectItem key={client.id} value={client.id} className="text-slate-200">
                       {client.nome_completo}
                     </SelectItem>
                   ))
@@ -151,18 +152,18 @@ export const DocumentUpload = () => {
           {/* Campo de Upload */}
           {selectedClientId && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
+              <label className="text-sm font-medium text-slate-300">
                 Enviar Documento
               </label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/10">
-                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">
+              <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center bg-slate-800/20">
+                <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-400 mb-4">
                   Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
                 </p>
                 <Button 
                   onClick={handleFileSelect}
                   disabled={uploading}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   {uploading ? 'Enviando...' : 'Selecionar Arquivo'}
                 </Button>
@@ -181,32 +182,32 @@ export const DocumentUpload = () => {
 
       {/* Lista de Documentos */}
       {selectedClient && (
-        <Card className="bg-card border-border">
+        <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-foreground">
+            <CardTitle className="text-slate-200">
               Documentos de {selectedClient.nome_completo}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {docsLoading ? (
-              <p className="text-muted-foreground">Carregando documentos...</p>
+              <p className="text-slate-400">Carregando documentos...</p>
             ) : documentos.length === 0 ? (
-              <p className="text-muted-foreground">Nenhum documento encontrado para este cliente.</p>
+              <p className="text-slate-400">Nenhum documento encontrado para este cliente.</p>
             ) : (
               <div className="space-y-3">
                 {documentos.map((documento) => (
                   <div
                     key={documento.id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/5 hover:bg-muted/10 transition-colors"
+                    className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <FileText className="w-5 h-5 text-muted-foreground" />
+                        <FileText className="w-5 h-5 text-slate-400" />
                         <div>
-                          <p className="font-medium text-foreground">
+                          <p className="font-medium text-slate-200">
                             {documento.nome_arquivo}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-slate-400">
                             {documento.tipo_arquivo} • Enviado em{' '}
                             {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
                           </p>
@@ -222,12 +223,47 @@ export const DocumentUpload = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => downloadAnalise(documento)}
-                          className="flex items-center space-x-1 border-border hover:bg-muted"
+                          className="flex items-center space-x-1 border-slate-600/50 hover:bg-slate-700/50 text-slate-300"
                         >
                           <Download className="w-4 h-4" />
                           <span>Baixar Análise</span>
                         </Button>
                       )}
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Deletar</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-slate-900 border-slate-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-slate-200">
+                              Confirmar exclusão
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-slate-400">
+                              Tem certeza que deseja deletar o documento "{documento.nome_arquivo}"? 
+                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteDocument(documento)}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              Deletar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))}
