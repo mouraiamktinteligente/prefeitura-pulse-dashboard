@@ -64,12 +64,14 @@ export const useDocumentosAnalisados = () => {
                          file.type.includes('text') ? 'TXT' :
                          file.type.includes('image') ? 'Imagem' : 'Outros';
 
-      // Upload para o Supabase Storage
-      const fileName = `${Date.now()}_${file.name}`;
-      const filePath = `analises/${clienteId}/${fileName}`;
+      // Gerar nome único para o arquivo
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.name}`;
+      const filePath = `${clienteId}/${fileName}`;
 
       console.log('Fazendo upload para:', filePath);
 
+      // Upload para o Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('analises-documentos')
         .upload(filePath, file);
@@ -86,19 +88,12 @@ export const useDocumentosAnalisados = () => {
 
       console.log('Upload realizado com sucesso:', uploadData);
 
-      // Obter URL pública do arquivo
-      const { data: urlData } = supabase.storage
-        .from('analises-documentos')
-        .getPublicUrl(filePath);
-
-      console.log('URL do arquivo:', urlData.publicUrl);
-
       // Registrar na tabela documentos_analisados
+      // O trigger gerará automaticamente a url_original
       const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
-        nome_arquivo: file.name,
+        nome_arquivo: fileName,
         tipo_arquivo: tipoArquivo,
-        url_original: urlData.publicUrl,
         status: 'pendente'
       };
 
