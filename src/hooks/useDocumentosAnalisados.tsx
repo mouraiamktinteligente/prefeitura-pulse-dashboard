@@ -87,10 +87,10 @@ export const useDocumentosAnalisados = () => {
 
       console.log('Upload realizado com sucesso:', uploadData);
 
-      // Gerar URL assinada temporária (1 hora de validade)
+      // Gerar URL assinada temporária (1 dia de validade = 86400 segundos)
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('analises-documentos')
-        .createSignedUrl(filePath, 3600); // 3600 segundos = 1 hora
+        .createSignedUrl(filePath, 86400); // 86400 segundos = 1 dia
 
       if (signedUrlError) {
         console.error('Erro ao gerar URL assinada:', signedUrlError);
