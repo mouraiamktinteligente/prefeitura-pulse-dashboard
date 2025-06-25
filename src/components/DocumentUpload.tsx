@@ -75,15 +75,15 @@ export const DocumentUpload = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pendente':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Clock className="w-4 h-4 text-yellow-400" />;
       case 'processando':
-        return <AlertCircle className="w-4 h-4 text-blue-500" />;
+        return <AlertCircle className="w-4 h-4 text-blue-400" />;
       case 'finalizado':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
       case 'erro':
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return <XCircle className="w-4 h-4 text-red-400" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -96,16 +96,16 @@ export const DocumentUpload = () => {
     } as const;
 
     const colors = {
-      pendente: 'bg-yellow-100 text-yellow-800',
-      processando: 'bg-blue-100 text-blue-800',
-      finalizado: 'bg-green-100 text-green-800',
-      erro: 'bg-red-100 text-red-800'
+      pendente: 'bg-yellow-900/20 text-yellow-300 border-yellow-700',
+      processando: 'bg-blue-900/20 text-blue-300 border-blue-700',
+      finalizado: 'bg-green-900/20 text-green-300 border-green-700',
+      erro: 'bg-red-900/20 text-red-300 border-red-700'
     };
 
     return (
       <Badge 
         variant={variants[status as keyof typeof variants] || 'secondary'}
-        className={colors[status as keyof typeof colors] || ''}
+        className={`${colors[status as keyof typeof colors] || ''} border`}
       >
         {getStatusIcon(status)}
         <span className="ml-1 capitalize">{status}</span>
@@ -115,24 +115,24 @@ export const DocumentUpload = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Upload className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 text-foreground">
+            <Upload className="w-5 h-5 text-primary" />
             <span>Upload de Documentos para Análise</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Seleção de Cliente */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Selecionar Cliente
             </label>
             <Select onValueChange={handleClientSelect} value={selectedClientId}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-background border-border">
                 <SelectValue placeholder="Escolha um cliente..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover border-border">
                 {clientsLoading ? (
                   <SelectItem value="loading" disabled>
                     Carregando clientes...
@@ -151,18 +151,18 @@ export const DocumentUpload = () => {
           {/* Campo de Upload */}
           {selectedClientId && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-foreground">
                 Enviar Documento
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/10">
+                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
                   Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
                 </p>
                 <Button 
                   onClick={handleFileSelect}
                   disabled={uploading}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {uploading ? 'Enviando...' : 'Selecionar Arquivo'}
                 </Button>
@@ -181,32 +181,32 @@ export const DocumentUpload = () => {
 
       {/* Lista de Documentos */}
       {selectedClient && (
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="text-foreground">
               Documentos de {selectedClient.nome_completo}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {docsLoading ? (
-              <p className="text-gray-500">Carregando documentos...</p>
+              <p className="text-muted-foreground">Carregando documentos...</p>
             ) : documentos.length === 0 ? (
-              <p className="text-gray-500">Nenhum documento encontrado para este cliente.</p>
+              <p className="text-muted-foreground">Nenhum documento encontrado para este cliente.</p>
             ) : (
               <div className="space-y-3">
                 {documentos.map((documento) => (
                   <div
                     key={documento.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/5 hover:bg-muted/10 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <FileText className="w-5 h-5 text-gray-400" />
+                        <FileText className="w-5 h-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             {documento.nome_arquivo}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {documento.tipo_arquivo} • Enviado em{' '}
                             {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
                           </p>
@@ -222,7 +222,7 @@ export const DocumentUpload = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => downloadAnalise(documento)}
-                          className="flex items-center space-x-1"
+                          className="flex items-center space-x-1 border-border hover:bg-muted"
                         >
                           <Download className="w-4 h-4" />
                           <span>Baixar Análise</span>
