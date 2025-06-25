@@ -99,7 +99,7 @@ export const useDocumentosAnalisados = () => {
 
       const { data: docData, error: docError } = await supabase
         .from('documentos_analisados')
-        .insert([documentData])
+        .insert(documentData)
         .select()
         .single();
 
