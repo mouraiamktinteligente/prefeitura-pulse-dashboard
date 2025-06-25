@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -88,13 +87,30 @@ export const useDocumentosAnalisados = () => {
 
       console.log('Upload realizado com sucesso:', uploadData);
 
-      // Criar o documento - o trigger gerará automaticamente a url_original correta
+      // Gerar URL assinada temporária (1 hora de validade)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('analises-documentos')
+        .createSignedUrl(filePath, 3600); // 3600 segundos = 1 hora
+
+      if (signedUrlError) {
+        console.error('Erro ao gerar URL assinada:', signedUrlError);
+        toast({
+          title: "Erro ao gerar URL de acesso",
+          description: signedUrlError.message,
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      console.log('URL assinada gerada:', signedUrlData.signedUrl);
+
+      // Criar o documento com a URL assinada
       const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
         nome_arquivo: fileName,
         tipo_arquivo: tipoArquivo,
         status: 'pendente',
-        url_original: '' // Será substituído pelo trigger
+        url_original: signedUrlData.signedUrl
       };
 
       const { data: docData, error: docError } = await supabase
@@ -113,7 +129,7 @@ export const useDocumentosAnalisados = () => {
         return null;
       }
 
-      console.log('Documento registrado:', docData);
+      console.log('Documento registrado com URL assinada:', docData);
       toast({
         title: "Upload realizado",
         description: "Documento enviado com sucesso!"
