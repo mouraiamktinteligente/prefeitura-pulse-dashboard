@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 export type DocumentoAnalisado = Database['public']['Tables']['documentos_analisados']['Row'];
-export type DocumentoAnalisadoInsert = Omit<Database['public']['Tables']['documentos_analisados']['Insert'], 'url_original'>;
+export type DocumentoAnalisadoInsert = Database['public']['Tables']['documentos_analisados']['Insert'];
 
 export const useDocumentosAnalisados = () => {
   const [documentos, setDocumentos] = useState<DocumentoAnalisado[]>([]);
@@ -88,9 +88,8 @@ export const useDocumentosAnalisados = () => {
 
       console.log('Upload realizado com sucesso:', uploadData);
 
-      // Registrar na tabela documentos_analisados
-      // O trigger gerará automaticamente a url_original
-      const documentData: DocumentoAnalisadoInsert = {
+      // Criar o documento sem url_original (será gerado pelo trigger)
+      const documentData = {
         cliente_id: clienteId,
         nome_arquivo: fileName,
         tipo_arquivo: tipoArquivo,
