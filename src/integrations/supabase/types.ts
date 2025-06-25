@@ -15,6 +15,7 @@ export type Database = {
           comment_id: string
           id: number
           post_id: string | null
+          profile: string | null
           username: string | null
         }
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           comment_id: string
           id?: number
           post_id?: string | null
+          profile?: string | null
           username?: string | null
         }
         Update: {
@@ -29,6 +31,7 @@ export type Database = {
           comment_id?: string
           id?: number
           post_id?: string | null
+          profile?: string | null
           username?: string | null
         }
         Relationships: []
@@ -140,6 +143,56 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      documentos_analisados: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_finalizacao: string | null
+          data_upload: string
+          id: string
+          nome_arquivo: string
+          status: string
+          tipo_arquivo: string
+          updated_at: string
+          url_analise: string | null
+          url_original: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_finalizacao?: string | null
+          data_upload?: string
+          id?: string
+          nome_arquivo: string
+          status?: string
+          tipo_arquivo: string
+          updated_at?: string
+          url_analise?: string | null
+          url_original: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_finalizacao?: string | null
+          data_upload?: string
+          id?: string
+          nome_arquivo?: string
+          status?: string
+          tipo_arquivo?: string
+          updated_at?: string
+          url_analise?: string | null
+          url_original?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_analisados_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cadastro_clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       logs_acesso: {
         Row: {
@@ -407,6 +460,36 @@ export type Database = {
       }
     }
     Views: {
+      resumo_pesquisas_profile: {
+        Row: {
+          fontes_diferentes: number | null
+          profile: string | null
+          resultados_negativos: number | null
+          resultados_neutros: number | null
+          resultados_positivos: number | null
+          tipos_conteudo_diferentes: number | null
+          tipos_encontrados: string | null
+          total_pesquisas: number | null
+          ultima_atualizacao: string | null
+          ultima_pesquisa: string | null
+        }
+        Relationships: []
+      }
+      resumo_pesquisas_web_profile: {
+        Row: {
+          fontes_diferentes: number | null
+          profile: string | null
+          resultados_negativos: number | null
+          resultados_neutros: number | null
+          resultados_positivos: number | null
+          tipos_conteudo_diferentes: number | null
+          tipos_encontrados: string | null
+          total_pesquisas: number | null
+          ultima_atualizacao: string | null
+          ultima_pesquisa: string | null
+        }
+        Relationships: []
+      }
       resumo_sentimento_por_post: {
         Row: {
           negativos: number | null

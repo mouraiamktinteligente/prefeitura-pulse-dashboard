@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
 import PlatformUsers from "./pages/PlatformUsers";
 import ClientRegistration from "./pages/ClientRegistration";
+import AnalisePesquisa from "./pages/AnalisePesquisa";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,15 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <ClientRegistration />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/analise-pesquisa" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <AnalisePesquisa />
           </main>
         </ProtectedRoute>
       } />

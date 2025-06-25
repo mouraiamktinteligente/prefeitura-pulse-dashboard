@@ -17,7 +17,7 @@ const menuItems = [
   {
     title: "Análise de Pesquisa",
     icon: BarChart3,
-    url: "#",
+    url: "/analise-pesquisa",
   },
   {
     title: "Marketing",
@@ -32,7 +32,7 @@ const menuItems = [
   {
     title: "Cadastro",
     icon: UserPlus,
-    url: "#",
+    url: "/cadastro",
   },
 ];
 
