@@ -88,12 +88,13 @@ export const useDocumentosAnalisados = () => {
 
       console.log('Upload realizado com sucesso:', uploadData);
 
-      // Criar o documento sem url_original (será gerado pelo trigger)
-      const documentData = {
+      // Criar o documento - o trigger gerará automaticamente a url_original correta
+      const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
         nome_arquivo: fileName,
         tipo_arquivo: tipoArquivo,
-        status: 'pendente'
+        status: 'pendente',
+        url_original: '' // Será substituído pelo trigger
       };
 
       const { data: docData, error: docError } = await supabase
