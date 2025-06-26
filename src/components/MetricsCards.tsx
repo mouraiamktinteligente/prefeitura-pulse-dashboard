@@ -16,16 +16,28 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
   negativeComments = 0,
   neutralComments = 0
 }) => {
-  // Calcula o sentimento médio baseado nos dados reais
+  // Calcula o sentimento médio usando a fórmula especificada
   const calculateAverageSentiment = () => {
     if (totalComments === 0) return 0;
-    // Peso: positivos = 10, neutros = 5, negativos = 0
-    const weightedSum = (positiveComments * 10) + (neutralComments * 5) + (negativeComments * 0);
-    const averageSentiment = weightedSum / totalComments;
-    return Math.round(averageSentiment * 10) / 10; // Arredonda para 1 casa decimal
+    
+    // Converte os valores para percentuais (0 a 1)
+    const positivePercentage = positiveComments / totalComments;
+    const neutralPercentage = neutralComments / totalComments;
+    const negativePercentage = negativeComments / totalComments;
+    
+    // Aplica a fórmula: (positivo * 9) + (neutro * 4) + (negativo * 1)
+    const sentimentScore = (positivePercentage * 9) + (neutralPercentage * 4) + (negativePercentage * 1);
+    
+    // Arredonda para 1 casa decimal
+    return Math.round(sentimentScore * 10) / 10;
   };
 
   const averageSentiment = calculateAverageSentiment();
+  
+  // Simulação de valor anterior para calcular variação (em um cenário real, isso viria de dados históricos)
+  const previousSentiment = averageSentiment > 0 ? averageSentiment - 0.3 : 0;
+  const sentimentChange = averageSentiment - previousSentiment;
+  const isPositiveChange = sentimentChange >= 0;
 
   const metrics = [
     {
@@ -39,11 +51,11 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
     },
     {
       title: 'Sentimento Médio',
-      value: averageSentiment.toString(),
+      value: averageSentiment.toFixed(1),
       period: 'de 10',
-      trend: averageSentiment >= 5 ? 'up' : 'down',
-      change: averageSentiment >= 5 ? '+0.3' : '-0.3',
-      icon: averageSentiment >= 5 ? TrendingUp : TrendingDown,
+      trend: isPositiveChange ? 'up' : 'down',
+      change: isPositiveChange ? `+${sentimentChange.toFixed(1)}` : sentimentChange.toFixed(1),
+      icon: isPositiveChange ? TrendingUp : TrendingDown,
       color: averageSentiment >= 5 ? 'text-green-400' : 'text-red-400'
     },
     {
