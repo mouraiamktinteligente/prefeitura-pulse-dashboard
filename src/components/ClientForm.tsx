@@ -1,6 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Building, User } from "lucide-react";
 import { validateCPF, validateCNPJ } from "@/utils/validation";
 import { Cliente, ClienteInsert } from "@/hooks/useClients";
