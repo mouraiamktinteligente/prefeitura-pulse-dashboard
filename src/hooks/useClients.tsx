@@ -17,7 +17,6 @@ export const useClients = () => {
 
   const fetchClients = async () => {
     try {
-      console.log('=== INÍCIO DA BUSCA DE CLIENTES ===');
       console.log('Buscando clientes...');
       
       // Verificar se o usuário está autenticado no sistema customizado
@@ -32,42 +31,14 @@ export const useClients = () => {
       }
 
       console.log('Usuário autenticado:', user.email);
-      console.log('Dados completos do usuário:', JSON.stringify(user, null, 2));
 
-      // Verificar se a sessão do Supabase existe
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('Sessão do Supabase:', session ? 'Existe' : 'Não existe');
-      if (sessionError) {
-        console.error('Erro ao obter sessão:', sessionError);
-      }
-
-      // Tentar consulta simples primeiro
-      console.log('Fazendo consulta na tabela cadastro_clientes...');
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('cadastro_clientes')
-        .select('*', { count: 'exact' })
+        .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Resultado da consulta:');
-      console.log('- Error:', error);
-      console.log('- Data:', data);
-      console.log('- Count:', count);
-      console.log('- Tipo do data:', typeof data);
-      console.log('- É array?', Array.isArray(data));
-
       if (error) {
-        console.error('Erro detalhado ao buscar clientes:', error);
-        console.error('Código do erro:', error.code);
-        console.error('Mensagem:', error.message);
-        console.error('Detalhes:', error.details);
-        console.error('Hint:', error.hint);
-        
-        // Verificar se é problema de RLS
-        if (error.code === 'PGRST116' || error.message.includes('RLS') || error.message.includes('policy')) {
-          console.error('PROBLEMA DE RLS DETECTADO!');
-          console.error('As políticas de Row Level Security estão bloqueando o acesso');
-        }
-        
+        console.error('Erro ao buscar clientes:', error);
         toast({
           title: "Erro ao carregar clientes",
           description: error.message,
@@ -77,18 +48,9 @@ export const useClients = () => {
       }
 
       console.log('Clientes encontrados:', data?.length || 0);
-      if (data && data.length > 0) {
-        console.log('Primeiro cliente:', JSON.stringify(data[0], null, 2));
-        console.log('Todos os clientes:', JSON.stringify(data, null, 2));
-      } else {
-        console.log('Nenhum cliente encontrado na consulta');
-      }
-      
       setClients(data || []);
-      console.log('=== FIM DA BUSCA DE CLIENTES ===');
     } catch (error) {
       console.error('Erro inesperado na busca:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
       toast({
         title: "Erro inesperado",
         description: "Erro ao carregar dados dos clientes",
