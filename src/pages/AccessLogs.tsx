@@ -84,16 +84,26 @@ const AccessLogs = () => {
     }
   }, [searchEmail, logs]);
 
+  // Função para obter data/hora no timezone de São Paulo para desconexão
+  const getBrazilDateTime = (): string => {
+    const now = new Date();
+    // Converte para o timezone de São Paulo (UTC-3)
+    const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return brazilTime.toISOString();
+  };
+
   const handleDisconnectUser = async (logId: string, email: string) => {
     setDisconnectingUser(logId);
     
     try {
+      const brazilDateTime = getBrazilDateTime();
+      
       // Atualizar o log para marcar como desconectado
       const { error } = await supabase
         .from('logs_acesso')
         .update({ 
-          data_hora_logout: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          data_hora_logout: brazilDateTime,
+          updated_at: brazilDateTime
         })
         .eq('id', logId);
 
@@ -115,7 +125,7 @@ const AccessLogs = () => {
         setLogs(prevLogs => 
           prevLogs.map(log => 
             log.id === logId 
-              ? { ...log, data_hora_logout: new Date().toISOString() }
+              ? { ...log, data_hora_logout: brazilDateTime }
               : log
           )
         );
@@ -138,7 +148,10 @@ const AccessLogs = () => {
   };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
+    // Como agora salvamos já no timezone do Brasil, apenas formatamos para exibir
+    return new Date(dateString).toLocaleString('pt-BR', {
+      timeZone: 'America/Sao_Paulo'
+    });
   };
 
   const getStatusBadge = (logoutTime: string | null) => {

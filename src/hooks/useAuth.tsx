@@ -68,22 +68,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return 'Desconhecido';
   };
 
+  // Função para obter data/hora no timezone de São Paulo
+  const getBrazilDateTime = (): string => {
+    const now = new Date();
+    // Converte para o timezone de São Paulo (UTC-3)
+    const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return brazilTime.toISOString();
+  };
+
   const registerAccessLog = async (email: string, isLogin: boolean = true) => {
     try {
       if (isLogin) {
         // Obter IP real e navegador correto
         const realIP = await getRealIP();
         const realBrowser = getRealBrowser();
+        const brazilDateTime = getBrazilDateTime();
         
         console.log('IP capturado:', realIP);
         console.log('Navegador detectado:', realBrowser);
+        console.log('Data/Hora Brasil:', brazilDateTime);
         
         // Registrar login
         await supabase
           .from('logs_acesso')
           .insert({
             email_usuario: email,
-            data_hora_login: new Date().toISOString(),
+            data_hora_login: brazilDateTime,
             ip_address: realIP,
             user_agent: realBrowser, // Salvar apenas o nome do navegador
             session_id: null
@@ -100,11 +110,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .single();
 
         if (latestLog) {
+          const brazilDateTime = getBrazilDateTime();
+          console.log('Data/Hora Logout Brasil:', brazilDateTime);
+          
           await supabase
             .from('logs_acesso')
             .update({ 
-              data_hora_logout: new Date().toISOString(),
-              updated_at: new Date().toISOString()
+              data_hora_logout: brazilDateTime,
+              updated_at: brazilDateTime
             })
             .eq('id', latestLog.id);
         }
