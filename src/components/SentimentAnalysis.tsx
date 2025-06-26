@@ -44,7 +44,7 @@ export const SentimentAnalysis = () => {
           <CardTitle className="text-lg font-semibold text-white flex items-center">
             📊 Análise de Sentimento
           </CardTitle>
-          <p className="text-sm text-blue-300">Instagram + Web (últimas 24h)</p>
+          <p className="text-sm text-blue-300">Última análise realizada.</p>
         </CardHeader>
         <CardContent>
           <div className="h-64 flex items-center justify-center">
@@ -61,7 +61,7 @@ export const SentimentAnalysis = () => {
         <CardTitle className="text-lg font-semibold text-white flex items-center">
           📊 Análise de Sentimento
         </CardTitle>
-        <p className="text-sm text-blue-300">Instagram + Web (últimas 24h)</p>
+        <p className="text-sm text-blue-300">Última análise realizada.</p>
       </CardHeader>
       <CardContent>
         <div className="h-64">
@@ -69,7 +69,7 @@ export const SentimentAnalysis = () => {
             <PieChart>
               <Pie
                 data={data}
-                cx="50%"
+                cx="45%"
                 cy="50%"
                 outerRadius={80}
                 dataKey="value"
