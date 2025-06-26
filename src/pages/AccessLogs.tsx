@@ -151,13 +151,8 @@ const AccessLogs = () => {
   const getUserAgent = (userAgent: string | null) => {
     if (!userAgent) return 'N/A';
     
-    // Detectar navegador
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    
-    return 'Outro';
+    // Agora apenas retorna o valor salvo, pois já está sendo salvo corretamente
+    return userAgent;
   };
 
   return (

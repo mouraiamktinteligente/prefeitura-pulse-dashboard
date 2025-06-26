@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,17 +14,78 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Função para obter o IP real do usuário
+  const getRealIP = async (): Promise<string | null> => {
+    try {
+      // Usar serviço público para obter IP real
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Erro ao obter IP:', error);
+      // Fallback: tentar outro serviço
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        return data.ip;
+      } catch (fallbackError) {
+        console.error('Erro ao obter IP (fallback):', fallbackError);
+        return null;
+      }
+    }
+  };
+
+  // Função para detectar o navegador correto
+  const getRealBrowser = (): string => {
+    const userAgent = navigator.userAgent;
+    
+    // Detectar Safari primeiro (deve vir antes do Chrome)
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+      return 'Safari';
+    }
+    
+    // Detectar Chrome
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+      return 'Chrome';
+    }
+    
+    // Detectar Edge
+    if (userAgent.includes('Edg')) {
+      return 'Edge';
+    }
+    
+    // Detectar Firefox
+    if (userAgent.includes('Firefox')) {
+      return 'Firefox';
+    }
+    
+    // Detectar Opera
+    if (userAgent.includes('Opera') || userAgent.includes('OPR')) {
+      return 'Opera';
+    }
+    
+    // Fallback
+    return 'Desconhecido';
+  };
+
   const registerAccessLog = async (email: string, isLogin: boolean = true) => {
     try {
       if (isLogin) {
+        // Obter IP real e navegador correto
+        const realIP = await getRealIP();
+        const realBrowser = getRealBrowser();
+        
+        console.log('IP capturado:', realIP);
+        console.log('Navegador detectado:', realBrowser);
+        
         // Registrar login
         await supabase
           .from('logs_acesso')
           .insert({
             email_usuario: email,
             data_hora_login: new Date().toISOString(),
-            ip_address: null, // Pode ser implementado se necessário
-            user_agent: navigator.userAgent,
+            ip_address: realIP,
+            user_agent: realBrowser, // Salvar apenas o nome do navegador
             session_id: null
           });
       } else {
@@ -96,7 +156,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(authenticatedUser);
       localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
       
-      // Registrar log de acesso
+      // Registrar log de acesso com IP real e navegador correto
       await registerAccessLog(userData.email, true);
       
       return { error: null };
