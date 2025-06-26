@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,10 +12,25 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Shield, Search, RefreshCw, LogOut } from "lucide-react";
+import { Shield, Search, RefreshCw, LogOut, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,11 +56,43 @@ interface AccessLog {
 const AccessLogs = () => {
   const [logs, setLogs] = useState<AccessLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AccessLog[]>([]);
+  const [paginatedLogs, setPaginatedLogs] = useState<AccessLog[]>([]);
   const [searchEmail, setSearchEmail] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [disconnectingUser, setDisconnectingUser] = useState<string | null>(null);
   const { toast } = useToast();
   const { user, logout } = useAuth();
+
+  const ITEMS_PER_PAGE = 50;
+
+  // Gerar anos disponíveis (últimos 5 anos)
+  const getAvailableYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = 0; i < 5; i++) {
+      years.push(currentYear - i);
+    }
+    return years;
+  };
+
+  // Meses em português
+  const months = [
+    { value: '01', label: 'Janeiro' },
+    { value: '02', label: 'Fevereiro' },
+    { value: '03', label: 'Março' },
+    { value: '04', label: 'Abril' },
+    { value: '05', label: 'Maio' },
+    { value: '06', label: 'Junho' },
+    { value: '07', label: 'Julho' },
+    { value: '08', label: 'Agosto' },
+    { value: '09', label: 'Setembro' },
+    { value: '10', label: 'Outubro' },
+    { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' }
+  ];
 
   const fetchLogs = async () => {
     setIsLoading(true);
@@ -57,7 +105,6 @@ const AccessLogs = () => {
       if (error) throw error;
 
       setLogs(data || []);
-      setFilteredLogs(data || []);
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -73,16 +120,50 @@ const AccessLogs = () => {
     fetchLogs();
   }, []);
 
+  // Filtrar logs com base nos critérios
   useEffect(() => {
+    let filtered = [...logs];
+
+    // Filtro por email
     if (searchEmail) {
-      const filtered = logs.filter(log => 
+      filtered = filtered.filter(log => 
         log.email_usuario.toLowerCase().includes(searchEmail.toLowerCase())
       );
-      setFilteredLogs(filtered);
-    } else {
-      setFilteredLogs(logs);
     }
-  }, [searchEmail, logs]);
+
+    // Filtro por mês e ano
+    if (selectedMonth || selectedYear) {
+      filtered = filtered.filter(log => {
+        const logDate = new Date(log.data_hora_login);
+        const logMonth = String(logDate.getMonth() + 1).padStart(2, '0');
+        const logYear = String(logDate.getFullYear());
+
+        const monthMatch = !selectedMonth || logMonth === selectedMonth;
+        const yearMatch = !selectedYear || logYear === selectedYear;
+
+        return monthMatch && yearMatch;
+      });
+    }
+
+    setFilteredLogs(filtered);
+    setCurrentPage(1); // Reset para primeira página quando filtrar
+  }, [searchEmail, selectedMonth, selectedYear, logs]);
+
+  // Paginação
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    setPaginatedLogs(filteredLogs.slice(startIndex, endIndex));
+  }, [filteredLogs, currentPage]);
+
+  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+
+  const clearFilters = () => {
+    setSearchEmail('');
+    setSelectedMonth('');
+    setSelectedYear('');
+    setCurrentPage(1);
+  };
 
   // Função para obter data/hora no timezone de São Paulo para desconexão
   const getBrazilDateTime = (): string => {
@@ -185,32 +266,69 @@ const AccessLogs = () => {
         {/* Filters */}
         <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
           <CardHeader>
-            <CardTitle className="text-white">Filtros</CardTitle>
+            <CardTitle className="text-white flex items-center space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span>Filtros</span>
+            </CardTitle>
             <CardDescription className="text-blue-300">
-              Filtre os logs por email ou período
+              Filtre os logs por email, mês ou ano
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
-                  <Input
-                    placeholder="Buscar por email..."
-                    value={searchEmail}
-                    onChange={(e) => setSearchEmail(e.target.value)}
-                    className="pl-10 bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
-                  />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar por email..."
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  className="pl-10 bg-blue-900/50 border-blue-600/50 text-white placeholder:text-blue-400"
+                />
               </div>
-              <Button
-                onClick={fetchLogs}
-                variant="outline"
-                className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Atualizar
-              </Button>
+              
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="bg-blue-900/50 border-blue-600/50 text-white">
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent className="bg-blue-800 border-blue-600">
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value} className="text-white hover:bg-blue-700">
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="bg-blue-900/50 border-blue-600/50 text-white">
+                  <SelectValue placeholder="Selecione o ano" />
+                </SelectTrigger>
+                <SelectContent className="bg-blue-800 border-blue-600">
+                  {getAvailableYears().map((year) => (
+                    <SelectItem key={year} value={String(year)} className="text-white hover:bg-blue-700">
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex space-x-2">
+                <Button
+                  onClick={fetchLogs}
+                  variant="outline"
+                  className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Atualizar
+                </Button>
+                <Button
+                  onClick={clearFilters}
+                  variant="outline"
+                  className="border-red-600 text-red-200 hover:bg-red-700/50"
+                >
+                  Limpar
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -221,99 +339,162 @@ const AccessLogs = () => {
             <CardTitle className="text-white">
               Histórico de Acessos ({filteredLogs.length} registros)
             </CardTitle>
+            <CardDescription className="text-blue-300">
+              Página {currentPage} de {totalPages} • Mostrando {paginatedLogs.length} de {filteredLogs.length} registros
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-white">Carregando...</div>
             ) : (
-              <div className="rounded-md border border-blue-700/50 overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-blue-700/50">
-                      <TableHead className="text-blue-100">Email</TableHead>
-                      <TableHead className="text-blue-100">Data/Hora Login</TableHead>
-                      <TableHead className="text-blue-100">Data/Hora Logout</TableHead>
-                      <TableHead className="text-blue-100">Status</TableHead>
-                      <TableHead className="text-blue-100">IP</TableHead>
-                      <TableHead className="text-blue-100">Navegador</TableHead>
-                      <TableHead className="text-blue-100">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLogs.map((log) => (
-                      <TableRow key={log.id} className="border-blue-700/50 hover:bg-blue-700/25">
-                        <TableCell className="text-white font-medium">
-                          {log.email_usuario}
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {formatDateTime(log.data_hora_login)}
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {log.data_hora_logout ? formatDateTime(log.data_hora_logout) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(log.data_hora_logout)}
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {log.ip_address || 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {getUserAgent(log.user_agent)}
-                        </TableCell>
-                        <TableCell>
-                          {!log.data_hora_logout ? (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={disconnectingUser === log.id}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  <LogOut className="w-4 h-4 mr-1" />
-                                  {disconnectingUser === log.id ? 'Desconectando...' : 'Desconectar'}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-blue-800 border-blue-700">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-white">
-                                    Desconectar Usuário
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription className="text-blue-300">
-                                    Tem certeza que deseja desconectar o usuário <strong>{log.email_usuario}</strong>? 
-                                    {log.email_usuario === user?.email ? 
-                                      ' Você será deslogado da plataforma.' : 
-                                      ' Esta ação irá forçar o logout e o usuário precisará fazer login novamente.'
-                                    }
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600 border-blue-600">
-                                    Cancelar
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDisconnectUser(log.id, log.email_usuario)}
+              <>
+                <div className="rounded-md border border-blue-700/50 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-blue-700/50">
+                        <TableHead className="text-blue-100">Email</TableHead>
+                        <TableHead className="text-blue-100">Data/Hora Login</TableHead>
+                        <TableHead className="text-blue-100">Data/Hora Logout</TableHead>
+                        <TableHead className="text-blue-100">Status</TableHead>
+                        <TableHead className="text-blue-100">IP</TableHead>
+                        <TableHead className="text-blue-100">Navegador</TableHead>
+                        <TableHead className="text-blue-100">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedLogs.map((log) => (
+                        <TableRow key={log.id} className="border-blue-700/50 hover:bg-blue-700/25">
+                          <TableCell className="text-white font-medium">
+                            {log.email_usuario}
+                          </TableCell>
+                          <TableCell className="text-blue-200">
+                            {formatDateTime(log.data_hora_login)}
+                          </TableCell>
+                          <TableCell className="text-blue-200">
+                            {log.data_hora_logout ? formatDateTime(log.data_hora_logout) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(log.data_hora_logout)}
+                          </TableCell>
+                          <TableCell className="text-blue-200">
+                            {log.ip_address || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-blue-200">
+                            {getUserAgent(log.user_agent)}
+                          </TableCell>
+                          <TableCell>
+                            {!log.data_hora_logout ? (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={disconnectingUser === log.id}
                                     className="bg-red-600 hover:bg-red-700"
                                   >
-                                    Desconectar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          ) : (
-                            <span className="text-blue-400 text-sm">Offline</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredLogs.length === 0 && (
-                  <div className="text-center py-8 text-blue-300">
-                    Nenhum log de acesso encontrado
+                                    <LogOut className="w-4 h-4 mr-1" />
+                                    {disconnectingUser === log.id ? 'Desconectando...' : 'Desconectar'}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-blue-800 border-blue-700">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-white">
+                                      Desconectar Usuário
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="text-blue-300">
+                                      Tem certeza que deseja desconectar o usuário <strong>{log.email_usuario}</strong>? 
+                                      {log.email_usuario === user?.email ? 
+                                        ' Você será deslogado da plataforma.' : 
+                                        ' Esta ação irá forçar o logout e o usuário precisará fazer login novamente.'
+                                      }
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600 border-blue-600">
+                                      Cancelar
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDisconnectUser(log.id, log.email_usuario)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Desconectar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            ) : (
+                              <span className="text-blue-400 text-sm">Offline</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {paginatedLogs.length === 0 && !isLoading && (
+                    <div className="text-center py-8 text-blue-300">
+                      Nenhum log de acesso encontrado com os filtros aplicados
+                    </div>
+                  )}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-6 flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1) setCurrentPage(currentPage - 1);
+                            }}
+                            className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : ''} text-white hover:bg-blue-700/50`}
+                          />
+                        </PaginationItem>
+                        
+                        {/* Mostrar algumas páginas ao redor da página atual */}
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNumber = Math.max(1, currentPage - 2) + i;
+                          if (pageNumber > totalPages) return null;
+                          
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(pageNumber);
+                                }}
+                                isActive={currentPage === pageNumber}
+                                className={`${
+                                  currentPage === pageNumber 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'text-blue-200 hover:bg-blue-700/50'
+                                }`}
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                            }}
+                            className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} text-white hover:bg-blue-700/50`}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 )}
-              </div>
+              </>
             )}
           </CardContent>
         </Card>
