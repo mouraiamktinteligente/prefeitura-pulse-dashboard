@@ -7,17 +7,24 @@ import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
 
-export const SentimentAnalysis = () => {
-  const { clientId } = useParams<{ clientId: string }>();
+interface SentimentAnalysisProps {
+  clientId?: string;
+}
+
+export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ clientId: propClientId }) => {
+  const { clientId: paramClientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
-  const selectedClient = clients.find(client => client.id === clientId);
+  
+  // Usa o clientId da prop se fornecido, senão usa o da URL
+  const effectiveClientId = propClientId || paramClientId;
+  const selectedClient = clients.find(client => client.id === effectiveClientId);
   
   // Se há um clientId, usa métricas específicas do cliente, senão usa métricas agregadas
   const { metrics: clientMetrics, loading: clientLoading } = useClientMetrics(selectedClient?.instagram || undefined);
   const { metrics: aggregatedMetrics, loading: aggregatedLoading } = useAggregatedMetrics();
   
-  const metrics = clientId ? clientMetrics : aggregatedMetrics;
-  const loading = clientId ? clientLoading : aggregatedLoading;
+  const metrics = effectiveClientId ? clientMetrics : aggregatedMetrics;
+  const loading = effectiveClientId ? clientLoading : aggregatedLoading;
 
   // Calcula os percentuais baseados nos dados reais - MESMA LÓGICA PARA AMBOS
   const calculatePercentages = () => {

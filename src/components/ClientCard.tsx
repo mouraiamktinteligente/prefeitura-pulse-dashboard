@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Instagram } from 'lucide-react';
 import type { Cliente } from '@/hooks/useClients';
+import { SentimentAnalysis } from './SentimentAnalysis';
 
 interface ClientCardProps {
   client: Cliente;
@@ -10,13 +11,6 @@ interface ClientCardProps {
 }
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
-  // Dados simulados de sentimento para cada cliente
-  const sentimentData = [
-    { name: 'Positivo', value: Math.floor(Math.random() * 40) + 40, color: '#10b981' },
-    { name: 'Neutro', value: Math.floor(Math.random() * 30) + 20, color: '#f59e0b' },
-    { name: 'Negativo', value: Math.floor(Math.random() * 20) + 5, color: '#ef4444' }
-  ];
-
   // Post simulado do Instagram
   const mockPost = {
     image: "https://picsum.photos/200/200?random=" + client.id,
@@ -38,39 +32,13 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Gráfico de Análise de Sentimento */}
+        {/* Gráfico de Análise de Sentimento com dados reais */}
         <div className="bg-blue-600 rounded-lg p-3">
           <h4 className="text-white text-sm font-semibold mb-2 text-center">
             Análise de Sentimento
           </h4>
-          <div className="h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sentimentData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={50}
-                  dataKey="value"
-                  label={false}
-                >
-                  {sentimentData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center space-x-4 mt-2">
-            {sentimentData.map((item) => (
-              <div key={item.name} className="text-center">
-                <div 
-                  className="w-2 h-2 rounded-full mx-auto mb-1" 
-                  style={{ backgroundColor: item.color }} 
-                />
-                <p className="text-xs text-blue-300">{item.value}%</p>
-              </div>
-            ))}
+          <div className="h-32 -m-3">
+            <SentimentAnalysis clientId={client.id} />
           </div>
         </div>
 
