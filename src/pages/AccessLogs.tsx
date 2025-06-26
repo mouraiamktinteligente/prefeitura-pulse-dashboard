@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Search, RefreshCw, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,7 @@ const AccessLogs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [disconnectingUser, setDisconnectingUser] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, logout } = useAuth();
 
   const fetchLogs = async () => {
     setIsLoading(true);
@@ -97,19 +99,32 @@ const AccessLogs = () => {
 
       if (error) throw error;
 
-      // Atualizar a lista local
-      setLogs(prevLogs => 
-        prevLogs.map(log => 
-          log.id === logId 
-            ? { ...log, data_hora_logout: new Date().toISOString() }
-            : log
-        )
-      );
+      // Se o usuário sendo desconectado é o próprio usuário logado, fazer logout
+      if (email === user?.email) {
+        toast({
+          title: "Usuário desconectado",
+          description: "Você foi desconectado da plataforma.",
+        });
+        
+        // Pequeno delay para mostrar o toast antes do logout
+        setTimeout(() => {
+          logout();
+        }, 1000);
+      } else {
+        // Atualizar a lista local
+        setLogs(prevLogs => 
+          prevLogs.map(log => 
+            log.id === logId 
+              ? { ...log, data_hora_logout: new Date().toISOString() }
+              : log
+          )
+        );
 
-      toast({
-        title: "Usuário desconectado",
-        description: `O usuário ${email} foi desconectado com sucesso.`,
-      });
+        toast({
+          title: "Usuário desconectado",
+          description: `O usuário ${email} foi desconectado com sucesso.`,
+        });
+      }
 
     } catch (error: any) {
       toast({
@@ -258,7 +273,10 @@ const AccessLogs = () => {
                                   </AlertDialogTitle>
                                   <AlertDialogDescription className="text-blue-300">
                                     Tem certeza que deseja desconectar o usuário <strong>{log.email_usuario}</strong>? 
-                                    Esta ação irá forçar o logout e o usuário precisará fazer login novamente.
+                                    {log.email_usuario === user?.email ? 
+                                      ' Você será deslogado da plataforma.' : 
+                                      ' Esta ação irá forçar o logout e o usuário precisará fazer login novamente.'
+                                    }
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
