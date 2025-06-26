@@ -16,6 +16,22 @@ export const useClients = () => {
   const fetchClients = async () => {
     try {
       console.log('Buscando clientes...');
+      
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Erro de autenticação:', authError);
+        toast({
+          title: "Erro de autenticação",
+          description: "Usuário não autenticado",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Usuário autenticado:', user?.email);
+
       const { data, error } = await supabase
         .from('cadastro_clientes')
         .select('*')
@@ -23,6 +39,7 @@ export const useClients = () => {
 
       if (error) {
         console.error('Erro ao buscar clientes:', error);
+        console.error('Detalhes do erro:', JSON.stringify(error, null, 2));
         toast({
           title: "Erro ao carregar clientes",
           description: error.message,
@@ -32,6 +49,7 @@ export const useClients = () => {
       }
 
       console.log('Clientes carregados:', data?.length || 0);
+      console.log('Dados dos clientes:', data);
       setClients(data || []);
     } catch (error) {
       console.error('Erro inesperado:', error);

@@ -10,6 +10,10 @@ const MainDashboard = () => {
   const { clients, loading } = useClients();
   const navigate = useNavigate();
 
+  console.log('MainDashboard - Estado do loading:', loading);
+  console.log('MainDashboard - Quantidade de clientes:', clients.length);
+  console.log('MainDashboard - Lista de clientes:', clients);
+
   const handleClientClick = (clientId: string) => {
     // Navega para o dashboard detalhado passando o ID do cliente
     navigate(`/dashboard/${clientId}`);
@@ -20,12 +24,15 @@ const MainDashboard = () => {
   };
 
   if (loading) {
+    console.log('MainDashboard - Renderizando loading...');
     return (
       <div className="min-h-screen bg-blue-900 flex items-center justify-center">
         <div className="text-white text-lg">Carregando clientes...</div>
       </div>
     );
   }
+
+  console.log('MainDashboard - Renderizando dashboard com', clients.length, 'clientes');
 
   return (
     <div className="min-h-screen bg-blue-900">
