@@ -19,7 +19,7 @@ export const SentimentAnalysis = () => {
   const metrics = clientId ? clientMetrics : aggregatedMetrics;
   const loading = clientId ? clientLoading : aggregatedLoading;
 
-  // Calcula os percentuais baseados nos dados reais
+  // Calcula os percentuais baseados nos dados reais - MESMA LÓGICA PARA AMBOS
   const calculatePercentages = () => {
     const { totalComments, positiveComments, negativeComments, neutralComments } = metrics;
     
@@ -44,7 +44,7 @@ export const SentimentAnalysis = () => {
 
   const data = calculatePercentages();
 
-  // Função customizada para renderizar os labels
+  // Função customizada para renderizar os labels - MESMA LÓGICA PARA AMBOS
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
     if (value === 0) return null;
     
