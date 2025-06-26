@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -7,7 +8,6 @@ import { SatisfactionThermometer } from '../components/SatisfactionThermometer';
 import { EngagementChart } from '../components/EngagementChart';
 import { MaliciousComments } from '../components/MaliciousComments';
 import { CommentsRanking } from '../components/CommentsRanking';
-import { HeatMap } from '../components/HeatMap';
 import { CrisisTimeline } from '../components/CrisisTimeline';
 import { InstagramLatestPost } from '../components/InstagramLatestPost';
 import { useClients } from '@/hooks/useClients';
@@ -48,7 +48,7 @@ const DetailedDashboard = () => {
           {/* Center Column */}
           <div className="space-y-6">
             <EngagementChart />
-            <HeatMap />
+            <InstagramLatestPost clientName={selectedClient?.nome_completo} />
           </div>
           
           {/* Right Column */}
@@ -60,9 +60,6 @@ const DetailedDashboard = () => {
         
         {/* Comments Ranking - Full Width */}
         <CommentsRanking />
-        
-        {/* Instagram Latest Post - Full Width */}
-        <InstagramLatestPost clientName={selectedClient?.nome_completo} />
       </main>
     </div>
   );
