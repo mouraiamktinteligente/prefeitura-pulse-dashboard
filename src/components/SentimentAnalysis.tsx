@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useParams } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
@@ -37,6 +37,58 @@ export const SentimentAnalysis = () => {
 
   const data = calculatePercentages();
 
+  // Função customizada para renderizar os labels
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+    if (value === 0) return null;
+    
+    // Se a fatia é muito pequena (menos de 5%), renderiza fora
+    if (value < 5) {
+      const RADIAN = Math.PI / 180;
+      const radius = outerRadius + 30;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+      
+      return (
+        <text 
+          x={x} 
+          y={y} 
+          fill="white" 
+          textAnchor="middle" 
+          dominantBaseline="central"
+          fontSize="12"
+          fontWeight="bold"
+        >
+          {`${value}%`}
+        </text>
+      );
+    }
+    
+    // Para fatias maiores, renderiza dentro da fatia
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Ajusta o tamanho da fonte baseado no valor da fatia
+    let fontSize = 14;
+    if (value < 15) fontSize = 12;
+    if (value < 10) fontSize = 10;
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize={fontSize}
+        fontWeight="bold"
+      >
+        {`${value}%`}
+      </text>
+    );
+  };
+
   if (loading) {
     return (
       <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
@@ -69,11 +121,12 @@ export const SentimentAnalysis = () => {
             <PieChart>
               <Pie
                 data={data}
-                cx="45%"
+                cx="50%"
                 cy="50%"
                 outerRadius={80}
                 dataKey="value"
-                label={({ name, value }) => `${name}: ${value}%`}
+                labelLine={false}
+                label={renderCustomizedLabel}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
