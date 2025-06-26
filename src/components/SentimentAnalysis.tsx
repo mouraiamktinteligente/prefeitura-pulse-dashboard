@@ -128,7 +128,7 @@ export const SentimentAnalysis = () => {
             <PieChart>
               <Pie
                 data={data}
-                cx="45%"
+                cx="50%"
                 cy="50%"
                 outerRadius={80}
                 dataKey="value"
@@ -142,6 +142,15 @@ export const SentimentAnalysis = () => {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {data.map((item) => (
+            <div key={item.name} className="text-center">
+              <div className={`w-3 h-3 rounded-full mx-auto mb-1`} style={{ backgroundColor: item.color }} />
+              <p className="text-xs text-blue-300">{item.name}</p>
+              <p className="text-sm font-semibold text-white">{item.value}%</p>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
