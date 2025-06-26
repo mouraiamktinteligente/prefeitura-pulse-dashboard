@@ -48,38 +48,10 @@ export const SentimentAnalysis = () => {
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
     if (value === 0) return null;
     
-    // Se a fatia é muito pequena (menos de 5%), renderiza fora
-    if (value < 5) {
-      const RADIAN = Math.PI / 180;
-      const radius = outerRadius + 30;
-      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-      
-      return (
-        <text 
-          x={x} 
-          y={y} 
-          fill="white" 
-          textAnchor="middle" 
-          dominantBaseline="central"
-          fontSize="12"
-          fontWeight="bold"
-        >
-          {`${value}%`}
-        </text>
-      );
-    }
-    
-    // Para fatias maiores, renderiza dentro da fatia
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    // Ajusta o tamanho da fonte baseado no valor da fatia
-    let fontSize = 14;
-    if (value < 15) fontSize = 12;
-    if (value < 10) fontSize = 10;
 
     return (
       <text 
@@ -88,7 +60,7 @@ export const SentimentAnalysis = () => {
         fill="white" 
         textAnchor="middle" 
         dominantBaseline="central"
-        fontSize={fontSize}
+        fontSize="14"
         fontWeight="bold"
       >
         {`${value}%`}
