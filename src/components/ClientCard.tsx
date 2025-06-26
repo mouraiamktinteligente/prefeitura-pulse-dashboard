@@ -31,19 +31,19 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-3 h-full pb-4">
+      <CardContent className="space-y-4 h-full pb-4 flex flex-col">
         {/* Gráfico de Análise de Sentimento com dados reais */}
-        <div className="bg-blue-600 rounded-lg p-3">
+        <div className="bg-blue-600 rounded-lg p-3 flex-grow">
           <h4 className="text-white text-sm font-semibold mb-2 text-center">
             Análise de Sentimento
           </h4>
-          <div className="h-40">
+          <div className="h-48">
             <SentimentAnalysis clientId={client.id} compact={true} />
           </div>
         </div>
 
         {/* Última Postagem do Instagram */}
-        <div className="bg-blue-600 rounded-lg p-3 flex-1">
+        <div className="bg-blue-600 rounded-lg p-3 flex-shrink-0">
           <div className="flex items-center space-x-2 mb-2">
             <Instagram className="w-4 h-4 text-pink-400" />
             <h4 className="text-white text-sm font-semibold">
