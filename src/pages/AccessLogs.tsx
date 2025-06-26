@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,9 +11,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Shield, Search, RefreshCw } from "lucide-react";
+import { Shield, Search, RefreshCw, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AccessLog {
   id: string;
@@ -31,6 +41,7 @@ const AccessLogs = () => {
   const [filteredLogs, setFilteredLogs] = useState<AccessLog[]>([]);
   const [searchEmail, setSearchEmail] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [disconnectingUser, setDisconnectingUser] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchLogs = async () => {
@@ -70,6 +81,46 @@ const AccessLogs = () => {
       setFilteredLogs(logs);
     }
   }, [searchEmail, logs]);
+
+  const handleDisconnectUser = async (logId: string, email: string) => {
+    setDisconnectingUser(logId);
+    
+    try {
+      // Atualizar o log para marcar como desconectado
+      const { error } = await supabase
+        .from('logs_acesso')
+        .update({ 
+          data_hora_logout: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', logId);
+
+      if (error) throw error;
+
+      // Atualizar a lista local
+      setLogs(prevLogs => 
+        prevLogs.map(log => 
+          log.id === logId 
+            ? { ...log, data_hora_logout: new Date().toISOString() }
+            : log
+        )
+      );
+
+      toast({
+        title: "Usuário desconectado",
+        description: `O usuário ${email} foi desconectado com sucesso.`,
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: "Erro ao desconectar usuário: " + error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDisconnectingUser(null);
+    }
+  };
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
@@ -162,6 +213,7 @@ const AccessLogs = () => {
                       <TableHead className="text-blue-100">Status</TableHead>
                       <TableHead className="text-blue-100">IP</TableHead>
                       <TableHead className="text-blue-100">Navegador</TableHead>
+                      <TableHead className="text-blue-100">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -184,6 +236,47 @@ const AccessLogs = () => {
                         </TableCell>
                         <TableCell className="text-blue-200">
                           {getUserAgent(log.user_agent)}
+                        </TableCell>
+                        <TableCell>
+                          {!log.data_hora_logout ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={disconnectingUser === log.id}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  <LogOut className="w-4 h-4 mr-1" />
+                                  {disconnectingUser === log.id ? 'Desconectando...' : 'Desconectar'}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-blue-800 border-blue-700">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">
+                                    Desconectar Usuário
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription className="text-blue-300">
+                                    Tem certeza que deseja desconectar o usuário <strong>{log.email_usuario}</strong>? 
+                                    Esta ação irá forçar o logout e o usuário precisará fazer login novamente.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600 border-blue-600">
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDisconnectUser(log.id, log.email_usuario)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Desconectar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <span className="text-blue-400 text-sm">Offline</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
