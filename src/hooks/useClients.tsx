@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { Database } from '@/integrations/supabase/types';
 
 export type Cliente = Database['public']['Tables']['cadastro_clientes']['Row'];
@@ -12,16 +13,15 @@ export const useClients = () => {
   const [clients, setClients] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchClients = async () => {
     try {
       console.log('Buscando clientes...');
       
-      // Verificar se o usuário está autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error('Erro de autenticação:', authError);
+      // Verificar se o usuário está autenticado no sistema customizado
+      if (!user) {
+        console.log('Usuário não autenticado no sistema customizado');
         toast({
           title: "Erro de autenticação",
           description: "Usuário não autenticado",
@@ -30,7 +30,7 @@ export const useClients = () => {
         return;
       }
 
-      console.log('Usuário autenticado:', user?.email);
+      console.log('Usuário autenticado:', user.email);
 
       const { data, error } = await supabase
         .from('cadastro_clientes')
@@ -161,8 +161,13 @@ export const useClients = () => {
   };
 
   useEffect(() => {
-    fetchClients();
-  }, []);
+    // Só buscar clientes se o usuário estiver autenticado
+    if (user) {
+      fetchClients();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   return {
     clients,
