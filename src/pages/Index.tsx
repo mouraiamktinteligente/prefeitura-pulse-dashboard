@@ -28,7 +28,7 @@ const Index = () => {
       <Header isConnected={isConnected} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Metrics Cards */}
+        {/* Metrics Cards - usando valores padrão para dashboard geral */}
         <MetricsCards />
         
         {/* Main Dashboard Grid */}

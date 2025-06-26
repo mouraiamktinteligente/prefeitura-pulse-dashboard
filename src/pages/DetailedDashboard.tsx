@@ -11,6 +11,7 @@ import { CommentsRanking } from '../components/CommentsRanking';
 import { CrisisTimeline } from '../components/CrisisTimeline';
 import { InstagramLatestPost } from '../components/InstagramLatestPost';
 import { useClients } from '@/hooks/useClients';
+import { useClientMetrics } from '@/hooks/useClientMetrics';
 
 const DetailedDashboard = () => {
   const [isConnected, setIsConnected] = useState(true);
@@ -18,6 +19,7 @@ const DetailedDashboard = () => {
   const { clients } = useClients();
   
   const selectedClient = clients.find(client => client.id === clientId);
+  const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram || undefined);
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -35,7 +37,24 @@ const DetailedDashboard = () => {
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Metrics Cards */}
-        <MetricsCards />
+        {metricsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="bg-blue-700 rounded-lg p-6 animate-pulse">
+                <div className="h-4 bg-blue-600 rounded mb-2"></div>
+                <div className="h-8 bg-blue-600 rounded mb-2"></div>
+                <div className="h-3 bg-blue-600 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <MetricsCards 
+            totalComments={metrics.totalComments}
+            positiveComments={metrics.positiveComments}
+            negativeComments={metrics.negativeComments}
+            neutralComments={metrics.neutralComments}
+          />
+        )}
         
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -3,12 +3,35 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, MessageSquare, AlertTriangle } from 'lucide-react';
 
-export const MetricsCards = () => {
+interface MetricsCardsProps {
+  totalComments?: number;
+  positiveComments?: number;
+  negativeComments?: number;
+  neutralComments?: number;
+}
+
+export const MetricsCards: React.FC<MetricsCardsProps> = ({
+  totalComments = 0,
+  positiveComments = 0,
+  negativeComments = 0,
+  neutralComments = 0
+}) => {
+  // Calcula o sentimento médio baseado nos dados reais
+  const calculateAverageSentiment = () => {
+    if (totalComments === 0) return 0;
+    // Peso: positivos = 10, neutros = 5, negativos = 0
+    const weightedSum = (positiveComments * 10) + (neutralComments * 5) + (negativeComments * 0);
+    const averageSentiment = weightedSum / totalComments;
+    return Math.round(averageSentiment * 10) / 10; // Arredonda para 1 casa decimal
+  };
+
+  const averageSentiment = calculateAverageSentiment();
+
   const metrics = [
     {
       title: 'Comentários Analisados',
-      value: '2.847',
-      period: 'últimas 24h',
+      value: totalComments.toLocaleString(),
+      period: 'total acumulado',
       trend: 'up',
       change: '+12%',
       icon: MessageSquare,
@@ -16,12 +39,12 @@ export const MetricsCards = () => {
     },
     {
       title: 'Sentimento Médio',
-      value: '7.2',
+      value: averageSentiment.toString(),
       period: 'de 10',
-      trend: 'up',
-      change: '+0.3',
-      icon: TrendingUp,
-      color: 'text-green-400'
+      trend: averageSentiment >= 5 ? 'up' : 'down',
+      change: averageSentiment >= 5 ? '+0.3' : '-0.3',
+      icon: averageSentiment >= 5 ? TrendingUp : TrendingDown,
+      color: averageSentiment >= 5 ? 'text-green-400' : 'text-red-400'
     },
     {
       title: 'Postagens Hoje',
@@ -34,8 +57,8 @@ export const MetricsCards = () => {
     },
     {
       title: 'Risco Reputacional',
-      value: '5',
-      period: 'comentários críticos',
+      value: negativeComments.toString(),
+      period: 'comentários negativos',
       trend: 'down',
       change: '-3',
       icon: AlertTriangle,
