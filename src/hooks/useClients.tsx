@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useClientsFetch } from './useClientsFetch';
+import { useClientOperations } from './useClientOperations';
 import type { Database } from '@/integrations/supabase/types';
 
 export type Cliente = Database['public']['Tables']['cadastro_clientes']['Row'];
@@ -10,162 +10,33 @@ export type ClienteInsert = Database['public']['Tables']['cadastro_clientes']['I
 export type ClienteUpdate = Database['public']['Tables']['cadastro_clientes']['Update'];
 
 export const useClients = () => {
-  const [clients, setClients] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const { user } = useAuth();
-
-  const fetchClients = async () => {
-    try {
-      console.log('Buscando clientes...');
-      
-      // Verificar se o usuário está autenticado no sistema customizado
-      if (!user) {
-        console.log('Usuário não autenticado no sistema customizado');
-        toast({
-          title: "Erro de autenticação",
-          description: "Usuário não autenticado",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Usuário autenticado:', user.email);
-
-      const { data, error } = await supabase
-        .from('cadastro_clientes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Erro ao buscar clientes:', error);
-        toast({
-          title: "Erro ao carregar clientes",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Clientes encontrados:', data?.length || 0);
-      setClients(data || []);
-    } catch (error) {
-      console.error('Erro inesperado na busca:', error);
-      toast({
-        title: "Erro inesperado",
-        description: "Erro ao carregar dados dos clientes",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { clients, setClients, loading, fetchClients } = useClientsFetch();
+  const { createClient: createClientOp, updateClient: updateClientOp, deleteClient: deleteClientOp } = useClientOperations();
 
   const createClient = async (clientData: ClienteInsert) => {
-    try {
-      console.log('Criando cliente:', clientData);
-      const { data, error } = await supabase
-        .from('cadastro_clientes')
-        .insert([clientData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao criar cliente:', error);
-        toast({
-          title: "Erro ao cadastrar cliente",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-
-      console.log('Cliente criado:', data);
-      setClients(prev => [data, ...prev]);
-      toast({
-        title: "Cliente cadastrado",
-        description: "Cliente cadastrado com sucesso!"
-      });
-
-      return data;
-    } catch (error) {
-      console.error('Erro inesperado ao criar cliente:', error);
-      throw error;
-    }
+    const data = await createClientOp(clientData);
+    setClients(prev => [data, ...prev]);
+    return data;
   };
 
   const updateClient = async (id: string, clientData: ClienteUpdate) => {
-    try {
-      console.log('Atualizando cliente:', id, clientData);
-      const { data, error } = await supabase
-        .from('cadastro_clientes')
-        .update(clientData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao atualizar cliente:', error);
-        toast({
-          title: "Erro ao atualizar cliente",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-
-      console.log('Cliente atualizado:', data);
-      setClients(prev => prev.map(client => client.id === id ? data : client));
-      toast({
-        title: "Cliente atualizado",
-        description: "Dados do cliente atualizados com sucesso!"
-      });
-
-      return data;
-    } catch (error) {
-      console.error('Erro inesperado ao atualizar cliente:', error);
-      throw error;
-    }
+    const data = await updateClientOp(id, clientData);
+    setClients(prev => prev.map(client => client.id === id ? data : client));
+    return data;
   };
 
   const deleteClient = async (id: string) => {
-    try {
-      console.log('Excluindo cliente:', id);
-      const { error } = await supabase
-        .from('cadastro_clientes')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erro ao excluir cliente:', error);
-        toast({
-          title: "Erro ao excluir cliente",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-
-      console.log('Cliente excluído com sucesso');
-      setClients(prev => prev.filter(client => client.id !== id));
-      toast({
-        title: "Cliente excluído",
-        description: "Cliente removido com sucesso!"
-      });
-    } catch (error) {
-      console.error('Erro inesperado ao excluir cliente:', error);
-      throw error;
-    }
+    await deleteClientOp(id);
+    setClients(prev => prev.filter(client => client.id !== id));
   };
 
   useEffect(() => {
-    // Só buscar clientes se o usuário estiver autenticado
     if (user) {
       console.log('useEffect: Usuário autenticado, buscando clientes...');
       fetchClients();
     } else {
       console.log('useEffect: Usuário não autenticado, definindo loading como false');
-      setLoading(false);
     }
   }, [user]);
 
