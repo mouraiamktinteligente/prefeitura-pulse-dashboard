@@ -5,12 +5,19 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useParams } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
+import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
 
 export const SentimentAnalysis = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
   const selectedClient = clients.find(client => client.id === clientId);
-  const { metrics, loading } = useClientMetrics(selectedClient?.instagram || undefined);
+  
+  // Se há um clientId, usa métricas específicas do cliente, senão usa métricas agregadas
+  const { metrics: clientMetrics, loading: clientLoading } = useClientMetrics(selectedClient?.instagram || undefined);
+  const { metrics: aggregatedMetrics, loading: aggregatedLoading } = useAggregatedMetrics();
+  
+  const metrics = clientId ? clientMetrics : aggregatedMetrics;
+  const loading = clientId ? clientLoading : aggregatedLoading;
 
   // Calcula os percentuais baseados nos dados reais
   const calculatePercentages = () => {
