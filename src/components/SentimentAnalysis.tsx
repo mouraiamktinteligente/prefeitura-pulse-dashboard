@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -55,7 +54,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
 
   const data = calculatePercentages();
 
-  // Função customizada para renderizar os labels - MESMA LÓGICA PARA AMBOS
+  // Função customizada para renderizar os labels - APENAS PARA VERSÃO COMPLETA
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
     if (value === 0) return null;
     
@@ -71,7 +70,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
         fill="white" 
         textAnchor="middle" 
         dominantBaseline="central"
-        fontSize={compact ? "14" : "14"}
+        fontSize="14"
         fontWeight="bold"
       >
         {`${value}%`}
@@ -109,17 +108,15 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   if (compact) {
     return (
       <div className="h-full flex flex-col">
-        <div className="flex-1 min-h-[120px]">
+        <div className="flex-1 min-h-[100px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                outerRadius={50}
+                outerRadius={40}
                 dataKey="value"
-                labelLine={false}
-                label={renderCustomizedLabel}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
