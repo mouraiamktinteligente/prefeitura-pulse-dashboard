@@ -71,7 +71,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
         fill="white" 
         textAnchor="middle" 
         dominantBaseline="central"
-        fontSize={compact ? "12" : "14"}
+        fontSize={compact ? "14" : "14"}
         fontWeight="bold"
       >
         {`${value}%`}
@@ -108,15 +108,15 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   // Versão compacta para uso no ClientCard
   if (compact) {
     return (
-      <div className="h-full">
-        <div className="h-20 mb-2">
+      <div className="h-full flex flex-col">
+        <div className="flex-1 min-h-[120px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                outerRadius={35}
+                outerRadius={50}
                 dataKey="value"
                 labelLine={false}
                 label={renderCustomizedLabel}
@@ -128,12 +128,12 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex justify-center space-x-3">
+        <div className="flex justify-center space-x-4 mt-2">
           {data.map((item) => (
             <div key={item.name} className="text-center">
-              <div className={`w-2 h-2 rounded-full mx-auto mb-1`} style={{ backgroundColor: item.color }} />
+              <div className={`w-3 h-3 rounded-full mx-auto mb-1`} style={{ backgroundColor: item.color }} />
               <p className="text-xs text-blue-300">{item.name}</p>
-              <p className="text-xs font-semibold text-white">{item.value}%</p>
+              <p className="text-sm font-semibold text-white">{item.value}%</p>
             </div>
           ))}
         </div>
