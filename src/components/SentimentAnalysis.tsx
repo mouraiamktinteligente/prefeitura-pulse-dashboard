@@ -9,9 +9,13 @@ import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
 
 interface SentimentAnalysisProps {
   clientId?: string;
+  compact?: boolean; // Nova prop para versão compacta
 }
 
-export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ clientId: propClientId }) => {
+export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ 
+  clientId: propClientId, 
+  compact = false 
+}) => {
   const { clientId: paramClientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
   
@@ -67,7 +71,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ clientId: 
         fill="white" 
         textAnchor="middle" 
         dominantBaseline="central"
-        fontSize="14"
+        fontSize={compact ? "12" : "14"}
         fontWeight="bold"
       >
         {`${value}%`}
@@ -76,6 +80,14 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ clientId: 
   };
 
   if (loading) {
+    if (compact) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <div className="animate-pulse text-blue-300 text-xs">Carregando...</div>
+        </div>
+      );
+    }
+    
     return (
       <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
         <CardHeader className="pb-2">
@@ -93,6 +105,43 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ clientId: 
     );
   }
 
+  // Versão compacta para uso no ClientCard
+  if (compact) {
+    return (
+      <div className="h-full">
+        <div className="h-20 mb-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                outerRadius={35}
+                dataKey="value"
+                labelLine={false}
+                label={renderCustomizedLabel}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex justify-center space-x-3">
+          {data.map((item) => (
+            <div key={item.name} className="text-center">
+              <div className={`w-2 h-2 rounded-full mx-auto mb-1`} style={{ backgroundColor: item.color }} />
+              <p className="text-xs text-blue-300">{item.name}</p>
+              <p className="text-xs font-semibold text-white">{item.value}%</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Versão completa para dashboards
   return (
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
       <CardHeader className="pb-2">

@@ -37,8 +37,8 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           <h4 className="text-white text-sm font-semibold mb-2 text-center">
             Análise de Sentimento
           </h4>
-          <div className="h-32 -m-3">
-            <SentimentAnalysis clientId={client.id} />
+          <div className="h-32">
+            <SentimentAnalysis clientId={client.id} compact={true} />
           </div>
         </div>
 
