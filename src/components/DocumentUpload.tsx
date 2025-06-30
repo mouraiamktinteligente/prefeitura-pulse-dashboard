@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ export const DocumentUpload = () => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !selectedClientId) return;
+    if (!file || !selectedClientId || !selectedClient) return;
 
     // Validar tipo de arquivo
     const allowedTypes = ['application/pdf', 'text/plain', 'image/jpeg', 'image/png', 'image/jpg'];
@@ -64,7 +63,7 @@ export const DocumentUpload = () => {
     }
 
     setUploading(true);
-    await uploadDocument(selectedClientId, file);
+    await uploadDocument(selectedClientId, file, selectedClient.nome_completo);
     setUploading(false);
 
     // Limpar input
@@ -208,7 +207,7 @@ export const DocumentUpload = () => {
                             {documento.nome_arquivo}
                           </p>
                           <p className="text-sm text-slate-400">
-                            {documento.tipo_arquivo} • Enviado em{' '}
+                            {documento.tipo_arquivo} • {documento.nome_cliente || 'Cliente não identificado'} • Enviado em{' '}
                             {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
                           </p>
                         </div>
@@ -247,7 +246,7 @@ export const DocumentUpload = () => {
                               Confirmar exclusão
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-slate-400">
-                              Tem certeza que deseja deletar o documento "{documento.nome_arquivo}"? 
+                              Tem certeza que deseja deletar o documento "{documento.nome_arquivo}" do cliente {documento.nome_cliente}? 
                               Esta ação não pode ser desfeita e o arquivo será removido permanentemente.
                             </AlertDialogDescription>
                           </AlertDialogHeader>

@@ -53,10 +53,11 @@ export const useDocumentosAnalisados = () => {
 
   const uploadDocument = async (
     clienteId: string,
-    file: File
+    file: File,
+    clienteNome: string
   ): Promise<DocumentoAnalisado | null> => {
     try {
-      console.log('Iniciando upload do documento:', file.name);
+      console.log('Iniciando upload do documento:', file.name, 'para cliente:', clienteNome);
 
       // Detectar tipo de arquivo
       const tipoArquivo = file.type.includes('pdf') ? 'PDF' : 
@@ -104,13 +105,14 @@ export const useDocumentosAnalisados = () => {
 
       console.log('URL assinada gerada:', signedUrlData.signedUrl);
 
-      // Criar o documento com a URL assinada
+      // Criar o documento com a URL assinada e nome do cliente
       const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
         nome_arquivo: fileName,
         tipo_arquivo: tipoArquivo,
         status: 'pendente',
-        url_original: signedUrlData.signedUrl
+        url_original: signedUrlData.signedUrl,
+        nome_cliente: clienteNome
       };
 
       const { data: docData, error: docError } = await supabase
@@ -129,7 +131,7 @@ export const useDocumentosAnalisados = () => {
         return null;
       }
 
-      console.log('Documento registrado com URL assinada:', docData);
+      console.log('Documento registrado com nome do cliente:', docData);
       toast({
         title: "Upload realizado",
         description: "Documento enviado com sucesso!"

@@ -152,6 +152,7 @@ export type Database = {
           data_upload: string
           id: string
           nome_arquivo: string
+          nome_cliente: string | null
           status: string
           tipo_arquivo: string
           updated_at: string
@@ -165,6 +166,7 @@ export type Database = {
           data_upload?: string
           id?: string
           nome_arquivo: string
+          nome_cliente?: string | null
           status?: string
           tipo_arquivo: string
           updated_at?: string
@@ -178,6 +180,7 @@ export type Database = {
           data_upload?: string
           id?: string
           nome_arquivo?: string
+          nome_cliente?: string | null
           status?: string
           tipo_arquivo?: string
           updated_at?: string
@@ -298,6 +301,7 @@ export type Database = {
           id: number
           link: string | null
           profile: string | null
+          relevancia: string | null
           resumo: string | null
           sentimento: string | null
           termo_pesquisa: string | null
@@ -311,6 +315,7 @@ export type Database = {
           id?: number
           link?: string | null
           profile?: string | null
+          relevancia?: string | null
           resumo?: string | null
           sentimento?: string | null
           termo_pesquisa?: string | null
@@ -324,6 +329,7 @@ export type Database = {
           id?: number
           link?: string | null
           profile?: string | null
+          relevancia?: string | null
           resumo?: string | null
           sentimento?: string | null
           termo_pesquisa?: string | null
