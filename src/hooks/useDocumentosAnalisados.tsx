@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -99,11 +100,10 @@ export const useDocumentosAnalisados = () => {
 
       if (uploadError) {
         console.error('Erro detalhado no upload:', uploadError);
-        console.error('Código do erro:', uploadError.statusCode);
         console.error('Mensagem do erro:', uploadError.message);
         toast({
           title: "Erro no upload",
-          description: `${uploadError.message} (Código: ${uploadError.statusCode || 'N/A'})`,
+          description: uploadError.message,
           variant: "destructive"
         });
         return null;
