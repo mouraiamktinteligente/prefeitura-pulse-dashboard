@@ -51,6 +51,15 @@ export const useDocumentosAnalisados = () => {
     }
   };
 
+  // Função para limpar e validar nome do arquivo
+  const sanitizeFileName = (fileName: string): string => {
+    // Remove caracteres especiais e espaços, mantém apenas letras, números, pontos e hífens
+    return fileName
+      .replace(/[^a-zA-Z0-9.\-_]/g, '_')
+      .replace(/_{2,}/g, '_')
+      .replace(/^_+|_+$/g, '');
+  };
+
   const uploadDocument = async (
     clienteId: string,
     file: File,
@@ -64,23 +73,37 @@ export const useDocumentosAnalisados = () => {
                          file.type.includes('text') ? 'TXT' :
                          file.type.includes('image') ? 'Imagem' : 'Outros';
 
+      // Limpar e validar nome do arquivo
+      const originalName = file.name;
+      const sanitizedName = sanitizeFileName(originalName);
+      
+      console.log('Nome original:', originalName);
+      console.log('Nome sanitizado:', sanitizedName);
+
       // Gerar nome único para o arquivo
       const timestamp = Date.now();
-      const fileName = `${timestamp}_${file.name}`;
+      const fileName = `${timestamp}_${sanitizedName}`;
       const filePath = `${clienteId}/${fileName}`;
 
       console.log('Fazendo upload para:', filePath);
+      console.log('Tamanho do arquivo:', file.size, 'bytes');
+      console.log('Tipo do arquivo:', file.type);
 
       // Upload para o Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('analises-documentos')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
-        console.error('Erro no upload:', uploadError);
+        console.error('Erro detalhado no upload:', uploadError);
+        console.error('Código do erro:', uploadError.statusCode);
+        console.error('Mensagem do erro:', uploadError.message);
         toast({
           title: "Erro no upload",
-          description: uploadError.message,
+          description: `${uploadError.message} (Código: ${uploadError.statusCode || 'N/A'})`,
           variant: "destructive"
         });
         return null;
@@ -115,6 +138,8 @@ export const useDocumentosAnalisados = () => {
         nome_cliente: clienteNome
       };
 
+      console.log('Dados do documento a serem inseridos:', documentData);
+
       const { data: docData, error: docError } = await supabase
         .from('documentos_analisados')
         .insert(documentData)
@@ -131,7 +156,7 @@ export const useDocumentosAnalisados = () => {
         return null;
       }
 
-      console.log('Documento registrado com nome do cliente:', docData);
+      console.log('Documento registrado com sucesso:', docData);
       toast({
         title: "Upload realizado",
         description: "Documento enviado com sucesso!"
