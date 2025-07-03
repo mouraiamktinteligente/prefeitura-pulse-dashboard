@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -168,8 +167,8 @@ const AccessLogs = () => {
   // Função para obter data/hora no timezone de São Paulo para desconexão
   const getBrazilDateTime = (): string => {
     const now = new Date();
-    // Converte para o timezone de São Paulo (UTC-3)
-    const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    // Usar o método correto para converter para o timezone de São Paulo
+    const brazilTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
     return brazilTime.toISOString();
   };
 
@@ -229,9 +228,15 @@ const AccessLogs = () => {
   };
 
   const formatDateTime = (dateString: string) => {
-    // Como agora salvamos já no timezone do Brasil, apenas formatamos para exibir
+    // Formatar corretamente para o timezone de São Paulo
     return new Date(dateString).toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo'
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   };
 

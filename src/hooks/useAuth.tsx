@@ -68,11 +68,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return 'Desconhecido';
   };
 
-  // Função para obter data/hora no timezone de São Paulo
+  // Função para obter data/hora no timezone de São Paulo (correto)
   const getBrazilDateTime = (): string => {
     const now = new Date();
-    // Converte para o timezone de São Paulo (UTC-3)
-    const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    // Usar o método correto para converter para o timezone de São Paulo
+    const brazilTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
     return brazilTime.toISOString();
   };
 
