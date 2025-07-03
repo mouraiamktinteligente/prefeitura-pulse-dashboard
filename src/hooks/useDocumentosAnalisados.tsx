@@ -1,7 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDocumentUpload } from './useDocumentUpload';
+import { useDocumentOperations } from './useDocumentOperations';
 import type { Database } from '@/integrations/supabase/types';
 
 export type DocumentoAnalisado = Database['public']['Tables']['documentos_analisados']['Row'];
@@ -11,6 +13,9 @@ export const useDocumentosAnalisados = () => {
   const [documentos, setDocumentos] = useState<DocumentoAnalisado[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  
+  const { uploading, uploadDocument: uploadDoc } = useDocumentUpload();
+  const { deleteDocument: deleteDoc, downloadAnalise } = useDocumentOperations();
 
   const fetchDocumentos = async (clienteId?: string) => {
     try {
@@ -52,211 +57,26 @@ export const useDocumentosAnalisados = () => {
     }
   };
 
-  // Função para limpar e validar nome do arquivo
-  const sanitizeFileName = (fileName: string): string => {
-    // Remove caracteres especiais e espaços, mantém apenas letras, números, pontos e hífens
-    return fileName
-      .replace(/[^a-zA-Z0-9.\-_]/g, '_')
-      .replace(/_{2,}/g, '_')
-      .replace(/^_+|_+$/g, '');
-  };
-
   const uploadDocument = async (
     clienteId: string,
     file: File,
     clienteNome: string
   ): Promise<DocumentoAnalisado | null> => {
-    try {
-      console.log('Iniciando upload do documento:', file.name, 'para cliente:', clienteNome);
-
-      // Detectar tipo de arquivo
-      const tipoArquivo = file.type.includes('pdf') ? 'PDF' : 
-                         file.type.includes('text') ? 'TXT' :
-                         file.type.includes('image') ? 'Imagem' : 'Outros';
-
-      // Limpar e validar nome do arquivo
-      const originalName = file.name;
-      const sanitizedName = sanitizeFileName(originalName);
-      
-      console.log('Nome original:', originalName);
-      console.log('Nome sanitizado:', sanitizedName);
-
-      // Gerar nome único para o arquivo
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${sanitizedName}`;
-      const filePath = `${clienteId}/${fileName}`;
-
-      console.log('Fazendo upload para:', filePath);
-      console.log('Tamanho do arquivo:', file.size, 'bytes');
-      console.log('Tipo do arquivo:', file.type);
-
-      // Upload para o Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('analises-documentos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error('Erro detalhado no upload:', uploadError);
-        console.error('Mensagem do erro:', uploadError.message);
-        toast({
-          title: "Erro no upload",
-          description: uploadError.message,
-          variant: "destructive"
-        });
-        return null;
-      }
-
-      console.log('Upload realizado com sucesso:', uploadData);
-
-      // Gerar URL assinada temporária (1 dia de validade = 86400 segundos)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from('analises-documentos')
-        .createSignedUrl(filePath, 86400); // 86400 segundos = 1 dia
-
-      if (signedUrlError) {
-        console.error('Erro ao gerar URL assinada:', signedUrlError);
-        toast({
-          title: "Erro ao gerar URL de acesso",
-          description: signedUrlError.message,
-          variant: "destructive"
-        });
-        return null;
-      }
-
-      console.log('URL assinada gerada:', signedUrlData.signedUrl);
-
-      // Criar o documento com a URL assinada e nome do cliente
-      const documentData: DocumentoAnalisadoInsert = {
-        cliente_id: clienteId,
-        nome_arquivo: fileName,
-        tipo_arquivo: tipoArquivo,
-        status: 'pendente',
-        url_original: signedUrlData.signedUrl,
-        nome_cliente: clienteNome
-      };
-
-      console.log('Dados do documento a serem inseridos:', documentData);
-
-      const { data: docData, error: docError } = await supabase
-        .from('documentos_analisados')
-        .insert(documentData)
-        .select()
-        .single();
-
-      if (docError) {
-        console.error('Erro ao registrar documento:', docError);
-        toast({
-          title: "Erro ao registrar documento",
-          description: docError.message,
-          variant: "destructive"
-        });
-        return null;
-      }
-
-      console.log('Documento registrado com sucesso:', docData);
-      toast({
-        title: "Upload realizado",
-        description: "Documento enviado com sucesso!"
-      });
-
-      // Atualizar lista local
-      setDocumentos(prev => [docData, ...prev]);
-
-      return docData;
-    } catch (error) {
-      console.error('Erro inesperado no upload:', error);
-      toast({
-        title: "Erro inesperado",
-        description: "Erro ao fazer upload do documento",
-        variant: "destructive"
-      });
-      return null;
-    }
+    const result = await uploadDoc(clienteId, file, clienteNome, (documento) => {
+      setDocumentos(prev => [documento, ...prev]);
+    });
+    return result;
   };
 
   const deleteDocument = async (documento: DocumentoAnalisado) => {
-    try {
-      console.log('Iniciando exclusão do documento:', documento.nome_arquivo);
-
-      // Deletar o arquivo do storage
-      const filePath = `${documento.cliente_id}/${documento.nome_arquivo}`;
-      const { error: storageError } = await supabase.storage
-        .from('analises-documentos')
-        .remove([filePath]);
-
-      if (storageError) {
-        console.error('Erro ao deletar arquivo do storage:', storageError);
-        toast({
-          title: "Erro ao deletar arquivo",
-          description: storageError.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Deletar o registro da tabela
-      const { error: dbError } = await supabase
-        .from('documentos_analisados')
-        .delete()
-        .eq('id', documento.id);
-
-      if (dbError) {
-        console.error('Erro ao deletar registro:', dbError);
-        toast({
-          title: "Erro ao deletar registro",
-          description: dbError.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Documento deletado com sucesso');
-      toast({
-        title: "Documento deletado",
-        description: "Documento removido com sucesso!"
-      });
-
-      // Atualizar lista local
+    await deleteDoc(documento, () => {
       setDocumentos(prev => prev.filter(doc => doc.id !== documento.id));
-
-    } catch (error) {
-      console.error('Erro inesperado na exclusão:', error);
-      toast({
-        title: "Erro inesperado",
-        description: "Erro ao deletar documento",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const downloadAnalise = async (documento: DocumentoAnalisado) => {
-    if (!documento.url_analise) {
-      toast({
-        title: "Análise não disponível",
-        description: "A análise ainda não foi finalizada",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      window.open(documento.url_analise, '_blank');
-    } catch (error) {
-      console.error('Erro ao baixar análise:', error);
-      toast({
-        title: "Erro no download",
-        description: "Não foi possível baixar a análise",
-        variant: "destructive"
-      });
-    }
+    });
   };
 
   return {
     documentos,
-    loading,
+    loading: loading || uploading,
     fetchDocumentos,
     uploadDocument,
     deleteDocument,
