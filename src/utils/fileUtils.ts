@@ -37,3 +37,12 @@ export const generateUniqueFileName = (originalName: string): string => {
   // Manter compatibilidade com código existente
   return generateReadableFileName(originalName);
 };
+
+// Função para normalizar nomes para comparação (remove acentos e caracteres especiais)
+export const normalizeForComparison = (name: string): string => {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, ''); // Remove tudo que não é letra ou número
+};

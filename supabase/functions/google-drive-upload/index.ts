@@ -22,11 +22,12 @@ interface UploadRequest {
 function getSaoPauloTimestamp(): string {
   const now = new Date();
   
-  // Converter para UTC-3 (São Paulo) manualmente
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const saoPauloTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  // Ajustar para São Paulo (UTC-3)
+  const saoPauloOffset = -3; // UTC-3
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const saoPauloTime = new Date(utc + (saoPauloOffset * 3600000));
   
-  // Formatar como ISO 8601 com timezone
+  // Formato ISO 8601 com timezone
   const year = saoPauloTime.getFullYear();
   const month = String(saoPauloTime.getMonth() + 1).padStart(2, '0');
   const day = String(saoPauloTime.getDate()).padStart(2, '0');
@@ -36,6 +37,23 @@ function getSaoPauloTimestamp(): string {
   const milliseconds = String(saoPauloTime.getMilliseconds()).padStart(3, '0');
   
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}-03:00`;
+}
+
+// Função para sanitizar nome (mesma do utils/fileUtils.ts)
+function sanitizeFileName(fileName: string): string {
+  return fileName
+    .replace(/[^a-zA-Z0-9.\-_]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+// Função para normalizar nome para busca (remove acentos e caracteres especiais)
+function normalizeForSearch(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, ''); // Remove tudo que não é letra ou número
 }
 
 async function getAccessToken(): Promise<string> {
@@ -143,16 +161,25 @@ async function findOrCreateClientFolder(accessToken: string, clientName: string)
     throw new Error('Missing Google Drive folder ID');
   }
 
-  console.log(`📁 Gerenciando pasta para cliente: ${clientName}`);
+  console.log(`📁 Gerenciando pasta para cliente: "${clientName}"`);
   console.log(`📁 Pasta pai ID: ${parentFolderId}`);
 
+  // Sanitizar nome do cliente
+  const sanitizedClientName = sanitizeFileName(clientName);
+  console.log(`📁 Nome sanitizado: "${sanitizedClientName}"`);
+  
+  // Normalizar para busca
+  const normalizedClientName = normalizeForSearch(clientName);
+  console.log(`🔍 Nome normalizado para busca: "${normalizedClientName}"`);
+
   try {
-    // Search for existing folder
-    const searchQuery = `name='${encodeURIComponent(clientName)}' and parents in '${parentFolderId}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    // Buscar todas as pastas filhas da pasta pai
+    console.log('🔍 Buscando pastas existentes...');
+    const searchQuery = `parents in '${parentFolderId}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     console.log('🔍 Query de busca:', searchQuery);
     
     const searchResponse = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)}`,
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)}&fields=files(id,name)`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -162,23 +189,31 @@ async function findOrCreateClientFolder(accessToken: string, clientName: string)
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
-      console.error('❌ Erro ao buscar pasta:', searchResponse.status, errorText);
-      throw new Error(`Failed to search for folder: ${searchResponse.status}`);
+      console.error('❌ Erro ao buscar pastas:', searchResponse.status, errorText);
+      throw new Error(`Failed to search for folders: ${searchResponse.status}`);
     }
 
     const searchData = await searchResponse.json();
-    console.log('🔍 Resultado da busca de pastas:', JSON.stringify(searchData, null, 2));
+    console.log('🔍 Pastas encontradas:', JSON.stringify(searchData.files, null, 2));
 
+    // Procurar pasta existente comparando nomes normalizados
     if (searchData.files && searchData.files.length > 0) {
-      console.log(`✓ Pasta encontrada para cliente ${clientName}:`, searchData.files[0].id);
-      return searchData.files[0].id;
+      for (const folder of searchData.files) {
+        const folderNameNormalized = normalizeForSearch(folder.name);
+        console.log(`🔍 Comparando: "${folderNameNormalized}" com "${normalizedClientName}"`);
+        
+        if (folderNameNormalized === normalizedClientName) {
+          console.log(`✓ Pasta encontrada para cliente "${clientName}":`, folder.id, `(nome da pasta: "${folder.name}")`);
+          return folder.id;
+        }
+      }
     }
 
-    console.log(`📁 Criando nova pasta para cliente: ${clientName}`);
+    console.log(`📁 Nenhuma pasta encontrada. Criando nova pasta: "${sanitizedClientName}"`);
     
-    // Create new folder
+    // Criar nova pasta usando nome sanitizado
     const createPayload = {
-      name: clientName,
+      name: sanitizedClientName,
       mimeType: 'application/vnd.google-apps.folder',
       parents: [parentFolderId],
     };
@@ -201,7 +236,7 @@ async function findOrCreateClientFolder(accessToken: string, clientName: string)
     }
 
     const createData = await createResponse.json();
-    console.log(`✓ Nova pasta criada para cliente ${clientName}:`, createData.id);
+    console.log(`✓ Nova pasta criada para cliente "${clientName}":`, createData.id);
     return createData.id;
   } catch (error) {
     console.error('❌ Erro ao gerenciar pasta do cliente:', error);

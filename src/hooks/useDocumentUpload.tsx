@@ -11,13 +11,15 @@ export const useDocumentUpload = () => {
 
   // Função para obter timestamp CORRETO no timezone de São Paulo
   const getSaoPauloTimestamp = (): string => {
+    // Criar data atual
     const now = new Date();
     
-    // Converter para UTC-3 (São Paulo) manualmente
-    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const saoPauloTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+    // Ajustar para São Paulo (UTC-3)
+    const saoPauloOffset = -3; // UTC-3
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const saoPauloTime = new Date(utc + (saoPauloOffset * 3600000));
     
-    // Formatar como ISO 8601 com timezone
+    // Formatar manualmente para garantir formato correto
     const year = saoPauloTime.getFullYear();
     const month = String(saoPauloTime.getMonth() + 1).padStart(2, '0');
     const day = String(saoPauloTime.getDate()).padStart(2, '0');
@@ -26,14 +28,20 @@ export const useDocumentUpload = () => {
     const seconds = String(saoPauloTime.getSeconds()).padStart(2, '0');
     const milliseconds = String(saoPauloTime.getMilliseconds()).padStart(3, '0');
     
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}-03:00`;
+    const timestamp = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}-03:00`;
+    console.log('🕐 Timestamp São Paulo gerado:', timestamp);
+    return timestamp;
   };
 
   const uploadToGoogleDrive = async (file: File, clientName: string): Promise<string | null> => {
     try {
       console.log('=== INICIANDO UPLOAD PARA GOOGLE DRIVE ===');
       console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
-      console.log('Cliente:', clientName);
+      console.log('Cliente (original):', clientName);
+      
+      // Sanitizar nome do cliente para consistência
+      const sanitizedClientName = sanitizeFileName(clientName);
+      console.log('Cliente (sanitizado):', sanitizedClientName);
 
       // Convert file to base64
       const fileData = await new Promise<string>((resolve, reject) => {
@@ -55,7 +63,7 @@ export const useDocumentUpload = () => {
         body: {
           fileName: file.name,
           fileData,
-          clientName,
+          clientName: sanitizedClientName, // Usar nome sanitizado
           mimeType: file.type,
         },
       });
@@ -98,11 +106,11 @@ export const useDocumentUpload = () => {
       const originalName = file.name;
       const readableFileName = generateReadableFileName(originalName);
       
-      // Estrutura melhorada: criar pasta com nome do cliente + salvar arquivo com nome legível
+      // Estrutura melhorada: criar pasta com nome sanitizado do cliente
       const clientFolderName = sanitizeFileName(clienteNome);
       const filePath = `${clientFolderName}/${readableFileName}`;
 
-      console.log('Estrutura do arquivo:', { 
+      console.log('📁 Estrutura do arquivo:', { 
         originalName, 
         readableFileName, 
         clientFolderName,
@@ -164,7 +172,7 @@ export const useDocumentUpload = () => {
 
       // Usar timestamp correto de São Paulo
       const saoPauloTimestamp = getSaoPauloTimestamp();
-      console.log('Timestamp São Paulo (correto):', saoPauloTimestamp);
+      console.log('🕐 Timestamp para banco de dados:', saoPauloTimestamp);
 
       // Criar o documento com ambas as URLs
       const documentData: DocumentoAnalisadoInsert = {
@@ -180,7 +188,7 @@ export const useDocumentUpload = () => {
         updated_at: saoPauloTimestamp
       };
 
-      console.log('Inserindo documento na base de dados:', documentData);
+      console.log('💾 Inserindo documento na base de dados:', documentData);
 
       const { data: docData, error: docError } = await supabase
         .from('documentos_analisados')
