@@ -9,21 +9,45 @@ export const useDocumentUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
+  // Função para obter timestamp no timezone de São Paulo
+  const getSaoPauloTimestamp = (): string => {
+    const now = new Date();
+    const saoPauloTime = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      fractionalSecondDigits: 3,
+    }).format(now);
+    
+    return saoPauloTime.replace(' ', 'T') + '-03:00';
+  };
+
   const uploadToGoogleDrive = async (file: File, clientName: string): Promise<string | null> => {
     try {
-      console.log('Enviando arquivo para Google Drive:', file.name);
+      console.log('=== INICIANDO UPLOAD PARA GOOGLE DRIVE ===');
+      console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
+      console.log('Cliente:', clientName);
 
       // Convert file to base64
       const fileData = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
           const base64 = (reader.result as string).split(',')[1];
+          console.log('Arquivo convertido para base64, tamanho:', base64.length);
           resolve(base64);
         };
-        reader.onerror = reject;
+        reader.onerror = (error) => {
+          console.error('Erro ao ler arquivo:', error);
+          reject(error);
+        };
         reader.readAsDataURL(file);
       });
 
+      console.log('Chamando função do Google Drive...');
       const response = await supabase.functions.invoke('google-drive-upload', {
         body: {
           fileName: file.name,
@@ -33,21 +57,24 @@ export const useDocumentUpload = () => {
         },
       });
 
+      console.log('Resposta da função:', response);
+
       if (response.error) {
         console.error('Erro na função do Google Drive:', response.error);
-        return null;
+        throw new Error(response.error.message || 'Erro na função do Google Drive');
       }
 
       if (response.data?.success) {
-        console.log('Arquivo enviado com sucesso para Google Drive:', response.data.file.webViewLink);
+        console.log('✓ Upload para Google Drive bem-sucedido:', response.data.file.webViewLink);
         return response.data.file.webViewLink;
       } else {
         console.error('Resposta de erro do Google Drive:', response.data);
-        return null;
+        throw new Error(response.data?.error || 'Erro desconhecido no Google Drive');
       }
     } catch (error) {
-      console.error('Erro ao enviar para Google Drive:', error);
-      return null;
+      console.error('=== ERRO NO UPLOAD PARA GOOGLE DRIVE ===');
+      console.error('Erro completo:', error);
+      throw error;
     }
   };
 
@@ -59,21 +86,22 @@ export const useDocumentUpload = () => {
   ): Promise<DocumentoAnalisado | null> => {
     try {
       setUploading(true);
-      console.log('Iniciando upload do documento:', file.name, 'para cliente:', clienteNome);
+      console.log('=== INICIANDO UPLOAD DO DOCUMENTO ===');
+      console.log('Cliente ID:', clienteId);
+      console.log('Cliente Nome:', clienteNome);
+      console.log('Arquivo:', file.name, 'Tamanho:', file.size);
 
       const tipoArquivo = detectFileType(file);
       const originalName = file.name;
       const fileName = generateUniqueFileName(originalName);
       const filePath = `${clienteId}/${fileName}`;
 
-      console.log('Nome original:', originalName);
-      console.log('Nome sanitizado:', fileName);
-      console.log('Fazendo upload para:', filePath);
-      console.log('Tamanho do arquivo:', file.size, 'bytes');
-      console.log('Tipo do arquivo:', file.type);
+      console.log('Arquivo processado:', { originalName, fileName, filePath, tipoArquivo });
 
       // Upload simultâneo para Supabase Storage e Google Drive
-      const [supabaseResult, googleDriveUrl] = await Promise.allSettled([
+      console.log('Iniciando uploads simultâneos...');
+      
+      const [supabaseResult, googleDriveResult] = await Promise.allSettled([
         // Upload para Supabase Storage
         supabase.storage
           .from('analises-documentos')
@@ -86,20 +114,17 @@ export const useDocumentUpload = () => {
       ]);
 
       // Verificar resultado do Supabase
-      if (supabaseResult.status === 'rejected' || supabaseResult.value.error) {
-        const error = supabaseResult.status === 'rejected' 
-          ? supabaseResult.reason 
-          : supabaseResult.value.error;
-        console.error('Erro detalhado no upload para Supabase:', error);
-        toast({
-          title: "Erro no upload para Supabase",
-          description: error.message || 'Erro desconhecido',
-          variant: "destructive"
-        });
-        return null;
+      if (supabaseResult.status === 'rejected') {
+        console.error('Upload para Supabase rejeitado:', supabaseResult.reason);
+        throw new Error(`Erro no Supabase: ${supabaseResult.reason.message}`);
       }
 
-      console.log('Upload realizado com sucesso no Supabase:', supabaseResult.value.data);
+      if (supabaseResult.value.error) {
+        console.error('Erro no upload para Supabase:', supabaseResult.value.error);
+        throw new Error(`Erro no Supabase: ${supabaseResult.value.error.message}`);
+      }
+
+      console.log('✓ Upload para Supabase bem-sucedido:', supabaseResult.value.data);
 
       // Gerar URL assinada temporária (1 dia de validade = 86400 segundos)
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
@@ -108,30 +133,26 @@ export const useDocumentUpload = () => {
 
       if (signedUrlError) {
         console.error('Erro ao gerar URL assinada:', signedUrlError);
-        toast({
-          title: "Erro ao gerar URL de acesso",
-          description: signedUrlError.message,
-          variant: "destructive"
-        });
-        return null;
+        throw new Error(`Erro na URL assinada: ${signedUrlError.message}`);
       }
 
-      console.log('URL assinada gerada:', signedUrlData.signedUrl);
+      console.log('✓ URL assinada gerada:', signedUrlData.signedUrl);
 
       // Verificar resultado do Google Drive
       let driveUrl: string | null = null;
-      if (googleDriveUrl.status === 'fulfilled') {
-        driveUrl = googleDriveUrl.value;
-        console.log('Upload para Google Drive bem-sucedido:', driveUrl);
+      let driveError: string | null = null;
+
+      if (googleDriveResult.status === 'fulfilled') {
+        driveUrl = googleDriveResult.value;
+        console.log('✓ Upload para Google Drive bem-sucedido:', driveUrl);
       } else {
-        console.error('Erro no upload para Google Drive:', googleDriveUrl.reason);
-        // Não falha o processo todo, apenas informa
-        toast({
-          title: "Aviso",
-          description: "Arquivo salvo no Supabase, mas falhou no Google Drive",
-          variant: "default"
-        });
+        driveError = googleDriveResult.reason.message;
+        console.error('❌ Erro no upload para Google Drive:', driveError);
       }
+
+      // Usar timestamp de São Paulo
+      const saoPauloTimestamp = getSaoPauloTimestamp();
+      console.log('Timestamp São Paulo:', saoPauloTimestamp);
 
       // Criar o documento com ambas as URLs
       const documentData: DocumentoAnalisadoInsert = {
@@ -141,10 +162,13 @@ export const useDocumentUpload = () => {
         status: 'pendente',
         url_original: signedUrlData.signedUrl,
         nome_cliente: clienteNome,
-        google_drive_url: driveUrl
+        google_drive_url: driveUrl,
+        data_upload: saoPauloTimestamp,
+        created_at: saoPauloTimestamp,
+        updated_at: saoPauloTimestamp
       };
 
-      console.log('Dados do documento a serem inseridos:', documentData);
+      console.log('Inserindo documento na base de dados:', documentData);
 
       const { data: docData, error: docError } = await supabase
         .from('documentos_analisados')
@@ -154,32 +178,33 @@ export const useDocumentUpload = () => {
 
       if (docError) {
         console.error('Erro ao registrar documento:', docError);
-        toast({
-          title: "Erro ao registrar documento",
-          description: docError.message,
-          variant: "destructive"
-        });
-        return null;
+        throw new Error(`Erro ao registrar: ${docError.message}`);
       }
 
-      console.log('Documento registrado com sucesso:', docData);
+      console.log('✓ Documento registrado com sucesso:', docData);
       
-      const successMessage = driveUrl 
-        ? "Documento enviado com sucesso para Supabase e Google Drive!"
-        : "Documento enviado com sucesso para Supabase!";
-      
-      toast({
-        title: "Upload realizado",
-        description: successMessage
-      });
+      // Mostrar toast baseado no resultado
+      if (driveUrl) {
+        toast({
+          title: "Upload realizado com sucesso!",
+          description: "Documento salvo no Supabase e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Upload parcialmente realizado",
+          description: `Documento salvo no Supabase, mas falhou no Google Drive: ${driveError}`,
+          variant: "destructive"
+        });
+      }
 
       onSuccess?.(docData);
       return docData;
     } catch (error) {
-      console.error('Erro inesperado no upload:', error);
+      console.error('=== ERRO GERAL NO UPLOAD ===');
+      console.error('Erro completo:', error);
       toast({
-        title: "Erro inesperado",
-        description: "Erro ao fazer upload do documento",
+        title: "Erro no upload",
+        description: error.message || "Erro desconhecido ao fazer upload do documento",
         variant: "destructive"
       });
       return null;
