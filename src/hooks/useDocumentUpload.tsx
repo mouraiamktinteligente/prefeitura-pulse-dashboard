@@ -1,29 +1,32 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { detectFileType, generateUniqueFileName } from '@/utils/fileUtils';
+import { detectFileType, generateReadableFileName, sanitizeFileName } from '@/utils/fileUtils';
 import type { DocumentoAnalisado, DocumentoAnalisadoInsert } from './useDocumentosAnalisados';
 
 export const useDocumentUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  // Função para obter timestamp no timezone de São Paulo
+  // Função para obter timestamp CORRETO no timezone de São Paulo
   const getSaoPauloTimestamp = (): string => {
     const now = new Date();
-    const saoPauloTime = new Intl.DateTimeFormat('sv-SE', {
-      timeZone: 'America/Sao_Paulo',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(now);
     
-    // Adicionar milissegundos manualmente
-    const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
-    return saoPauloTime.replace(' ', 'T') + '.' + milliseconds + '-03:00';
+    // Converter para UTC-3 (São Paulo) manualmente
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const saoPauloTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+    
+    // Formatar como ISO 8601 com timezone
+    const year = saoPauloTime.getFullYear();
+    const month = String(saoPauloTime.getMonth() + 1).padStart(2, '0');
+    const day = String(saoPauloTime.getDate()).padStart(2, '0');
+    const hours = String(saoPauloTime.getHours()).padStart(2, '0');
+    const minutes = String(saoPauloTime.getMinutes()).padStart(2, '0');
+    const seconds = String(saoPauloTime.getSeconds()).padStart(2, '0');
+    const milliseconds = String(saoPauloTime.getMilliseconds()).padStart(3, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}-03:00`;
   };
 
   const uploadToGoogleDrive = async (file: File, clientName: string): Promise<string | null> => {
@@ -57,7 +60,7 @@ export const useDocumentUpload = () => {
         },
       });
 
-      console.log('Resposta da função:', response);
+      console.log('Resposta da função Google Drive:', response);
 
       if (response.error) {
         console.error('Erro na função do Google Drive:', response.error);
@@ -93,10 +96,19 @@ export const useDocumentUpload = () => {
 
       const tipoArquivo = detectFileType(file);
       const originalName = file.name;
-      const fileName = generateUniqueFileName(originalName);
-      const filePath = `${clienteId}/${fileName}`;
+      const readableFileName = generateReadableFileName(originalName);
+      
+      // Estrutura melhorada: criar pasta com nome do cliente + salvar arquivo com nome legível
+      const clientFolderName = sanitizeFileName(clienteNome);
+      const filePath = `${clientFolderName}/${readableFileName}`;
 
-      console.log('Arquivo processado:', { originalName, fileName, filePath, tipoArquivo });
+      console.log('Estrutura do arquivo:', { 
+        originalName, 
+        readableFileName, 
+        clientFolderName,
+        filePath, 
+        tipoArquivo 
+      });
 
       // Upload simultâneo para Supabase Storage e Google Drive
       console.log('Iniciando uploads simultâneos...');
@@ -150,14 +162,14 @@ export const useDocumentUpload = () => {
         console.error('❌ Erro no upload para Google Drive:', driveError);
       }
 
-      // Usar timestamp de São Paulo
+      // Usar timestamp correto de São Paulo
       const saoPauloTimestamp = getSaoPauloTimestamp();
-      console.log('Timestamp São Paulo:', saoPauloTimestamp);
+      console.log('Timestamp São Paulo (correto):', saoPauloTimestamp);
 
       // Criar o documento com ambas as URLs
       const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
-        nome_arquivo: fileName,
+        nome_arquivo: readableFileName,
         tipo_arquivo: tipoArquivo,
         status: 'pendente',
         url_original: signedUrlData.signedUrl,
@@ -187,7 +199,7 @@ export const useDocumentUpload = () => {
       if (driveUrl) {
         toast({
           title: "Upload realizado com sucesso!",
-          description: "Documento salvo no Supabase e Google Drive",
+          description: `Documento salvo no Supabase (pasta: ${clientFolderName}) e Google Drive`,
         });
       } else {
         toast({

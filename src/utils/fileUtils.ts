@@ -18,8 +18,22 @@ export const detectFileType = (file: File): string => {
   return 'Outros';
 };
 
-export const generateUniqueFileName = (originalName: string): string => {
-  const sanitizedName = sanitizeFileName(originalName);
+export const generateReadableFileName = (originalName: string): string => {
+  // Sanitizar nome original
+  const sanitized = sanitizeFileName(originalName);
+  
+  // Separar nome e extensão
+  const lastDotIndex = sanitized.lastIndexOf('.');
+  const nameWithoutExt = lastDotIndex > 0 ? sanitized.substring(0, lastDotIndex) : sanitized;
+  const extension = lastDotIndex > 0 ? sanitized.substring(lastDotIndex) : '';
+  
+  // Adicionar timestamp para evitar conflitos
   const timestamp = Date.now();
-  return `${timestamp}_${sanitizedName}`;
+  
+  return `${nameWithoutExt}_${timestamp}${extension}`;
+};
+
+export const generateUniqueFileName = (originalName: string): string => {
+  // Manter compatibilidade com código existente
+  return generateReadableFileName(originalName);
 };

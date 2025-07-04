@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -19,21 +18,24 @@ interface UploadRequest {
   mimeType: string;
 }
 
-// Função para obter o timestamp no timezone de São Paulo
+// Função para obter o timestamp CORRETO no timezone de São Paulo
 function getSaoPauloTimestamp(): string {
   const now = new Date();
-  const saoPauloTime = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    fractionalSecondDigits: 3,
-  }).format(now);
   
-  return saoPauloTime.replace(' ', 'T') + '-03:00';
+  // Converter para UTC-3 (São Paulo) manualmente
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const saoPauloTime = new Date(utcTime + (-3 * 3600000)); // UTC-3
+  
+  // Formatar como ISO 8601 com timezone
+  const year = saoPauloTime.getFullYear();
+  const month = String(saoPauloTime.getMonth() + 1).padStart(2, '0');
+  const day = String(saoPauloTime.getDate()).padStart(2, '0');
+  const hours = String(saoPauloTime.getHours()).padStart(2, '0');
+  const minutes = String(saoPauloTime.getMinutes()).padStart(2, '0');
+  const seconds = String(saoPauloTime.getSeconds()).padStart(2, '0');
+  const milliseconds = String(saoPauloTime.getMilliseconds()).padStart(3, '0');
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}-03:00`;
 }
 
 async function getAccessToken(): Promise<string> {
@@ -41,11 +43,13 @@ async function getAccessToken(): Promise<string> {
   const privateKey = Deno.env.get('GOOGLE_DRIVE_PRIVATE_KEY');
   
   if (!clientEmail || !privateKey) {
-    console.error('Credenciais do Google Drive não encontradas');
+    console.error('❌ Credenciais do Google Drive não encontradas');
+    console.error('CLIENT_EMAIL disponível:', !!clientEmail);
+    console.error('PRIVATE_KEY disponível:', !!privateKey);
     throw new Error('Missing Google Drive credentials');
   }
 
-  console.log('Obtendo token de acesso para:', clientEmail);
+  console.log('✓ Credenciais encontradas para:', clientEmail);
 
   // Clean up the private key format
   const cleanPrivateKey = privateKey
@@ -135,16 +139,20 @@ async function findOrCreateClientFolder(accessToken: string, clientName: string)
   const parentFolderId = Deno.env.get('GOOGLE_DRIVE_FOLDER_ID');
   
   if (!parentFolderId) {
-    console.error('ID da pasta pai não encontrado');
+    console.error('❌ ID da pasta pai não encontrado');
     throw new Error('Missing Google Drive folder ID');
   }
 
-  console.log(`Procurando pasta para cliente: ${clientName} na pasta pai: ${parentFolderId}`);
+  console.log(`📁 Gerenciando pasta para cliente: ${clientName}`);
+  console.log(`📁 Pasta pai ID: ${parentFolderId}`);
 
   try {
     // Search for existing folder
+    const searchQuery = `name='${encodeURIComponent(clientName)}' and parents in '${parentFolderId}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    console.log('🔍 Query de busca:', searchQuery);
+    
     const searchResponse = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(clientName)}' and parents in '${parentFolderId}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)}`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -154,51 +162,58 @@ async function findOrCreateClientFolder(accessToken: string, clientName: string)
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
-      console.error('Erro ao buscar pasta:', searchResponse.status, errorText);
+      console.error('❌ Erro ao buscar pasta:', searchResponse.status, errorText);
       throw new Error(`Failed to search for folder: ${searchResponse.status}`);
     }
 
     const searchData = await searchResponse.json();
-    console.log('Resultado da busca:', searchData);
+    console.log('🔍 Resultado da busca de pastas:', JSON.stringify(searchData, null, 2));
 
     if (searchData.files && searchData.files.length > 0) {
-      console.log(`Pasta encontrada para cliente ${clientName}:`, searchData.files[0].id);
+      console.log(`✓ Pasta encontrada para cliente ${clientName}:`, searchData.files[0].id);
       return searchData.files[0].id;
     }
 
-    console.log(`Criando nova pasta para cliente: ${clientName}`);
+    console.log(`📁 Criando nova pasta para cliente: ${clientName}`);
     
     // Create new folder
+    const createPayload = {
+      name: clientName,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentFolderId],
+    };
+    
+    console.log('📁 Payload de criação:', JSON.stringify(createPayload, null, 2));
+    
     const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        name: clientName,
-        mimeType: 'application/vnd.google-apps.folder',
-        parents: [parentFolderId],
-      }),
+      body: JSON.stringify(createPayload),
     });
 
     if (!createResponse.ok) {
       const errorText = await createResponse.text();
-      console.error('Erro ao criar pasta:', createResponse.status, errorText);
+      console.error('❌ Erro ao criar pasta:', createResponse.status, errorText);
       throw new Error(`Failed to create folder: ${createResponse.status}`);
     }
 
     const createData = await createResponse.json();
-    console.log(`Nova pasta criada para cliente ${clientName}:`, createData.id);
+    console.log(`✓ Nova pasta criada para cliente ${clientName}:`, createData.id);
     return createData.id;
   } catch (error) {
-    console.error('Erro ao gerenciar pasta do cliente:', error);
+    console.error('❌ Erro ao gerenciar pasta do cliente:', error);
     throw error;
   }
 }
 
 async function uploadFile(accessToken: string, folderId: string, fileName: string, fileData: string, mimeType: string): Promise<GoogleDriveFile> {
-  console.log(`Iniciando upload do arquivo: ${fileName}`);
+  console.log(`📤 Iniciando upload do arquivo: ${fileName}`);
+  console.log(`📂 Para pasta ID: ${folderId}`);
+  console.log(`📋 Tipo MIME: ${mimeType}`);
+  console.log(`📊 Tamanho base64: ${fileData.length} caracteres`);
   
   try {
     // Convert base64 to blob
@@ -208,16 +223,20 @@ async function uploadFile(accessToken: string, folderId: string, fileName: strin
       bytes[i] = binaryString.charCodeAt(i);
     }
 
+    console.log(`📊 Arquivo convertido: ${bytes.length} bytes`);
+
     const metadata = {
       name: fileName,
       parents: [folderId],
     };
 
+    console.log('📋 Metadata do arquivo:', JSON.stringify(metadata, null, 2));
+
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', new Blob([bytes], { type: mimeType }));
 
-    console.log('Enviando arquivo para Google Drive...');
+    console.log('📤 Enviando arquivo para Google Drive...');
 
     const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
       method: 'POST',
@@ -227,17 +246,20 @@ async function uploadFile(accessToken: string, folderId: string, fileName: strin
       body: form,
     });
 
+    console.log('📤 Status do upload:', uploadResponse.status);
+
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
-      console.error('Erro no upload:', uploadResponse.status, errorText);
+      console.error('❌ Erro no upload:', uploadResponse.status, errorText);
       throw new Error(`Failed to upload file: ${uploadResponse.status} - ${errorText}`);
     }
 
     const uploadData = await uploadResponse.json();
-    console.log(`Arquivo ${fileName} enviado com sucesso:`, uploadData.webViewLink);
+    console.log(`✓ Arquivo ${fileName} enviado com sucesso!`);
+    console.log('📋 Dados do upload:', JSON.stringify(uploadData, null, 2));
     return uploadData;
   } catch (error) {
-    console.error('Erro no upload do arquivo:', error);
+    console.error('❌ Erro no upload do arquivo:', error);
     throw error;
   }
 }
@@ -248,37 +270,46 @@ serve(async (req) => {
   }
 
   try {
-    console.log('=== INÍCIO DO PROCESSAMENTO ===');
-    console.log('Timestamp São Paulo:', getSaoPauloTimestamp());
+    console.log('=== 🚀 INÍCIO DO PROCESSAMENTO GOOGLE DRIVE ===');
+    console.log('🕒 Timestamp São Paulo:', getSaoPauloTimestamp());
     
     const requestBody = await req.json();
     const { fileName, fileData, clientName, mimeType }: UploadRequest = requestBody;
 
-    console.log(`Iniciando upload para Google Drive: ${fileName} - Cliente: ${clientName}`);
-    console.log('Tipo MIME:', mimeType);
-    console.log('Tamanho dos dados base64:', fileData.length);
+    console.log('📋 Dados recebidos:');
+    console.log(`  - Arquivo: ${fileName}`);
+    console.log(`  - Cliente: ${clientName}`);
+    console.log(`  - Tipo MIME: ${mimeType}`);
+    console.log(`  - Tamanho base64: ${fileData?.length || 0} caracteres`);
 
     // Validar dados de entrada
     if (!fileName || !fileData || !clientName || !mimeType) {
-      throw new Error('Dados obrigatórios não fornecidos');
+      const missing = [];
+      if (!fileName) missing.push('fileName');
+      if (!fileData) missing.push('fileData');
+      if (!clientName) missing.push('clientName');
+      if (!mimeType) missing.push('mimeType');
+      
+      console.error('❌ Dados obrigatórios não fornecidos:', missing.join(', '));
+      throw new Error(`Dados obrigatórios não fornecidos: ${missing.join(', ')}`);
     }
 
     // Get access token
-    console.log('Passo 1: Obtendo token de acesso...');
+    console.log('🔐 Passo 1: Obtendo token de acesso...');
     const accessToken = await getAccessToken();
-    console.log('✓ Token obtido');
+    console.log('✓ Token obtido com sucesso');
 
     // Find or create client folder
-    console.log('Passo 2: Gerenciando pasta do cliente...');
+    console.log('📁 Passo 2: Gerenciando pasta do cliente...');
     const folderId = await findOrCreateClientFolder(accessToken, clientName);
     console.log('✓ Pasta configurada:', folderId);
 
     // Upload file
-    console.log('Passo 3: Fazendo upload do arquivo...');
+    console.log('📤 Passo 3: Fazendo upload do arquivo...');
     const uploadedFile = await uploadFile(accessToken, folderId, fileName, fileData, mimeType);
-    console.log('✓ Upload concluído');
+    console.log('✓ Upload concluído com sucesso!');
 
-    console.log('=== PROCESSAMENTO CONCLUÍDO COM SUCESSO ===');
+    console.log('=== ✅ PROCESSAMENTO CONCLUÍDO COM SUCESSO ===');
 
     return new Response(
       JSON.stringify({
@@ -294,7 +325,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('=== ERRO NO PROCESSAMENTO ===');
+    console.error('=== ❌ ERRO NO PROCESSAMENTO ===');
     console.error('Erro detalhado:', error);
     console.error('Stack trace:', error.stack);
     
