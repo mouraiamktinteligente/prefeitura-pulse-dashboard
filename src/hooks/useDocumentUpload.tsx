@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,10 +19,11 @@ export const useDocumentUpload = () => {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      fractionalSecondDigits: 3,
     }).format(now);
     
-    return saoPauloTime.replace(' ', 'T') + '-03:00';
+    // Adicionar milissegundos manualmente
+    const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
+    return saoPauloTime.replace(' ', 'T') + '.' + milliseconds + '-03:00';
   };
 
   const uploadToGoogleDrive = async (file: File, clientName: string): Promise<string | null> => {
