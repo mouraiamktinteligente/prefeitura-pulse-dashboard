@@ -150,6 +150,7 @@ export type Database = {
           created_at: string
           data_finalizacao: string | null
           data_upload: string
+          google_drive_url: string | null
           id: string
           nome_arquivo: string
           nome_cliente: string | null
@@ -164,6 +165,7 @@ export type Database = {
           created_at?: string
           data_finalizacao?: string | null
           data_upload?: string
+          google_drive_url?: string | null
           id?: string
           nome_arquivo: string
           nome_cliente?: string | null
@@ -178,6 +180,7 @@ export type Database = {
           created_at?: string
           data_finalizacao?: string | null
           data_upload?: string
+          google_drive_url?: string | null
           id?: string
           nome_arquivo?: string
           nome_cliente?: string | null

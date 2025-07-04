@@ -1,10 +1,11 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Upload, FileText, Download, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Upload, FileText, Download, Clock, CheckCircle, XCircle, AlertCircle, Trash2, ExternalLink } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
 import { useToast } from '@/hooks/use-toast';
@@ -159,6 +160,9 @@ export const DocumentUpload = () => {
                 <p className="text-slate-400 mb-4">
                   Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
                 </p>
+                <p className="text-slate-500 text-sm mb-4">
+                  O arquivo será salvo automaticamente no Google Drive na pasta do cliente
+                </p>
                 <Button 
                   onClick={handleFileSelect}
                   disabled={uploading}
@@ -210,6 +214,12 @@ export const DocumentUpload = () => {
                             {documento.tipo_arquivo} • {documento.nome_cliente || 'Cliente não identificado'} • Enviado em{' '}
                             {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
                           </p>
+                          {documento.google_drive_url && (
+                            <p className="text-xs text-green-400 flex items-center mt-1">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Salvo no Google Drive
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -217,6 +227,20 @@ export const DocumentUpload = () => {
                     <div className="flex items-center space-x-3">
                       {getStatusBadge(documento.status)}
                       
+                      {/* Botão Google Drive */}
+                      {documento.google_drive_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(documento.google_drive_url!, '_blank')}
+                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span>Google Drive</span>
+                        </Button>
+                      )}
+                      
+                      {/* Botão Baixar Análise */}
                       {documento.status === 'finalizado' && documento.url_analise && (
                         <Button
                           size="sm"
@@ -229,6 +253,7 @@ export const DocumentUpload = () => {
                         </Button>
                       )}
                       
+                      {/* Botão Deletar */}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -247,7 +272,8 @@ export const DocumentUpload = () => {
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-slate-400">
                               Tem certeza que deseja deletar o documento "{documento.nome_arquivo}" do cliente {documento.nome_cliente}? 
-                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente.
+                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente do Supabase
+                              {documento.google_drive_url ? ' (o arquivo permanecerá no Google Drive)' : ''}.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
