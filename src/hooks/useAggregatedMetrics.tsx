@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,7 +22,7 @@ export const useAggregatedMetrics = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchAggregatedMetrics = async () => {
+  const fetchAggregatedMetrics = useCallback(async () => {
       try {
         console.log('Buscando métricas agregadas de todos os perfis');
 
@@ -78,7 +78,7 @@ export const useAggregatedMetrics = () => {
       } finally {
         setLoading(false);
       }
-    };
+    }, [toast]);
 
   // Real-time listener para atualizações agregadas
   useEffect(() => {
@@ -115,7 +115,7 @@ export const useAggregatedMetrics = () => {
 
   useEffect(() => {
     fetchAggregatedMetrics();
-  }, [toast, fetchAggregatedMetrics]);
+  }, [fetchAggregatedMetrics]);
 
   return { metrics, loading };
 };

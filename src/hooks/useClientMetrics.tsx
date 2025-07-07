@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,7 +22,7 @@ export const useClientMetrics = (clientInstagram?: string) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
       if (!clientInstagram) {
         setLoading(false);
         return;
@@ -70,7 +70,7 @@ export const useClientMetrics = (clientInstagram?: string) => {
       } finally {
         setLoading(false);
       }
-    };
+    }, [clientInstagram, toast]);
 
   // Real-time listener para atualizações de comentários
   useEffect(() => {
@@ -110,7 +110,7 @@ export const useClientMetrics = (clientInstagram?: string) => {
 
   useEffect(() => {
     fetchMetrics();
-  }, [clientInstagram, toast, fetchMetrics]);
+  }, [fetchMetrics]);
 
   return { metrics, loading };
 };
