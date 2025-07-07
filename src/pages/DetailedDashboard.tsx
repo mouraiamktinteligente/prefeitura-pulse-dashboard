@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Header } from '../components/Header';
 import { MetricsCards } from '../components/MetricsCards';
 import { SentimentAnalysis } from '../components/SentimentAnalysis';
@@ -31,11 +33,28 @@ const DetailedDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const formatLastActivity = (lastActivity: string | null) => {
+    if (!lastActivity) return null;
+    try {
+      return format(new Date(lastActivity), "dd/MM/yyyy - HH:mm", { locale: ptBR });
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-blue-900">
       <Header isConnected={isConnected} clientName={selectedClient?.nome_completo} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Última análise info */}
+        {metrics.lastActivity && (
+          <div className="text-center">
+            <p className="text-blue-300 text-sm">
+              Última análise: {formatLastActivity(metrics.lastActivity)}
+            </p>
+          </div>
+        )}
         {/* Metrics Cards */}
         {metricsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

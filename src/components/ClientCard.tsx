@@ -2,8 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Instagram } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
+import { useClientMetrics } from '@/hooks/useClientMetrics';
 
 interface ClientCardProps {
   client: Cliente;
@@ -11,12 +14,23 @@ interface ClientCardProps {
 }
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
+  const { metrics } = useClientMetrics(client.instagram || undefined);
+  
   // Post simulado do Instagram
   const mockPost = {
     image: "https://picsum.photos/200/200?random=" + client.id,
     caption: "Confira as últimas novidades e projetos em andamento...",
     likes: Math.floor(Math.random() * 500) + 50,
     comments: Math.floor(Math.random() * 100) + 10
+  };
+
+  const formatLastActivity = (lastActivity: string | null) => {
+    if (!lastActivity) return null;
+    try {
+      return format(new Date(lastActivity), "dd/MM/yyyy - HH:mm", { locale: ptBR });
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -29,6 +43,11 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
         <CardTitle className="text-white text-lg font-bold">
           {client.nome_completo}
         </CardTitle>
+        {metrics.lastActivity && (
+          <p className="text-blue-300 text-xs mt-1">
+            Última análise: {formatLastActivity(metrics.lastActivity)}
+          </p>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4 h-full pb-4 flex flex-col">

@@ -8,6 +8,7 @@ interface ClientMetrics {
   positiveComments: number;
   negativeComments: number;
   neutralComments: number;
+  lastActivity: string | null;
 }
 
 export const useClientMetrics = (clientInstagram?: string) => {
@@ -15,13 +16,13 @@ export const useClientMetrics = (clientInstagram?: string) => {
     totalComments: 0,
     positiveComments: 0,
     negativeComments: 0,
-    neutralComments: 0
+    neutralComments: 0,
+    lastActivity: null
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
+  const fetchMetrics = async () => {
       if (!clientInstagram) {
         setLoading(false);
         return;
@@ -52,7 +53,8 @@ export const useClientMetrics = (clientInstagram?: string) => {
             totalComments: Number(data.total_comentarios) || 0,
             positiveComments: Number(data.positivos) || 0,
             negativeComments: Number(data.negativos) || 0,
-            neutralComments: Number(data.neutros) || 0
+            neutralComments: Number(data.neutros) || 0,
+            lastActivity: data.ultima_atividade || null
           });
         } else {
           console.log('Nenhum dado encontrado para o perfil:', clientInstagram);
@@ -70,8 +72,45 @@ export const useClientMetrics = (clientInstagram?: string) => {
       }
     };
 
+  // Real-time listener para atualizações de comentários
+  useEffect(() => {
+    if (!clientInstagram) return;
+
+    const channel = supabase
+      .channel('metrics-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'analysis-comments',
+          filter: `profile=eq.${clientInstagram}`
+        },
+        (payload) => {
+          console.log('📡 Comentário atualizado em tempo real para perfil:', clientInstagram, payload);
+          
+          // Re-buscar métricas quando houver mudanças
+          fetchMetrics();
+          
+          // Mostrar toast quando dados forem atualizados
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Novo comentário analisado!",
+              description: `Novas métricas disponíveis para ${clientInstagram}`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clientInstagram, toast, fetchMetrics]);
+
+  useEffect(() => {
     fetchMetrics();
-  }, [clientInstagram, toast]);
+  }, [clientInstagram, toast, fetchMetrics]);
 
   return { metrics, loading };
 };
