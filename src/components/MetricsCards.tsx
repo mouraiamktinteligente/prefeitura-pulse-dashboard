@@ -16,7 +16,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
   negativeComments = 0,
   neutralComments = 0
 }) => {
-  // Calcula o sentimento médio usando a fórmula especificada
+  // Calcula o sentimento médio usando a fórmula corrigida
   const calculateAverageSentiment = () => {
     if (totalComments === 0) return 0;
     
@@ -25,8 +25,9 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
     const neutralPercentage = neutralComments / totalComments;
     const negativePercentage = negativeComments / totalComments;
     
-    // Aplica a fórmula: (positivo * 9) + (neutro * 4) + (negativo * 1)
-    const sentimentScore = (positivePercentage * 9) + (neutralPercentage * 4) + (negativePercentage * 1);
+    // Aplica a fórmula corrigida: (positivo * 10) + (neutro * 5) + (negativo * 0)
+    // Escala de 0 a 10: 100% positivos = 10, 100% neutros = 5, 100% negativos = 0
+    const sentimentScore = (positivePercentage * 10) + (neutralPercentage * 5) + (negativePercentage * 0);
     
     // Arredonda para 1 casa decimal
     return Math.round(sentimentScore * 10) / 10;
