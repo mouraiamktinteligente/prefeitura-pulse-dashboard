@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield, Users } from "lucide-react";
+import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,6 +50,11 @@ const adminMenuItems = [
     title: "Logs de Acesso",
     icon: Shield,
     url: "/admin/access-logs",
+  },
+  {
+    title: "Registro de movimentações",
+    icon: FileText,
+    url: "/admin/movimentacoes",
   },
 ];
 
