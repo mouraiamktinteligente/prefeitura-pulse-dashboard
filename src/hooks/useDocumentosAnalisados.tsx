@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentUpload } from './useDocumentUpload';
@@ -16,6 +16,43 @@ export const useDocumentosAnalisados = () => {
   
   const { uploading, uploadDocument: uploadDoc } = useDocumentUpload();
   const { deleteDocument: deleteDoc, downloadAnalise } = useDocumentOperations();
+
+  // Real-time listener para atualizações de documentos
+  useEffect(() => {
+    const channel = supabase
+      .channel('documentos-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'documentos_analisados'
+        },
+        (payload) => {
+          console.log('📡 Documento atualizado em tempo real:', payload);
+          const updatedDoc = payload.new as DocumentoAnalisado;
+          
+          setDocumentos(prev => 
+            prev.map(doc => 
+              doc.id === updatedDoc.id ? updatedDoc : doc
+            )
+          );
+
+          // Mostrar toast quando status mudou para concluído
+          if (updatedDoc.status === 'concluído') {
+            toast({
+              title: "Análise concluída!",
+              description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   const fetchDocumentos = async (clienteId?: string) => {
     try {

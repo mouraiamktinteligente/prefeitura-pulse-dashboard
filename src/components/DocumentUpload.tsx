@@ -79,6 +79,7 @@ export const DocumentUpload = () => {
         return <Clock className="w-4 h-4 text-yellow-400" />;
       case 'processando':
         return <AlertCircle className="w-4 h-4 text-blue-400" />;
+      case 'concluído':
       case 'finalizado':
         return <CheckCircle className="w-4 h-4 text-green-400" />;
       case 'erro':
@@ -92,6 +93,7 @@ export const DocumentUpload = () => {
     const variants = {
       pendente: 'secondary',
       processando: 'default',
+      concluído: 'default',
       finalizado: 'default',
       erro: 'destructive'
     } as const;
@@ -99,9 +101,12 @@ export const DocumentUpload = () => {
     const colors = {
       pendente: 'bg-yellow-900/20 text-yellow-300 border-yellow-700',
       processando: 'bg-blue-900/20 text-blue-300 border-blue-700',
+      concluído: 'bg-green-900/20 text-green-300 border-green-700',
       finalizado: 'bg-green-900/20 text-green-300 border-green-700',
       erro: 'bg-red-900/20 text-red-300 border-red-700'
     };
+
+    const displayStatus = status === 'concluído' ? 'Concluído' : status;
 
     return (
       <Badge 
@@ -109,7 +114,7 @@ export const DocumentUpload = () => {
         className={`${colors[status as keyof typeof colors] || ''} border`}
       >
         {getStatusIcon(status)}
-        <span className="ml-1 capitalize">{status}</span>
+        <span className="ml-1 capitalize">{displayStatus}</span>
       </Badge>
     );
   };
@@ -214,6 +219,16 @@ export const DocumentUpload = () => {
                             {documento.tipo_arquivo} • {documento.nome_cliente || 'Cliente não identificado'} • Enviado em{' '}
                             {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
                           </p>
+                          {documento.data_finalizacao && documento.status === 'concluído' && (
+                            <p className="text-xs text-green-400 flex items-center mt-1">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Concluído em {new Date(documento.data_finalizacao).toLocaleDateString('pt-BR')} às{' '}
+                              {new Date(documento.data_finalizacao).toLocaleTimeString('pt-BR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </p>
+                          )}
                           {documento.google_drive_url && (
                             <p className="text-xs text-green-400 flex items-center mt-1">
                               <CheckCircle className="w-3 h-3 mr-1" />
@@ -241,12 +256,12 @@ export const DocumentUpload = () => {
                       )}
                       
                       {/* Botão Baixar Análise */}
-                      {documento.status === 'finalizado' && documento.url_analise && (
+                      {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_analise && (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => downloadAnalise(documento)}
-                          className="flex items-center space-x-1 border-slate-600/50 hover:bg-slate-700/50 text-slate-300"
+                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
                         >
                           <Download className="w-4 h-4" />
                           <span>Baixar Análise</span>
