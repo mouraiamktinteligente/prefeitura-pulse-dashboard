@@ -350,6 +350,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         file: uploadedFile,
+        folderId: folderId,
         message: 'Arquivo enviado com sucesso para o Google Drive',
         timestamp_sao_paulo: getSaoPauloTimestamp()
       }),

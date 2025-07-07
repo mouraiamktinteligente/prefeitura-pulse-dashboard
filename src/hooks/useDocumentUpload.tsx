@@ -33,7 +33,7 @@ export const useDocumentUpload = () => {
     return timestamp;
   };
 
-  const uploadToGoogleDrive = async (file: File, clientName: string): Promise<string | null> => {
+  const uploadToGoogleDrive = async (file: File, clientName: string): Promise<{webViewLink: string, folderId: string} | null> => {
     try {
       console.log('=== INICIANDO UPLOAD PARA GOOGLE DRIVE ===');
       console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
@@ -77,7 +77,8 @@ export const useDocumentUpload = () => {
 
       if (response.data?.success) {
         console.log('✓ Upload para Google Drive bem-sucedido:', response.data.file.webViewLink);
-        return response.data.file.webViewLink;
+        console.log('✓ ID da pasta no Google Drive:', response.data.folderId);
+        return { webViewLink: response.data.file.webViewLink, folderId: response.data.folderId };
       } else {
         console.error('Resposta de erro do Google Drive:', response.data);
         throw new Error(response.data?.error || 'Erro desconhecido no Google Drive');
@@ -160,13 +161,16 @@ export const useDocumentUpload = () => {
 
       // Verificar resultado do Google Drive
       let driveUrl: string | null = null;
+      let driveFolderId: string | null = null;
       let driveError: string | null = null;
 
-      if (googleDriveResult.status === 'fulfilled') {
-        driveUrl = googleDriveResult.value;
+      if (googleDriveResult.status === 'fulfilled' && googleDriveResult.value) {
+        driveUrl = googleDriveResult.value.webViewLink;
+        driveFolderId = googleDriveResult.value.folderId;
         console.log('✓ Upload para Google Drive bem-sucedido:', driveUrl);
-      } else {
-        driveError = googleDriveResult.reason.message;
+        console.log('✓ ID da pasta no Google Drive:', driveFolderId);
+      } else if (googleDriveResult.status === 'rejected') {
+        driveError = googleDriveResult.reason.message || 'Erro desconhecido no Google Drive';
         console.error('❌ Erro no upload para Google Drive:', driveError);
       }
 
@@ -174,7 +178,7 @@ export const useDocumentUpload = () => {
       const saoPauloTimestamp = getSaoPauloTimestamp();
       console.log('🕐 Timestamp para banco de dados:', saoPauloTimestamp);
 
-      // Criar o documento com ambas as URLs
+      // Criar o documento com ambas as URLs e o ID da pasta
       const documentData: DocumentoAnalisadoInsert = {
         cliente_id: clienteId,
         nome_arquivo: readableFileName,
@@ -183,6 +187,7 @@ export const useDocumentUpload = () => {
         url_original: signedUrlData.signedUrl,
         nome_cliente: clienteNome,
         google_drive_url: driveUrl,
+        drive_folder_id: driveFolderId,
         data_upload: saoPauloTimestamp,
         created_at: saoPauloTimestamp,
         updated_at: saoPauloTimestamp
