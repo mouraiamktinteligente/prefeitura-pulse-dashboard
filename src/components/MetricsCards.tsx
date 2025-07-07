@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, MessageSquare, AlertTriangle } from 'lucide-react';
@@ -18,6 +17,13 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
 }) => {
   // Calcula o sentimento médio usando a fórmula corrigida
   const calculateAverageSentiment = () => {
+    console.log('MetricsCards - Calculando sentimento médio:', {
+      totalComments,
+      positiveComments,
+      negativeComments,
+      neutralComments
+    });
+
     if (totalComments === 0) return 0;
     
     // Converte os valores para percentuais (0 a 1)
@@ -25,12 +31,24 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
     const neutralPercentage = neutralComments / totalComments;
     const negativePercentage = negativeComments / totalComments;
     
+    console.log('MetricsCards - Percentuais:', {
+      positivePercentage,
+      neutralPercentage,
+      negativePercentage
+    });
+    
     // Aplica a fórmula corrigida: (positivo * 10) + (neutro * 5) + (negativo * 0)
     // Escala de 0 a 10: 100% positivos = 10, 100% neutros = 5, 100% negativos = 0
     const sentimentScore = (positivePercentage * 10) + (neutralPercentage * 5) + (negativePercentage * 0);
     
+    console.log('MetricsCards - Score calculado:', sentimentScore);
+    
     // Arredonda para 1 casa decimal
-    return Math.round(sentimentScore * 10) / 10;
+    const finalScore = Math.round(sentimentScore * 10) / 10;
+    
+    console.log('MetricsCards - Score final:', finalScore);
+    
+    return finalScore;
   };
 
   const averageSentiment = calculateAverageSentiment();
@@ -39,6 +57,17 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
   const previousSentiment = averageSentiment > 0 ? averageSentiment - 0.3 : 0;
   const sentimentChange = averageSentiment - previousSentiment;
   const isPositiveChange = sentimentChange >= 0;
+
+  // Force re-render when metrics change
+  React.useEffect(() => {
+    console.log('MetricsCards - Props atualizadas:', {
+      totalComments,
+      positiveComments,
+      negativeComments,
+      neutralComments,
+      averageSentiment
+    });
+  }, [totalComments, positiveComments, negativeComments, neutralComments, averageSentiment]);
 
   const metrics = [
     {
@@ -82,7 +111,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {metrics.map((metric, index) => (
-        <Card key={index} className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 hover:bg-blue-600">
+        <Card key={`${index}-${Date.now()}`} className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 hover:bg-blue-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -29,9 +30,21 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   const metrics = effectiveClientId ? clientMetrics : aggregatedMetrics;
   const loading = effectiveClientId ? clientLoading : aggregatedLoading;
 
+  // Força re-renderização quando os dados mudam
+  React.useEffect(() => {
+    console.log('SentimentAnalysis - Metrics atualizadas:', metrics);
+  }, [metrics]);
+
   // Calcula os percentuais baseados nos dados reais - MESMA LÓGICA PARA AMBOS
   const calculatePercentages = () => {
     const { totalComments, positiveComments, negativeComments, neutralComments } = metrics;
+    
+    console.log('SentimentAnalysis - Calculando percentuais:', {
+      totalComments,
+      positiveComments,
+      negativeComments,
+      neutralComments
+    });
     
     if (totalComments === 0) {
       return [
@@ -45,11 +58,14 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
     const neutralPercentage = Math.round((neutralComments / totalComments) * 100);
     const negativePercentage = Math.round((negativeComments / totalComments) * 100);
 
-    return [
+    const result = [
       { name: 'Positivo', value: positivePercentage, color: '#10b981' },
       { name: 'Neutro', value: neutralPercentage, color: '#f59e0b' },
       { name: 'Negativo', value: negativePercentage, color: '#ef4444' }
     ];
+
+    console.log('SentimentAnalysis - Percentuais calculados:', result);
+    return result;
   };
 
   const data = calculatePercentages();
@@ -110,7 +126,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
       <div className="h-full flex flex-col">
         <div className="flex-1 min-h-[100px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart key={`pie-${effectiveClientId}-${Date.now()}`}>
               <Pie
                 data={data}
                 cx="50%"
@@ -150,7 +166,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart key={`pie-full-${effectiveClientId}-${Date.now()}`}>
               <Pie
                 data={data}
                 cx="50%"
