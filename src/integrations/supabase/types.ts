@@ -382,21 +382,30 @@ export type Database = {
       profiles_monitorados: {
         Row: {
           ativo: boolean | null
+          cidade: string | null
+          estado: string | null
           id: string
+          nome: string | null
           profile: string
           quantidade_posts: number | null
           updated_at: string | null
         }
         Insert: {
           ativo?: boolean | null
+          cidade?: string | null
+          estado?: string | null
           id?: string
+          nome?: string | null
           profile: string
           quantidade_posts?: number | null
           updated_at?: string | null
         }
         Update: {
           ativo?: boolean | null
+          cidade?: string | null
+          estado?: string | null
           id?: string
+          nome?: string | null
           profile?: string
           quantidade_posts?: number | null
           updated_at?: string | null

@@ -2,10 +2,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMovimentacoes } from '@/hooks/useMovimentacoes';
+import { useAuth } from '@/hooks/useAuth';
 import type { Cliente, ClienteInsert, ClienteUpdate } from './useClients';
 
 export const useClientOperations = () => {
   const { toast } = useToast();
+  const { registrarMovimentacao } = useMovimentacoes();
+  const { user } = useAuth();
 
   const createClient = async (clientData: ClienteInsert) => {
     try {
@@ -27,6 +31,16 @@ export const useClientOperations = () => {
       }
 
       console.log('Cliente criado:', data);
+      
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Cliente cadastrado: ${data.nome_completo}`,
+        'cadastro_clientes',
+        null,
+        data,
+        user?.email
+      );
+      
       toast({
         title: "Cliente cadastrado",
         description: "Cliente cadastrado com sucesso!"
@@ -42,6 +56,14 @@ export const useClientOperations = () => {
   const updateClient = async (id: string, clientData: ClienteUpdate) => {
     try {
       console.log('Atualizando cliente:', id, clientData);
+      
+      // Buscar dados anteriores antes da atualização
+      const { data: dadosAnteriores } = await supabase
+        .from('cadastro_clientes')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
       const { data, error } = await supabase
         .from('cadastro_clientes')
         .update(clientData)
@@ -60,6 +82,16 @@ export const useClientOperations = () => {
       }
 
       console.log('Cliente atualizado:', data);
+      
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Cliente atualizado: ${data.nome_completo}`,
+        'cadastro_clientes',
+        dadosAnteriores,
+        data,
+        user?.email
+      );
+      
       toast({
         title: "Cliente atualizado",
         description: "Dados do cliente atualizados com sucesso!"
@@ -75,6 +107,14 @@ export const useClientOperations = () => {
   const deleteClient = async (id: string) => {
     try {
       console.log('Excluindo cliente:', id);
+      
+      // Buscar dados antes da exclusão
+      const { data: dadosAnteriores } = await supabase
+        .from('cadastro_clientes')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
       const { error } = await supabase
         .from('cadastro_clientes')
         .delete()
@@ -91,6 +131,16 @@ export const useClientOperations = () => {
       }
 
       console.log('Cliente excluído com sucesso');
+      
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Cliente excluído: ${dadosAnteriores?.nome_completo || 'Cliente não encontrado'}`,
+        'cadastro_clientes',
+        dadosAnteriores,
+        null,
+        user?.email
+      );
+      
       toast({
         title: "Cliente excluído",
         description: "Cliente removido com sucesso!"

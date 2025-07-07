@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMovimentacoes } from '@/hooks/useMovimentacoes';
+import { useAuth } from '@/hooks/useAuth';
 import type { Database } from "@/integrations/supabase/types";
 
 // Tipo para inserção que corresponde ao schema do Supabase
@@ -35,6 +37,8 @@ export const useUsers = () => {
   const [users, setUsers] = useState<UsuarioSistema[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { registrarMovimentacao } = useMovimentacoes();
+  const { user } = useAuth();
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -67,6 +71,15 @@ export const useUsers = () => {
 
       if (error) throw error;
       
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Usuário cadastrado: ${data.nome_completo} (${data.email})`,
+        'usuarios_sistema',
+        null,
+        data,
+        user?.email
+      );
+      
       toast({
         title: "Sucesso",
         description: "Usuário cadastrado com sucesso!"
@@ -86,6 +99,13 @@ export const useUsers = () => {
 
   const updateUser = async (id: string, userData: Partial<UsuarioInsert>) => {
     try {
+      // Buscar dados anteriores antes da atualização
+      const { data: dadosAnteriores } = await supabase
+        .from('usuarios_sistema')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
       const { data, error } = await supabase
         .from('usuarios_sistema')
         .update(userData)
@@ -94,6 +114,15 @@ export const useUsers = () => {
         .single();
 
       if (error) throw error;
+      
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Usuário atualizado: ${data.nome_completo} (${data.email})`,
+        'usuarios_sistema',
+        dadosAnteriores,
+        data,
+        user?.email
+      );
       
       toast({
         title: "Sucesso",
@@ -114,12 +143,28 @@ export const useUsers = () => {
 
   const deleteUser = async (id: string) => {
     try {
+      // Buscar dados antes da exclusão
+      const { data: dadosAnteriores } = await supabase
+        .from('usuarios_sistema')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
       const { error } = await supabase
         .from('usuarios_sistema')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Usuário excluído: ${dadosAnteriores?.nome_completo || 'Usuário não encontrado'} (${dadosAnteriores?.email})`,
+        'usuarios_sistema',
+        dadosAnteriores,
+        null,
+        user?.email
+      );
       
       toast({
         title: "Sucesso",

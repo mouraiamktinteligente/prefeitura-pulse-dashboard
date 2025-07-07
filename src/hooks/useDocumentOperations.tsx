@@ -2,10 +2,14 @@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeFileName } from '@/utils/fileUtils';
+import { useMovimentacoes } from '@/hooks/useMovimentacoes';
+import { useAuth } from '@/hooks/useAuth';
 import type { DocumentoAnalisado } from './useDocumentosAnalisados';
 
 export const useDocumentOperations = () => {
   const { toast } = useToast();
+  const { registrarMovimentacao } = useMovimentacoes();
+  const { user } = useAuth();
 
   const deleteFromGoogleDrive = async (documento: DocumentoAnalisado): Promise<boolean> => {
     if (!documento.google_drive_url) {
@@ -98,6 +102,15 @@ export const useDocumentOperations = () => {
       }
 
       console.log('✓ Registro deletado da base de dados');
+
+      // Registrar movimentação
+      await registrarMovimentacao(
+        `Documento excluído: ${documento.nome_arquivo} (Cliente: ${documento.nome_cliente || 'N/A'})`,
+        'documentos_analisados',
+        documento,
+        null,
+        user?.email
+      );
 
       // Mostrar toast baseado no resultado
       if (driveDeleteSuccess) {
