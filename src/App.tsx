@@ -16,6 +16,7 @@ import AccessLogs from "./pages/AccessLogs";
 import PlatformUsers from "./pages/PlatformUsers";
 import ClientRegistration from "./pages/ClientRegistration";
 import AnalisePesquisa from "./pages/AnalisePesquisa";
+import RegistroMovimentacoes from "./pages/RegistroMovimentacoes";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,15 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <PlatformUsers />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin/movimentacoes" element={
+        <ProtectedRoute requireAdmin={true}>
+          <TopNavigation />
+          <main className="flex-1">
+            <RegistroMovimentacoes />
           </main>
         </ProtectedRoute>
       } />

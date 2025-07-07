@@ -1,5 +1,5 @@
 
-import { BarChart3, Megaphone, CheckSquare, UserPlus } from "lucide-react";
+import { BarChart3, Megaphone, CheckSquare, UserPlus, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +33,11 @@ const menuItems = [
     title: "Cadastro",
     icon: UserPlus,
     url: "/cadastro",
+  },
+  {
+    title: "Registro de movimentações",
+    icon: FileText,
+    url: "/admin/movimentacoes",
   },
 ];
 

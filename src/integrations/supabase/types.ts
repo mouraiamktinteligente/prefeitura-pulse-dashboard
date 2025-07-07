@@ -403,6 +403,45 @@ export type Database = {
         }
         Relationships: []
       }
+      registro_movimentacoes: {
+        Row: {
+          acao_realizada: string
+          created_at: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          data_hora_acao: string
+          email_usuario: string
+          id: string
+          ip_address: string | null
+          tabela_afetada: string | null
+          updated_at: string
+        }
+        Insert: {
+          acao_realizada: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_hora_acao?: string
+          email_usuario: string
+          id?: string
+          ip_address?: string | null
+          tabela_afetada?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acao_realizada?: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_hora_acao?: string
+          email_usuario?: string
+          id?: string
+          ip_address?: string | null
+          tabela_afetada?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       usuarios_sistema: {
         Row: {
           ativo: boolean | null
