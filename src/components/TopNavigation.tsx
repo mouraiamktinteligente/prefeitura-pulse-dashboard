@@ -112,8 +112,8 @@ export function TopNavigation() {
             <NavigationMenuList>
               {availableMenuItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
-                  <NavigationMenuLink
-                    href={item.url}
+                  <button
+                    onClick={() => navigate(item.url)}
                     className={cn(
                       navigationMenuTriggerStyle(),
                       "bg-transparent text-blue-200 hover:bg-blue-700/50 hover:text-white focus:bg-blue-700/50 focus:text-white data-[active]:bg-blue-600 data-[active]:text-white"
@@ -121,7 +121,7 @@ export function TopNavigation() {
                   >
                     <item.icon className="w-4 h-4 mr-2" />
                     {item.title}
-                  </NavigationMenuLink>
+                  </button>
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
