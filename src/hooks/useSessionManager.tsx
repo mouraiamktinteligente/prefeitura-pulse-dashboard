@@ -69,24 +69,20 @@ export const useSessionManager = () => {
       if (error) {
         console.error('Erro ao validar sessão:', error);
         
-        // Retry logic para falhas temporárias
-        if (retryCount < 2 && error.message.includes('Load failed')) {
+        // Retry apenas uma vez para falhas temporárias de rede
+        if (retryCount < 1 && error.message.includes('Load failed')) {
           console.log('validateSession: Tentando novamente...', retryCount + 1);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500));
           return validateSession(userEmail, retryCount + 1);
         }
         
-        // Não forçar logout imediatamente em caso de erro de rede
-        if (error.message.includes('Load failed') || error.message.includes('network')) {
-          console.warn('validateSession: Erro de rede, mantendo sessão temporariamente');
-          return true; // Manter sessão em caso de erro de rede
-        }
-        
+        // Forçar logout em qualquer erro após retry
+        console.log('validateSession: Erro persistente, invalidando sessão');
         return false;
       }
 
       if (!data) {
-        console.log('validateSession: Sessão não encontrada na base de dados');
+        console.log('validateSession: Sessão não encontrada ou inativa na base de dados');
         localStorage.removeItem('session_token');
         return false;
       }
@@ -107,16 +103,16 @@ export const useSessionManager = () => {
     } catch (error) {
       console.error('Erro ao validar sessão:', error);
       
-      // Retry logic para exceções
-      if (retryCount < 2) {
+      // Apenas um retry para exceções
+      if (retryCount < 1) {
         console.log('validateSession: Erro capturado, tentando novamente...', retryCount + 1);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         return validateSession(userEmail, retryCount + 1);
       }
       
-      // Não forçar logout em caso de erro após retries
-      console.warn('validateSession: Mantendo sessão após falhas múltiplas');
-      return true;
+      // Forçar logout após erro
+      console.log('validateSession: Invalidando sessão após erro persistente');
+      return false;
     }
   }, []);
 
@@ -166,9 +162,13 @@ export const useSessionManager = () => {
 
   const disconnectUserByAdmin = useCallback(async (targetEmail: string): Promise<boolean> => {
     try {
+      // Invalidar TODAS as sessões do usuário alvo
       const { error } = await supabase
         .from('sessoes_ativas')
-        .update({ ativo: false })
+        .update({ 
+          ativo: false,
+          updated_at: new Date().toISOString()
+        })
         .eq('user_email', targetEmail)
         .eq('ativo', true);
 
@@ -181,6 +181,14 @@ export const useSessionManager = () => {
         });
         return false;
       }
+
+      // Emitir evento realtime para forçar desconexão imediata
+      const channel = supabase.channel('admin-disconnect');
+      await channel.send({
+        type: 'broadcast',
+        event: 'user_disconnected',
+        payload: { targetEmail, disconnectedAt: new Date().toISOString() }
+      });
 
       toast({
         title: "Sucesso",

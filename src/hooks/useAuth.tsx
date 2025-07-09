@@ -239,59 +239,83 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     throttleMs: 30000 // 30 segundos
   });
 
-  // Verificação periódica de sessão otimizada
+  // Verificação periódica de sessão mais rigorosa
   useEffect(() => {
     if (!user?.email) return;
 
-    let consecutiveFailures = 0;
-    const maxFailures = 3;
-
     const checkSession = async () => {
-      // Evitar verificações desnecessárias em páginas administrativas
-      const currentPath = window.location.pathname;
-      const adminPaths = ['/admin/access-logs', '/admin/platform-users', '/admin/movimentacoes'];
-      const isAdminPage = adminPaths.some(path => currentPath.includes(path));
-      
-      console.log('Verificação de sessão - Página atual:', currentPath, 'É admin?', isAdminPage);
-      
       try {
         const isValid = await sessionManager.validateSession(user.email);
         
         if (!isValid) {
-          consecutiveFailures++;
-          console.warn(`Falha na validação de sessão ${consecutiveFailures}/${maxFailures}`);
-          
-          // Só forçar logout após múltiplas falhas consecutivas
-          if (consecutiveFailures >= maxFailures) {
-            console.error('Múltiplas falhas na validação - forçando logout');
-            logout('Sessão invalidada após múltiplas tentativas');
-          }
-        } else {
-          // Reset contador de falhas em caso de sucesso
-          consecutiveFailures = 0;
+          console.log('Sessão inválida detectada - forçando logout');
+          logout('Sessão invalidada');
         }
       } catch (error) {
-        console.error('Erro na verificação periódica de sessão:', error);
-        consecutiveFailures++;
-        
-        if (consecutiveFailures >= maxFailures) {
-          console.error('Múltiplos erros na verificação - forçando logout');
-          logout('Erro persistente na validação de sessão');
-        }
+        console.error('Erro na verificação de sessão:', error);
+        logout('Erro na validação de sessão');
       }
     };
 
-    // Verificar após 5 segundos (dar tempo para a página carregar)
-    const initialCheck = setTimeout(checkSession, 5000);
+    // Verificação inicial mais rápida
+    const initialCheck = setTimeout(checkSession, 2000);
 
-    // Verificar a cada 60 segundos (reduzida a frequência)
-    const interval = setInterval(checkSession, 60000);
+    // Verificar a cada 15 segundos para detecção mais rápida
+    const interval = setInterval(checkSession, 15000);
     
     return () => {
       clearTimeout(initialCheck);
       clearInterval(interval);
     };
   }, [user?.email, sessionManager]);
+
+  // Listener para desconexão forçada por admin
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const channel = supabase
+      .channel('admin-disconnect')
+      .on('broadcast', { event: 'user_disconnected' }, (payload) => {
+        if (payload.targetEmail === user.email) {
+          console.log('Usuário desconectado por administrador');
+          logout('Você foi desconectado por um administrador');
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.email]);
+
+  // Listener para mudanças na tabela de sessões ativas
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const channel = supabase
+      .channel('session-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sessoes_ativas',
+          filter: `user_email=eq.${user.email}`
+        },
+        (payload) => {
+          const newRecord = payload.new as any;
+          if (newRecord && !newRecord.ativo) {
+            console.log('Sessão invalidada na base de dados - forçando logout');
+            logout('Sessão invalidada por administrador');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.email]);
 
   useEffect(() => {
     console.log('Verificando usuário salvo...');
