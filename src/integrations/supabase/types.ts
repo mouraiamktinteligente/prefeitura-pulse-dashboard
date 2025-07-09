@@ -503,6 +503,7 @@ export type Database = {
           permissoes: string | null
           razao_social: string | null
           senha_hash: string | null
+          status_conexao: string
           tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
           updated_at: string
@@ -526,6 +527,7 @@ export type Database = {
           permissoes?: string | null
           razao_social?: string | null
           senha_hash?: string | null
+          status_conexao?: string
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string
@@ -549,6 +551,7 @@ export type Database = {
           permissoes?: string | null
           razao_social?: string | null
           senha_hash?: string | null
+          status_conexao?: string
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string

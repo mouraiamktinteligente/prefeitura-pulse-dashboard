@@ -23,6 +23,12 @@ export const useSessionManager = () => {
         .eq('user_email', userEmail)
         .eq('ativo', true);
 
+      // Marcar usuário como conectado
+      await supabase
+        .from('usuarios_sistema')
+        .update({ status_conexao: 'conectado' })
+        .eq('email', userEmail);
+
       // Criar nova sessão
       const { data, error } = await supabase
         .from('sessoes_ativas')
@@ -58,6 +64,25 @@ export const useSessionManager = () => {
 
       console.log('validateSession: Validando sessão para:', userEmail);
 
+      // Verificar primeiro se o usuário está marcado como conectado
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios_sistema')
+        .select('status_conexao')
+        .eq('email', userEmail)
+        .maybeSingle();
+
+      if (userError || !userData) {
+        console.log('validateSession: Erro ao verificar status do usuário');
+        return false;
+      }
+
+      if (userData.status_conexao !== 'conectado') {
+        console.log('validateSession: Usuário marcado como desconectado');
+        localStorage.removeItem('session_token');
+        return false;
+      }
+
+      // Verificar sessão ativa
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .select('*')
@@ -68,16 +93,6 @@ export const useSessionManager = () => {
 
       if (error) {
         console.error('Erro ao validar sessão:', error);
-        
-        // Retry apenas uma vez para falhas temporárias de rede
-        if (retryCount < 1 && error.message.includes('Load failed')) {
-          console.log('validateSession: Tentando novamente...', retryCount + 1);
-          await new Promise(resolve => setTimeout(resolve, 500));
-          return validateSession(userEmail, retryCount + 1);
-        }
-        
-        // Forçar logout em qualquer erro após retry
-        console.log('validateSession: Erro persistente, invalidando sessão');
         return false;
       }
 
@@ -102,16 +117,6 @@ export const useSessionManager = () => {
       return true;
     } catch (error) {
       console.error('Erro ao validar sessão:', error);
-      
-      // Apenas um retry para exceções
-      if (retryCount < 1) {
-        console.log('validateSession: Erro capturado, tentando novamente...', retryCount + 1);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return validateSession(userEmail, retryCount + 1);
-      }
-      
-      // Forçar logout após erro
-      console.log('validateSession: Invalidando sessão após erro persistente');
       return false;
     }
   }, []);
@@ -145,6 +150,12 @@ export const useSessionManager = () => {
     try {
       const sessionToken = localStorage.getItem('session_token');
       
+      // Marcar usuário como desconectado
+      await supabase
+        .from('usuarios_sistema')
+        .update({ status_conexao: 'desconectado' })
+        .eq('email', userEmail);
+      
       if (sessionToken) {
         await supabase
           .from('sessoes_ativas')
@@ -162,18 +173,14 @@ export const useSessionManager = () => {
 
   const disconnectUserByAdmin = useCallback(async (targetEmail: string): Promise<boolean> => {
     try {
-      // Invalidar TODAS as sessões do usuário alvo
-      const { error } = await supabase
-        .from('sessoes_ativas')
-        .update({ 
-          ativo: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_email', targetEmail)
-        .eq('ativo', true);
+      // Marcar usuário como desconectado (fonte única da verdade)
+      const { error: userError } = await supabase
+        .from('usuarios_sistema')
+        .update({ status_conexao: 'desconectado' })
+        .eq('email', targetEmail);
 
-      if (error) {
-        console.error('Erro ao desconectar usuário:', error);
+      if (userError) {
+        console.error('Erro ao marcar usuário como desconectado:', userError);
         toast({
           title: "Erro",
           description: "Não foi possível desconectar o usuário.",
@@ -181,6 +188,16 @@ export const useSessionManager = () => {
         });
         return false;
       }
+
+      // Invalidar TODAS as sessões do usuário alvo
+      await supabase
+        .from('sessoes_ativas')
+        .update({ 
+          ativo: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_email', targetEmail)
+        .eq('ativo', true);
 
       // Emitir evento realtime para forçar desconexão imediata
       const channel = supabase.channel('admin-disconnect');

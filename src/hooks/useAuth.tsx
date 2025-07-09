@@ -288,25 +288,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [user?.email]);
 
-  // Listener para mudanças na tabela de sessões ativas
+  // Listener para mudanças no status de conexão do usuário
   useEffect(() => {
     if (!user?.email) return;
 
     const channel = supabase
-      .channel('session-changes')
+      .channel('user-status-changes')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'sessoes_ativas',
-          filter: `user_email=eq.${user.email}`
+          table: 'usuarios_sistema',
+          filter: `email=eq.${user.email}`
         },
         (payload) => {
           const newRecord = payload.new as any;
-          if (newRecord && !newRecord.ativo) {
-            console.log('Sessão invalidada na base de dados - forçando logout');
-            logout('Sessão invalidada por administrador');
+          if (newRecord && newRecord.status_conexao === 'desconectado') {
+            console.log('Usuário marcado como desconectado - forçando logout');
+            logout('Você foi desconectado por um administrador');
           }
         }
       )
