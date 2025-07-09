@@ -451,6 +451,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sessoes_ativas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          expires_at: string
+          id: string
+          last_activity: string
+          session_token: string
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_activity?: string
+          session_token?: string
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_activity?: string
+          session_token?: string
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
       usuarios_sistema: {
         Row: {
           ativo: boolean | null
@@ -584,6 +617,10 @@ export type Database = {
       exemplo_hora: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      limpar_sessoes_expiradas: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
