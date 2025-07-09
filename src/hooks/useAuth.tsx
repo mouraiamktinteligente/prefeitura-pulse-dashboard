@@ -239,24 +239,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     throttleMs: 30000 // 30 segundos
   });
 
-  // Verificação periódica de sessão
+  // Verificação periódica de sessão otimizada
   useEffect(() => {
     if (!user?.email) return;
 
+    let consecutiveFailures = 0;
+    const maxFailures = 3;
+
     const checkSession = async () => {
-      const isValid = await sessionManager.validateSession(user.email);
-      if (!isValid) {
-        logout('Sessão invalidada por administrador');
+      // Evitar verificações desnecessárias em páginas administrativas
+      const currentPath = window.location.pathname;
+      const adminPaths = ['/admin/access-logs', '/admin/platform-users', '/admin/movimentacoes'];
+      const isAdminPage = adminPaths.some(path => currentPath.includes(path));
+      
+      console.log('Verificação de sessão - Página atual:', currentPath, 'É admin?', isAdminPage);
+      
+      try {
+        const isValid = await sessionManager.validateSession(user.email);
+        
+        if (!isValid) {
+          consecutiveFailures++;
+          console.warn(`Falha na validação de sessão ${consecutiveFailures}/${maxFailures}`);
+          
+          // Só forçar logout após múltiplas falhas consecutivas
+          if (consecutiveFailures >= maxFailures) {
+            console.error('Múltiplas falhas na validação - forçando logout');
+            logout('Sessão invalidada após múltiplas tentativas');
+          }
+        } else {
+          // Reset contador de falhas em caso de sucesso
+          consecutiveFailures = 0;
+        }
+      } catch (error) {
+        console.error('Erro na verificação periódica de sessão:', error);
+        consecutiveFailures++;
+        
+        if (consecutiveFailures >= maxFailures) {
+          console.error('Múltiplos erros na verificação - forçando logout');
+          logout('Erro persistente na validação de sessão');
+        }
       }
     };
 
-    // Verificar imediatamente
-    checkSession();
+    // Verificar após 5 segundos (dar tempo para a página carregar)
+    const initialCheck = setTimeout(checkSession, 5000);
 
-    // Verificar a cada 30 segundos
-    const interval = setInterval(checkSession, 30000);
+    // Verificar a cada 60 segundos (reduzida a frequência)
+    const interval = setInterval(checkSession, 60000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialCheck);
+      clearInterval(interval);
+    };
   }, [user?.email, sessionManager]);
 
   useEffect(() => {

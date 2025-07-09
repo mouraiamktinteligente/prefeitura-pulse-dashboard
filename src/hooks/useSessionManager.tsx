@@ -48,10 +48,15 @@ export const useSessionManager = () => {
     }
   }, []);
 
-  const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
+  const validateSession = useCallback(async (userEmail: string, retryCount: number = 0): Promise<boolean> => {
     try {
       const sessionToken = localStorage.getItem('session_token');
-      if (!sessionToken) return false;
+      if (!sessionToken) {
+        console.log('validateSession: Nenhum token encontrado');
+        return false;
+      }
+
+      console.log('validateSession: Validando sessão para:', userEmail);
 
       const { data, error } = await supabase
         .from('sessoes_ativas')
@@ -63,10 +68,25 @@ export const useSessionManager = () => {
 
       if (error) {
         console.error('Erro ao validar sessão:', error);
+        
+        // Retry logic para falhas temporárias
+        if (retryCount < 2 && error.message.includes('Load failed')) {
+          console.log('validateSession: Tentando novamente...', retryCount + 1);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return validateSession(userEmail, retryCount + 1);
+        }
+        
+        // Não forçar logout imediatamente em caso de erro de rede
+        if (error.message.includes('Load failed') || error.message.includes('network')) {
+          console.warn('validateSession: Erro de rede, mantendo sessão temporariamente');
+          return true; // Manter sessão em caso de erro de rede
+        }
+        
         return false;
       }
 
       if (!data) {
+        console.log('validateSession: Sessão não encontrada na base de dados');
         localStorage.removeItem('session_token');
         return false;
       }
@@ -76,15 +96,27 @@ export const useSessionManager = () => {
       const expiresAt = new Date(data.expires_at);
       
       if (now > expiresAt) {
+        console.log('validateSession: Sessão expirada');
         await invalidateSession(userEmail);
         return false;
       }
 
+      console.log('validateSession: Sessão válida');
       setCurrentSession(data);
       return true;
     } catch (error) {
       console.error('Erro ao validar sessão:', error);
-      return false;
+      
+      // Retry logic para exceções
+      if (retryCount < 2) {
+        console.log('validateSession: Erro capturado, tentando novamente...', retryCount + 1);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return validateSession(userEmail, retryCount + 1);
+      }
+      
+      // Não forçar logout em caso de erro após retries
+      console.warn('validateSession: Mantendo sessão após falhas múltiplas');
+      return true;
     }
   }, []);
 
