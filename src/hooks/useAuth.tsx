@@ -1,9 +1,13 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { useSessionManager } from "./useSessionManager";
+import { useActivityDetector } from "./useActivityDetector";
+import { useInactivityTimer } from "./useInactivityTimer";
+import { InactivityModal } from "@/components/InactivityModal";
 
 interface AuthContextType {
   user: any | null;
-  logout: () => Promise<void>;
+  logout: (reason?: string) => Promise<void>;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
 }
@@ -13,6 +17,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [forceLogoutReason, setForceLogoutReason] = useState<string | null>(null);
+  
+  const sessionManager = useSessionManager();
 
   // Função para obter o IP real do usuário
   const getRealIP = async (): Promise<string | null> => {
@@ -157,6 +164,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log('Login aprovado para:', userData.email);
       
+      // Criar sessão ativa
+      const sessionToken = await sessionManager.createSession(userData.email);
+      if (!sessionToken) {
+        return { error: { message: 'Erro ao criar sessão' } };
+      }
+      
       // Criar objeto de usuário
       const authenticatedUser = {
         id: userData.id,
@@ -179,38 +192,119 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = async (reason?: string) => {
     const currentUser = user;
+    
+    // Invalidar sessão ativa
+    if (currentUser?.email) {
+      await sessionManager.invalidateSession(currentUser.email);
+      await registerAccessLog(currentUser.email, false);
+    }
+    
     setUser(null);
     localStorage.removeItem('auth_user');
     
-    // Registrar logout se houver usuário logado
-    if (currentUser?.email) {
-      await registerAccessLog(currentUser.email, false);
+    if (reason) {
+      setForceLogoutReason(reason);
     }
   };
+
+  // Timer de inatividade
+  const {
+    isWarningShown,
+    timeUntilExpiry,
+    resetTimer,
+    extendSession,
+    forceTimeout
+  } = useInactivityTimer({
+    timeout: 20 * 60 * 1000, // 20 minutos
+    warningTime: 2 * 60 * 1000, // 2 minutos de aviso
+    onWarning: () => {
+      console.log('Aviso de inatividade mostrado');
+    },
+    onTimeout: () => {
+      logout('Sessão expirada por inatividade');
+    },
+    enabled: !!user
+  });
+
+  // Detector de atividade
+  useActivityDetector({
+    onActivity: () => {
+      if (user?.email) {
+        sessionManager.updateActivity(user.email);
+        resetTimer();
+      }
+    },
+    throttleMs: 30000 // 30 segundos
+  });
+
+  // Verificação periódica de sessão
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const checkSession = async () => {
+      const isValid = await sessionManager.validateSession(user.email);
+      if (!isValid) {
+        logout('Sessão invalidada por administrador');
+      }
+    };
+
+    // Verificar imediatamente
+    checkSession();
+
+    // Verificar a cada 30 segundos
+    const interval = setInterval(checkSession, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user?.email, sessionManager]);
 
   useEffect(() => {
     console.log('Verificando usuário salvo...');
     
-    const savedUser = localStorage.getItem('auth_user');
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        console.log('Usuário encontrado:', parsedUser.email);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Erro ao recuperar usuário:', error);
-        localStorage.removeItem('auth_user');
+    const initializeAuth = async () => {
+      const savedUser = localStorage.getItem('auth_user');
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          console.log('Usuário encontrado:', parsedUser.email);
+          
+          // Verificar se sessão ainda é válida
+          const isValid = await sessionManager.validateSession(parsedUser.email);
+          if (isValid) {
+            setUser(parsedUser);
+          } else {
+            localStorage.removeItem('auth_user');
+            console.log('Sessão inválida, usuário deslogado');
+          }
+        } catch (error) {
+          console.error('Erro ao recuperar usuário:', error);
+          localStorage.removeItem('auth_user');
+        }
       }
-    }
-    
-    setIsLoading(false);
-  }, []);
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, [sessionManager]);
 
   return (
     <AuthContext.Provider value={{ user, logout, isLoading, signIn }}>
       {children}
+      
+      <InactivityModal
+        isOpen={isWarningShown}
+        timeUntilExpiry={timeUntilExpiry}
+        onContinue={extendSession}
+        onLogout={() => forceTimeout()}
+      />
+      
+      {forceLogoutReason && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          {forceLogoutReason}
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };

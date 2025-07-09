@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,20 +8,24 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Crown, Users, Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { Crown, Users, Plus, Edit, Trash2, Search, Filter, LogOut, Circle } from "lucide-react";
 import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
 import { UserForm } from "@/components/UserForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
+import { useSessionManager } from "@/hooks/useSessionManager";
 import type { Database } from "@/integrations/supabase/types";
 
 type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 const PlatformUsers = () => {
   const { users, loading, createUser, updateUser, deleteUser } = useUsers();
+  const sessionManager = useSessionManager();
   const [selectedUser, setSelectedUser] = useState<UsuarioSistema | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('platform');
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
 
   // Filtrar apenas usuários da plataforma (admin e usuario)
   const platformUsers = users.filter(user => 
@@ -60,6 +64,33 @@ const PlatformUsers = () => {
   const handleDeleteUser = async (userId: string) => {
     await deleteUser(userId);
   };
+
+  const handleDisconnectUser = async (userEmail: string) => {
+    setLoadingSessions(true);
+    await sessionManager.disconnectUserByAdmin(userEmail);
+    await loadActiveUsers();
+    setLoadingSessions(false);
+  };
+
+  const loadActiveUsers = async () => {
+    const activeSessions = await sessionManager.getActiveUsers();
+    setActiveUsers(activeSessions);
+  };
+
+  const isUserOnline = (userEmail: string) => {
+    return activeUsers.some(session => session.user_email === userEmail);
+  };
+
+  const getUserLastActivity = (userEmail: string) => {
+    const session = activeUsers.find(s => s.user_email === userEmail);
+    return session?.last_activity;
+  };
+
+  useEffect(() => {
+    loadActiveUsers();
+    const interval = setInterval(loadActiveUsers, 30000); // Atualizar a cada 30 segundos
+    return () => clearInterval(interval);
+  }, []);
 
   const getUserTypeIcon = (type: string) => {
     switch (type) {
@@ -162,17 +193,18 @@ const PlatformUsers = () => {
             ) : (
               <div className="rounded-md border border-blue-700/50 overflow-hidden">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="bg-blue-700/50">
-                      <TableHead className="text-blue-100">Tipo</TableHead>
-                      <TableHead className="text-blue-100">Nome</TableHead>
-                      <TableHead className="text-blue-100">Documento</TableHead>
-                      <TableHead className="text-blue-100">E-mail</TableHead>
-                      <TableHead className="text-blue-100">WhatsApp</TableHead>
-                      <TableHead className="text-blue-100">Status</TableHead>
-                      <TableHead className="text-blue-100">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                   <TableHeader>
+                     <TableRow className="bg-blue-700/50">
+                       <TableHead className="text-blue-100">Tipo</TableHead>
+                       <TableHead className="text-blue-100">Nome</TableHead>
+                       <TableHead className="text-blue-100">Documento</TableHead>
+                       <TableHead className="text-blue-100">E-mail</TableHead>
+                       <TableHead className="text-blue-100">WhatsApp</TableHead>
+                       <TableHead className="text-blue-100">Status</TableHead>
+                       <TableHead className="text-blue-100">Sessão</TableHead>
+                       <TableHead className="text-blue-100">Ações</TableHead>
+                     </TableRow>
+                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id} className="border-blue-700/50 hover:bg-blue-700/25">
@@ -194,24 +226,79 @@ const PlatformUsers = () => {
                         <TableCell className="text-blue-200">
                           {user.whatsapp ? formatPhone(user.whatsapp) : '-'}
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={user.ativo ? 'default' : 'destructive'}>
-                            {user.ativo ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setIsFormOpen(true);
-                              }}
-                              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                         <TableCell>
+                           <Badge variant={user.ativo ? 'default' : 'destructive'}>
+                             {user.ativo ? 'Ativo' : 'Inativo'}
+                           </Badge>
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-1">
+                               <Circle 
+                                 className={`w-2 h-2 fill-current ${
+                                   isUserOnline(user.email || '') ? 'text-green-500' : 'text-gray-500'
+                                 }`} 
+                               />
+                               <span className={`text-xs ${
+                                 isUserOnline(user.email || '') ? 'text-green-400' : 'text-gray-400'
+                               }`}>
+                                 {isUserOnline(user.email || '') ? 'Online' : 'Offline'}
+                               </span>
+                             </div>
+                             {getUserLastActivity(user.email || '') && (
+                               <span className="text-xs text-blue-300">
+                                 {new Date(getUserLastActivity(user.email || '')).toLocaleString('pt-BR')}
+                               </span>
+                             )}
+                           </div>
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex space-x-2">
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => {
+                                 setSelectedUser(user);
+                                 setIsFormOpen(true);
+                               }}
+                               className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                             >
+                               <Edit className="w-4 h-4" />
+                             </Button>
+                             
+                             {/* Botão de Desconectar */}
+                             {isUserOnline(user.email || '') && (
+                               <AlertDialog>
+                                 <AlertDialogTrigger asChild>
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm"
+                                     disabled={loadingSessions}
+                                     className="border-orange-600 text-orange-400 hover:bg-orange-700/50"
+                                   >
+                                     <LogOut className="w-4 h-4" />
+                                   </Button>
+                                 </AlertDialogTrigger>
+                                 <AlertDialogContent className="bg-blue-800 border-blue-700">
+                                   <AlertDialogHeader>
+                                     <AlertDialogTitle className="text-white">Desconectar usuário</AlertDialogTitle>
+                                     <AlertDialogDescription className="text-blue-300">
+                                       Tem certeza que deseja desconectar "{user.nome_completo}"?
+                                       O usuário será obrigado a fazer login novamente.
+                                     </AlertDialogDescription>
+                                   </AlertDialogHeader>
+                                   <AlertDialogFooter>
+                                     <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
+                                     <AlertDialogAction
+                                       onClick={() => handleDisconnectUser(user.email || '')}
+                                       className="bg-orange-600 hover:bg-orange-700"
+                                     >
+                                       Desconectar
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             )}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button 
