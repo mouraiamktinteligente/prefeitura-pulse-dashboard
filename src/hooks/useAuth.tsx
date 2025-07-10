@@ -183,7 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
       
       // Registrar log de acesso com IP real e navegador correto
-      await registerAccessLog(userData.email, true);
+      await sessionManager.registerAccessLog(userData.email, 'login');
       
       return { error: null };
     } catch (error) {
@@ -197,8 +197,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Invalidar sessão ativa
     if (currentUser?.email) {
-      await sessionManager.invalidateSession(currentUser.email);
-      await registerAccessLog(currentUser.email, false);
+      const motivo = reason?.includes('inatividade') ? 'timeout' : 
+                   reason?.includes('administrador') ? 'desconectado_admin' : 'logout';
+      await sessionManager.invalidateSession(currentUser.email, motivo);
     }
     
     setUser(null);
@@ -239,7 +240,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     throttleMs: 30000 // 30 segundos
   });
 
-  // Verificação periódica de sessão mais rigorosa
+  // Verificação periódica de sessão MUITO mais rigorosa
   useEffect(() => {
     if (!user?.email) return;
 
@@ -257,11 +258,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Verificação inicial mais rápida
-    const initialCheck = setTimeout(checkSession, 2000);
+    // Verificação inicial imediata
+    const initialCheck = setTimeout(checkSession, 1000);
 
-    // Verificar a cada 15 segundos para detecção mais rápida
-    const interval = setInterval(checkSession, 15000);
+    // Verificar a cada 5 segundos para detecção MUITO mais rápida
+    const interval = setInterval(checkSession, 5000);
     
     return () => {
       clearTimeout(initialCheck);
@@ -269,22 +270,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [user?.email, sessionManager]);
 
-  // Listener para desconexão forçada por admin
+  // Listener MÚLTIPLO para desconexão forçada por admin
   useEffect(() => {
     if (!user?.email) return;
 
-    const channel = supabase
+    // Canal geral de admin
+    const adminChannel = supabase
       .channel('admin-disconnect')
       .on('broadcast', { event: 'user_disconnected' }, (payload) => {
         if (payload.targetEmail === user.email) {
-          console.log('Usuário desconectado por administrador');
+          console.log('Usuário desconectado por administrador (canal geral)');
           logout('Você foi desconectado por um administrador');
         }
       })
       .subscribe();
 
+    // Canal específico do usuário
+    const userChannel = supabase
+      .channel(`user-${user.email}`)
+      .on('broadcast', { event: 'force_logout' }, (payload) => {
+        console.log('Logout forçado recebido (canal específico)');
+        logout('Você foi desconectado por um administrador');
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(adminChannel);
+      supabase.removeChannel(userChannel);
     };
   }, [user?.email]);
 
@@ -327,17 +339,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(savedUser);
           console.log('Usuário encontrado:', parsedUser.email);
           
+          // CRÍTICO: Verificar IMEDIATAMENTE o status na base de dados
+          const { data: userData } = await supabase
+            .from('usuarios_sistema')
+            .select('status_conexao, ativo')
+            .eq('email', parsedUser.email)
+            .maybeSingle();
+
+          if (!userData || !userData.ativo || userData.status_conexao !== 'conectado') {
+            console.log('Usuário inativo ou desconectado - limpando localStorage');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('session_token');
+            setIsLoading(false);
+            return;
+          }
+          
           // Verificar se sessão ainda é válida
           const isValid = await sessionManager.validateSession(parsedUser.email);
           if (isValid) {
             setUser(parsedUser);
           } else {
             localStorage.removeItem('auth_user');
+            localStorage.removeItem('session_token');
             console.log('Sessão inválida, usuário deslogado');
           }
         } catch (error) {
           console.error('Erro ao recuperar usuário:', error);
           localStorage.removeItem('auth_user');
+          localStorage.removeItem('session_token');
         }
       }
       

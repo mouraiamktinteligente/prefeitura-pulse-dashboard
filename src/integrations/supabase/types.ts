@@ -217,6 +217,7 @@ export type Database = {
           id: string
           ip_address: string | null
           session_id: string | null
+          status_conexao: string | null
           updated_at: string
           user_agent: string | null
         }
@@ -228,6 +229,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           session_id?: string | null
+          status_conexao?: string | null
           updated_at?: string
           user_agent?: string | null
         }
@@ -239,6 +241,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           session_id?: string | null
+          status_conexao?: string | null
           updated_at?: string
           user_agent?: string | null
         }

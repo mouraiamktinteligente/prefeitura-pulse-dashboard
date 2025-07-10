@@ -14,6 +14,113 @@ export const useSessionManager = () => {
   const [currentSession, setCurrentSession] = useState<SessionData | null>(null);
   const { toast } = useToast();
 
+  // Função para obter o IP real do usuário
+  const getRealIP = async (): Promise<string | null> => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Erro ao obter IP:', error);
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        return data.ip;
+      } catch (fallbackError) {
+        console.error('Erro ao obter IP (fallback):', fallbackError);
+        return null;
+      }
+    }
+  };
+
+  // Função para detectar o navegador correto
+  const getRealBrowser = (): string => {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+      return 'Safari';
+    }
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+      return 'Chrome';
+    }
+    if (userAgent.includes('Edg')) {
+      return 'Edge';
+    }
+    if (userAgent.includes('Firefox')) {
+      return 'Firefox';
+    }
+    if (userAgent.includes('Opera') || userAgent.includes('OPR')) {
+      return 'Opera';
+    }
+    return 'Desconhecido';
+  };
+
+  // Função para obter data/hora no timezone de São Paulo
+  const getBrazilDateTime = (): string => {
+    const now = new Date();
+    const brazilTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+    return brazilTime.toISOString();
+  };
+
+  const registerAccessLog = async (email: string, statusConexao: 'login' | 'logout' | 'desconectado_admin' | 'timeout' | 'erro_sessao' = 'login', adminEmail?: string) => {
+    try {
+      if (statusConexao === 'login') {
+        const realIP = await getRealIP();
+        const realBrowser = getRealBrowser();
+        const brazilDateTime = getBrazilDateTime();
+        
+        await supabase
+          .from('logs_acesso')
+          .insert({
+            email_usuario: email,
+            data_hora_login: brazilDateTime,
+            ip_address: realIP,
+            user_agent: realBrowser,
+            session_id: null,
+            status_conexao: statusConexao
+          });
+      } else {
+        const { data: latestLog } = await supabase
+          .from('logs_acesso')
+          .select('*')
+          .eq('email_usuario', email)
+          .is('data_hora_logout', null)
+          .order('data_hora_login', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestLog) {
+          const brazilDateTime = getBrazilDateTime();
+          
+          await supabase
+            .from('logs_acesso')
+            .update({ 
+              data_hora_logout: brazilDateTime,
+              updated_at: brazilDateTime,
+              status_conexao: statusConexao
+            })
+            .eq('id', latestLog.id);
+        }
+
+        if (statusConexao === 'desconectado_admin' && adminEmail) {
+          await supabase
+            .from('registro_movimentacoes')
+            .insert({
+              email_usuario: adminEmail,
+              acao_realizada: 'Desconectar usuário',
+              tabela_afetada: 'usuarios_sistema',
+              dados_novos: { 
+                usuario_desconectado: email, 
+                motivo: 'Desconectado por administrador',
+                data_hora: new Date().toISOString()
+              }
+            });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao registrar log de acesso:', error);
+    }
+  };
+
   const createSession = useCallback(async (userEmail: string): Promise<string | null> => {
     try {
       // Invalidar sessões antigas do usuário
@@ -64,21 +171,25 @@ export const useSessionManager = () => {
 
       console.log('validateSession: Validando sessão para:', userEmail);
 
-      // Verificar primeiro se o usuário está marcado como conectado
+      // CRÍTICO: Verificar primeiro se o usuário está marcado como conectado
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
-        .select('status_conexao')
+        .select('status_conexao, ativo')
         .eq('email', userEmail)
         .maybeSingle();
 
       if (userError || !userData) {
-        console.log('validateSession: Erro ao verificar status do usuário');
+        console.log('validateSession: Erro ao verificar status do usuário ou usuário não encontrado');
+        await registerAccessLog(userEmail, 'erro_sessao');
         return false;
       }
 
-      if (userData.status_conexao !== 'conectado') {
-        console.log('validateSession: Usuário marcado como desconectado');
+      // Se usuário inativo ou desconectado, invalidar imediatamente
+      if (!userData.ativo || userData.status_conexao !== 'conectado') {
+        console.log('validateSession: Usuário inativo ou marcado como desconectado');
         localStorage.removeItem('session_token');
+        localStorage.removeItem('auth_user');
+        await registerAccessLog(userEmail, userData.status_conexao === 'desconectado' ? 'desconectado_admin' : 'erro_sessao');
         return false;
       }
 
@@ -93,12 +204,15 @@ export const useSessionManager = () => {
 
       if (error) {
         console.error('Erro ao validar sessão:', error);
+        await registerAccessLog(userEmail, 'erro_sessao');
         return false;
       }
 
       if (!data) {
         console.log('validateSession: Sessão não encontrada ou inativa na base de dados');
         localStorage.removeItem('session_token');
+        localStorage.removeItem('auth_user');
+        await registerAccessLog(userEmail, 'erro_sessao');
         return false;
       }
 
@@ -108,7 +222,7 @@ export const useSessionManager = () => {
       
       if (now > expiresAt) {
         console.log('validateSession: Sessão expirada');
-        await invalidateSession(userEmail);
+        await invalidateSession(userEmail, 'timeout');
         return false;
       }
 
@@ -117,6 +231,7 @@ export const useSessionManager = () => {
       return true;
     } catch (error) {
       console.error('Erro ao validar sessão:', error);
+      await registerAccessLog(userEmail, 'erro_sessao');
       return false;
     }
   }, []);
@@ -146,7 +261,7 @@ export const useSessionManager = () => {
     }
   }, []);
 
-  const invalidateSession = useCallback(async (userEmail: string): Promise<void> => {
+  const invalidateSession = useCallback(async (userEmail: string, motivo: 'logout' | 'timeout' | 'erro_sessao' | 'desconectado_admin' = 'logout'): Promise<void> => {
     try {
       const sessionToken = localStorage.getItem('session_token');
       
@@ -164,16 +279,22 @@ export const useSessionManager = () => {
           .eq('session_token', sessionToken);
       }
 
+      // Registrar o motivo da desconexão
+      await registerAccessLog(userEmail, motivo);
+
       localStorage.removeItem('session_token');
+      localStorage.removeItem('auth_user');
       setCurrentSession(null);
     } catch (error) {
       console.error('Erro ao invalidar sessão:', error);
     }
   }, []);
 
-  const disconnectUserByAdmin = useCallback(async (targetEmail: string): Promise<boolean> => {
+  const disconnectUserByAdmin = useCallback(async (targetEmail: string, adminEmail: string): Promise<boolean> => {
     try {
-      // Marcar usuário como desconectado (fonte única da verdade)
+      console.log(`Admin ${adminEmail} desconectando usuário ${targetEmail}`);
+
+      // 1. PRIMEIRO: Marcar usuário como desconectado (fonte única da verdade)
       const { error: userError } = await supabase
         .from('usuarios_sistema')
         .update({ status_conexao: 'desconectado' })
@@ -189,7 +310,7 @@ export const useSessionManager = () => {
         return false;
       }
 
-      // Invalidar TODAS as sessões do usuário alvo
+      // 2. Invalidar TODAS as sessões do usuário alvo
       await supabase
         .from('sessoes_ativas')
         .update({ 
@@ -199,14 +320,29 @@ export const useSessionManager = () => {
         .eq('user_email', targetEmail)
         .eq('ativo', true);
 
-      // Emitir evento realtime para forçar desconexão imediata
-      const channel = supabase.channel('admin-disconnect');
-      await channel.send({
+      // 3. Registrar log de acesso com status específico
+      await registerAccessLog(targetEmail, 'desconectado_admin', adminEmail);
+
+      // 4. Emitir múltiplos eventos realtime para forçar desconexão imediata
+      const adminChannel = supabase.channel('admin-disconnect');
+      const userChannel = supabase.channel(`user-${targetEmail}`);
+      
+      // Broadcast para canal geral
+      await adminChannel.send({
         type: 'broadcast',
         event: 'user_disconnected',
-        payload: { targetEmail, disconnectedAt: new Date().toISOString() }
+        payload: { targetEmail, disconnectedAt: new Date().toISOString(), adminEmail }
       });
 
+      // Broadcast para canal específico do usuário
+      await userChannel.send({
+        type: 'broadcast',
+        event: 'force_logout',
+        payload: { reason: 'Desconectado por administrador', adminEmail }
+      });
+
+      console.log(`Usuário ${targetEmail} desconectado com sucesso por ${adminEmail}`);
+      
       toast({
         title: "Sucesso",
         description: "Usuário desconectado com sucesso."
@@ -255,6 +391,7 @@ export const useSessionManager = () => {
     updateActivity,
     invalidateSession,
     disconnectUserByAdmin,
-    getActiveUsers
+    getActiveUsers,
+    registerAccessLog
   };
 };

@@ -13,6 +13,7 @@ import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
 import { UserForm } from "@/components/UserForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
 import { useSessionManager } from "@/hooks/useSessionManager";
+import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
 
 type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
@@ -20,6 +21,7 @@ type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 const PlatformUsers = () => {
   const { users, loading, createUser, updateUser, deleteUser } = useUsers();
   const sessionManager = useSessionManager();
+  const { user } = useAuth();
   const [selectedUser, setSelectedUser] = useState<UsuarioSistema | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,7 +69,7 @@ const PlatformUsers = () => {
 
   const handleDisconnectUser = async (userEmail: string) => {
     setLoadingSessions(true);
-    await sessionManager.disconnectUserByAdmin(userEmail);
+    await sessionManager.disconnectUserByAdmin(userEmail, user?.email || 'admin');
     await loadActiveUsers();
     setLoadingSessions(false);
   };
