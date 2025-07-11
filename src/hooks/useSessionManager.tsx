@@ -64,6 +64,21 @@ export const useSessionManager = () => {
   const registerAccessLog = async (email: string, statusConexao: 'login' | 'logout' | 'desconectado_admin' | 'timeout' | 'erro_sessao' = 'login', adminEmail?: string) => {
     try {
       if (statusConexao === 'login') {
+        // CRITICAL: Verificar se já existe um log de login recente (últimos 30 segundos) para evitar duplicatas
+        const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+        const { data: recentLog } = await supabase
+          .from('logs_acesso')
+          .select('*')
+          .eq('email_usuario', email)
+          .is('data_hora_logout', null)
+          .gte('data_hora_login', thirtySecondsAgo)
+          .maybeSingle();
+
+        if (recentLog) {
+          console.log('Log de login recente encontrado, evitando duplicata');
+          return;
+        }
+
         const realIP = await getRealIP();
         const realBrowser = getRealBrowser();
         const brazilDateTime = getBrazilDateTime();
@@ -123,7 +138,23 @@ export const useSessionManager = () => {
 
   const createSession = useCallback(async (userEmail: string): Promise<string | null> => {
     try {
-      // Invalidar sessões antigas do usuário
+      // CRITICAL: Verificar se já existe sessão ativa antes de criar nova
+      const { data: existingSession } = await supabase
+        .from('sessoes_ativas')
+        .select('*')
+        .eq('user_email', userEmail)
+        .eq('ativo', true)
+        .maybeSingle();
+
+      // Se já existe sessão ativa e não expirou, retornar ela
+      if (existingSession && new Date(existingSession.expires_at) > new Date()) {
+        console.log('Sessão ativa existente encontrada, reutilizando...');
+        setCurrentSession(existingSession);
+        localStorage.setItem('session_token', existingSession.session_token);
+        return existingSession.session_token;
+      }
+
+      // Invalidar todas as sessões antigas antes de criar nova
       await supabase
         .from('sessoes_ativas')
         .update({ ativo: false })
@@ -136,13 +167,13 @@ export const useSessionManager = () => {
         .update({ status_conexao: 'conectado' })
         .eq('email', userEmail);
 
-      // Criar nova sessão - CORRIGIDO para 15 minutos
+      // Criar nova sessão - 15 minutos
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
           user_email: userEmail,
           last_activity: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos (CORRIGIDO)
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
         })
         .select()
         .single();
@@ -152,6 +183,7 @@ export const useSessionManager = () => {
         return null;
       }
 
+      console.log('Nova sessão criada:', data.session_token);
       setCurrentSession(data);
       localStorage.setItem('session_token', data.session_token);
       return data.session_token;

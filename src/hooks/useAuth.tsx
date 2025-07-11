@@ -19,15 +19,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [forceLogoutReason, setForceLogoutReason] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const sessionManager = useSessionManager();
 
-  // Sistema de interceptação de segurança ultra-agressivo
+  // Sistema de interceptação de segurança - DESABILITADO durante refresh
   const { forceSecurityCheck } = useSecurityInterceptor({
     userEmail: user?.email || null,
     onForceLogout: (reason: string) => {
-      console.log('Interceptador forçou logout:', reason);
-      logout(reason);
+      if (!isRefreshing) {
+        console.log('Interceptador forçou logout:', reason);
+        logout(reason);
+      }
     }
   });
 
@@ -253,35 +256,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     throttleMs: 30000 // 30 segundos
   });
 
-  // Verificação periódica de sessão - OTIMIZADA
+  // Verificação periódica de sessão - DESABILITADA durante refresh
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email || isRefreshing) return;
 
     const checkSession = async () => {
       try {
+        if (isRefreshing) return; // Double check
+        
         const isValid = await sessionManager.validateSession(user.email);
         
-        if (!isValid) {
+        if (!isValid && !isRefreshing) {
           console.log('Sessão inválida detectada - forçando logout');
           logout('Sessão invalidada');
         }
       } catch (error) {
         console.error('Erro na verificação de sessão:', error);
-        logout('Erro na validação de sessão');
+        if (!isRefreshing) {
+          logout('Erro na validação de sessão');
+        }
       }
     };
 
-    // Verificação inicial em 3 segundos (dar tempo para inicialização)
-    const initialCheck = setTimeout(checkSession, 3000);
+    // Verificação inicial em 5 segundos (dar mais tempo para inicialização)
+    const initialCheck = setTimeout(checkSession, 5000);
 
-    // Verificar a cada 10 segundos (menos agressivo)
-    const interval = setInterval(checkSession, 10000);
+    // Verificar a cada 15 segundos (muito menos agressivo)
+    const interval = setInterval(checkSession, 15000);
     
     return () => {
       clearTimeout(initialCheck);
       clearInterval(interval);
     };
-  }, [user?.email, sessionManager]);
+  }, [user?.email, sessionManager, isRefreshing]);
 
   // Listener MÚLTIPLO para desconexão forçada por admin
   useEffect(() => {
@@ -347,13 +354,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('Verificando usuário salvo...');
     
     const initializeAuth = async () => {
+      setIsRefreshing(true); // Marcar como refresh em andamento
+      
       const savedUser = localStorage.getItem('auth_user');
       if (savedUser) {
         try {
           const parsedUser = JSON.parse(savedUser);
-          console.log('Usuário encontrado:', parsedUser.email);
+          console.log('Usuário encontrado no localStorage:', parsedUser.email);
           
-          // Durante refresh, ser menos restritivo na validação inicial
+          // Durante refresh, verificar primeiro se a sessão ainda existe
+          const sessionToken = localStorage.getItem('session_token');
+          if (sessionToken) {
+            const { data: sessionData } = await supabase
+              .from('sessoes_ativas')
+              .select('*')
+              .eq('user_email', parsedUser.email)
+              .eq('session_token', sessionToken)
+              .eq('ativo', true)
+              .maybeSingle();
+
+            // Se sessão existe e não expirou, apenas restaurar usuário
+            if (sessionData && new Date(sessionData.expires_at) > new Date()) {
+              console.log('Sessão válida encontrada, restaurando usuário...');
+              
+              // Garantir que usuário está marcado como conectado
+              await supabase
+                .from('usuarios_sistema')
+                .update({ status_conexao: 'conectado' })
+                .eq('email', parsedUser.email);
+              
+              // Atualizar atividade da sessão
+              await sessionManager.updateActivity(parsedUser.email);
+              
+              setUser(parsedUser);
+              setForceLogoutReason(null);
+              setIsLoading(false);
+              setIsRefreshing(false);
+              return;
+            }
+          }
+          
+          // Se não tem sessão válida, verificar se usuário ainda existe e está ativo
           const { data: userData } = await supabase
             .from('usuarios_sistema')
             .select('status_conexao, ativo')
@@ -365,57 +406,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.removeItem('auth_user');
             localStorage.removeItem('session_token');
             setIsLoading(false);
-            return;
-          }
-
-          // Se usuário está desconectado, tentar reconectar automaticamente durante refresh
-          if (userData.status_conexao === 'desconectado') {
-            console.log('Usuário marcado como desconectado, tentando reconectar...');
-            
-            // Tentar validar sessão existente primeiro
-            const sessionToken = localStorage.getItem('session_token');
-            if (sessionToken) {
-              const { data: sessionData } = await supabase
-                .from('sessoes_ativas')
-                .select('*')
-                .eq('user_email', parsedUser.email)
-                .eq('session_token', sessionToken)
-                .eq('ativo', true)
-                .maybeSingle();
-
-              // Se sessão existe e não expirou, reconectar
-              if (sessionData && new Date(sessionData.expires_at) > new Date()) {
-                console.log('Reconectando usuário com sessão válida...');
-                await supabase
-                  .from('usuarios_sistema')
-                  .update({ status_conexao: 'conectado' })
-                  .eq('email', parsedUser.email);
-                
-                setUser(parsedUser);
-                setForceLogoutReason(null);
-                setIsLoading(false);
-                return;
-              }
-            }
-            
-            // Se não tem sessão válida e está desconectado, fazer logout
-            console.log('Sessão inválida para usuário desconectado');
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('session_token');
-            setIsLoading(false);
+            setIsRefreshing(false);
             return;
           }
           
-          // Se já está conectado, apenas verificar se sessão é válida
-          const isValid = await sessionManager.validateSession(parsedUser.email);
-          if (isValid) {
-            setUser(parsedUser);
-            setForceLogoutReason(null);
-          } else {
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('session_token');
-            console.log('Sessão inválida, usuário deslogado');
-          }
+          // Se usuário existe mas não tem sessão válida, limpar localStorage
+          console.log('Sessão expirada, limpando localStorage');
+          localStorage.removeItem('auth_user');
+          localStorage.removeItem('session_token');
         } catch (error) {
           console.error('Erro ao recuperar usuário:', error);
           localStorage.removeItem('auth_user');
@@ -424,6 +422,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       setIsLoading(false);
+      setIsRefreshing(false);
     };
 
     initializeAuth();
