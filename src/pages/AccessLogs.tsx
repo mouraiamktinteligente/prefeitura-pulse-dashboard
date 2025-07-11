@@ -119,6 +119,65 @@ const AccessLogs = () => {
     fetchLogs();
   }, []);
 
+  // Real-time listener para atualizações de logs de acesso
+  useEffect(() => {
+    console.log('Configurando subscription realtime para logs de acesso...');
+
+    const channel = supabase
+      .channel('logs-acesso-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'logs_acesso'
+        },
+        (payload) => {
+          console.log('📡 Novo log de acesso inserido:', payload);
+          const newLog = payload.new as AccessLog;
+          
+          setLogs(prevLogs => [newLog, ...prevLogs]);
+          
+          toast({
+            title: "Novo acesso registrado",
+            description: `${newLog.email_usuario} fez login`,
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'logs_acesso'
+        },
+        (payload) => {
+          console.log('📡 Log de acesso atualizado:', payload);
+          const updatedLog = payload.new as AccessLog;
+          
+          setLogs(prevLogs => 
+            prevLogs.map(log => 
+              log.id === updatedLog.id ? updatedLog : log
+            )
+          );
+          
+          // Se o log foi atualizado com logout, mostrar notificação
+          if (updatedLog.data_hora_logout) {
+            toast({
+              title: "Usuário desconectado",
+              description: `${updatedLog.email_usuario} foi desconectado`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Removendo subscription realtime de logs de acesso...');
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
+
   // Filtrar logs com base nos critérios
   useEffect(() => {
     let filtered = [...logs];
