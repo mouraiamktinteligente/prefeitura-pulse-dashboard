@@ -333,9 +333,12 @@ const AccessLogs = () => {
             <CardTitle className="text-white flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
               <span>Filtros</span>
+              <Badge variant="outline" className="ml-2 text-green-400 border-green-400">
+                Atualização automática
+              </Badge>
             </CardTitle>
             <CardDescription className="text-blue-300">
-              Filtre os logs por email, mês ou ano
+              Filtre os logs por email, mês ou ano • Os dados são atualizados automaticamente em tempo real
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -380,17 +383,18 @@ const AccessLogs = () => {
                 <Button
                   onClick={fetchLogs}
                   variant="outline"
+                  size="sm"
                   className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Atualizar
+                  Recarregar
                 </Button>
                 <Button
                   onClick={clearFilters}
                   variant="outline"
                   className="border-red-600 text-red-200 hover:bg-red-700/50"
                 >
-                  Limpar
+                  Limpar Filtros
                 </Button>
               </div>
             </div>
