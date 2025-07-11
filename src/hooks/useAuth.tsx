@@ -271,11 +271,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Verificação inicial em 500ms (mais rápida)
-    const initialCheck = setTimeout(checkSession, 500);
+    // Verificação inicial em 3 segundos (dar tempo para inicialização)
+    const initialCheck = setTimeout(checkSession, 3000);
 
-    // Verificar a cada 2 segundos para detecção ULTRA rápida
-    const interval = setInterval(checkSession, 2000);
+    // Verificar a cada 10 segundos (menos agressivo)
+    const interval = setInterval(checkSession, 10000);
     
     return () => {
       clearTimeout(initialCheck);
@@ -287,29 +287,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user?.email) return;
 
-    // Canal geral de admin
-    const adminChannel = supabase
-      .channel('admin-disconnect')
-      .on('broadcast', { event: 'user_disconnected' }, (payload) => {
-        if (payload.targetEmail === user.email) {
-          console.log('Usuário desconectado por administrador (canal geral)');
-          logout('Você foi desconectado por um administrador');
-        }
-      })
-      .subscribe();
+    // Múltiplos canais para garantir que a mensagem chegue
+    const channels = [
+      { name: 'admin-disconnect', event: 'user_disconnected' },
+      { name: `user-${user.email}`, event: 'force_logout' },
+      { name: `force-logout-${user.email}`, event: 'force_logout' },
+      { name: 'global-security', event: 'force_logout' }
+    ];
 
-    // Canal específico do usuário
-    const userChannel = supabase
-      .channel(`user-${user.email}`)
-      .on('broadcast', { event: 'force_logout' }, (payload) => {
-        console.log('Logout forçado recebido (canal específico)');
-        logout('Você foi desconectado por um administrador');
-      })
-      .subscribe();
+    const subscriptions = channels.map(({ name, event }) => {
+      return supabase
+        .channel(name)
+        .on('broadcast', { event }, (payload) => {
+          if (payload.targetEmail === user.email || event === 'force_logout') {
+            console.log(`Logout forçado recebido via canal ${name}:`, payload);
+            logout('Você foi desconectado por um administrador');
+          }
+        })
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(adminChannel);
-      supabase.removeChannel(userChannel);
+      subscriptions.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
     };
   }, [user?.email]);
 
@@ -352,36 +353,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(savedUser);
           console.log('Usuário encontrado:', parsedUser.email);
           
-          // CRÍTICO: Verificar IMEDIATAMENTE o status na base de dados
+          // Durante refresh, ser menos restritivo na validação inicial
           const { data: userData } = await supabase
             .from('usuarios_sistema')
             .select('status_conexao, ativo')
             .eq('email', parsedUser.email)
             .maybeSingle();
 
-          // CORREÇÃO: Ser mais tolerante em refresh - verificar apenas se usuário existe e está ativo
           if (!userData || !userData.ativo) {
-            console.log('Usuário inativo - limpando localStorage');
+            console.log('Usuário não encontrado ou inativo');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('session_token');
+            setIsLoading(false);
+            return;
+          }
+
+          // Se usuário está desconectado, tentar reconectar automaticamente durante refresh
+          if (userData.status_conexao === 'desconectado') {
+            console.log('Usuário marcado como desconectado, tentando reconectar...');
+            
+            // Tentar validar sessão existente primeiro
+            const sessionToken = localStorage.getItem('session_token');
+            if (sessionToken) {
+              const { data: sessionData } = await supabase
+                .from('sessoes_ativas')
+                .select('*')
+                .eq('user_email', parsedUser.email)
+                .eq('session_token', sessionToken)
+                .eq('ativo', true)
+                .maybeSingle();
+
+              // Se sessão existe e não expirou, reconectar
+              if (sessionData && new Date(sessionData.expires_at) > new Date()) {
+                console.log('Reconectando usuário com sessão válida...');
+                await supabase
+                  .from('usuarios_sistema')
+                  .update({ status_conexao: 'conectado' })
+                  .eq('email', parsedUser.email);
+                
+                setUser(parsedUser);
+                setForceLogoutReason(null);
+                setIsLoading(false);
+                return;
+              }
+            }
+            
+            // Se não tem sessão válida e está desconectado, fazer logout
+            console.log('Sessão inválida para usuário desconectado');
             localStorage.removeItem('auth_user');
             localStorage.removeItem('session_token');
             setIsLoading(false);
             return;
           }
           
-          // Se status é desconectado mas temos sessão válida, reconectar silenciosamente
-          if (userData.status_conexao !== 'conectado') {
-            console.log('Reconectando usuário após refresh...');
-            await supabase
-              .from('usuarios_sistema')
-              .update({ status_conexao: 'conectado' })
-              .eq('email', parsedUser.email);
-          }
-          
-          // Verificar se sessão ainda é válida
+          // Se já está conectado, apenas verificar se sessão é válida
           const isValid = await sessionManager.validateSession(parsedUser.email);
           if (isValid) {
             setUser(parsedUser);
-            // Limpar mensagem de erro antiga se existir
             setForceLogoutReason(null);
           } else {
             localStorage.removeItem('auth_user');

@@ -323,23 +323,56 @@ export const useSessionManager = () => {
       // 3. Registrar log de acesso com status específico
       await registerAccessLog(targetEmail, 'desconectado_admin', adminEmail);
 
-      // 4. Emitir múltiplos eventos realtime para forçar desconexão imediata
-      const adminChannel = supabase.channel('admin-disconnect');
-      const userChannel = supabase.channel(`user-${targetEmail}`);
-      
-      // Broadcast para canal geral
-      await adminChannel.send({
-        type: 'broadcast',
-        event: 'user_disconnected',
-        payload: { targetEmail, disconnectedAt: new Date().toISOString(), adminEmail }
-      });
+      // 4. Sistema de ping-pong escalado para garantir desconexão
+      const forceDisconnectSequence = async () => {
+        const channels = [
+          supabase.channel('admin-disconnect'),
+          supabase.channel(`user-${targetEmail}`),
+          supabase.channel(`force-logout-${targetEmail}`),
+          supabase.channel('global-security')
+        ];
 
-      // Broadcast para canal específico do usuário
-      await userChannel.send({
-        type: 'broadcast',
-        event: 'force_logout',
-        payload: { reason: 'Desconectado por administrador', adminEmail }
-      });
+        // Enviar múltiplas mensagens em intervalos crescentes
+        const intervals = [0, 2000, 5000, 10000]; // 0s, 2s, 5s, 10s
+        
+        intervals.forEach((delay, index) => {
+          setTimeout(async () => {
+            console.log(`Enviando comando de desconexão #${index + 1} para ${targetEmail}`);
+            
+            for (const channel of channels) {
+              try {
+                await channel.send({
+                  type: 'broadcast',
+                  event: 'force_logout',
+                  payload: { 
+                    targetEmail,
+                    reason: 'Desconectado por administrador',
+                    adminEmail,
+                    attempt: index + 1,
+                    timestamp: new Date().toISOString()
+                  }
+                });
+              } catch (err) {
+                console.error(`Erro ao enviar por canal ${channel.topic}:`, err);
+              }
+            }
+          }, delay);
+        });
+
+        // Cleanup dos canais após 15 segundos
+        setTimeout(() => {
+          channels.forEach(channel => {
+            try {
+              supabase.removeChannel(channel);
+            } catch (err) {
+              console.error('Erro ao remover canal:', err);
+            }
+          });
+        }, 15000);
+      };
+
+      // Executar sequência de desconexão
+      await forceDisconnectSequence();
 
       console.log(`Usuário ${targetEmail} desconectado com sucesso por ${adminEmail}`);
       
