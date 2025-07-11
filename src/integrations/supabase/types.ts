@@ -97,6 +97,7 @@ export type Database = {
           endereco_numero: string | null
           endereco_rua: string | null
           id: string
+          id_folder_drive: string | null
           instagram: string | null
           nome_completo: string
           nome_responsavel: string | null
@@ -118,6 +119,7 @@ export type Database = {
           endereco_numero?: string | null
           endereco_rua?: string | null
           id?: string
+          id_folder_drive?: string | null
           instagram?: string | null
           nome_completo: string
           nome_responsavel?: string | null
@@ -139,6 +141,7 @@ export type Database = {
           endereco_numero?: string | null
           endereco_rua?: string | null
           id?: string
+          id_folder_drive?: string | null
           instagram?: string | null
           nome_completo?: string
           nome_responsavel?: string | null

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSessionManager } from "./useSessionManager";
 import { useActivityDetector } from "./useActivityDetector";
 import { useInactivityTimer } from "./useInactivityTimer";
+import { useSecurityInterceptor } from "./useSecurityInterceptor";
 import { InactivityModal } from "@/components/InactivityModal";
 
 interface AuthContextType {
@@ -20,6 +21,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [forceLogoutReason, setForceLogoutReason] = useState<string | null>(null);
   
   const sessionManager = useSessionManager();
+
+  // Sistema de interceptação de segurança ultra-agressivo
+  const { forceSecurityCheck } = useSecurityInterceptor({
+    userEmail: user?.email || null,
+    onForceLogout: (reason: string) => {
+      console.log('Interceptador forçou logout:', reason);
+      logout(reason);
+    }
+  });
 
   // Função para obter o IP real do usuário
   const getRealIP = async (): Promise<string | null> => {
@@ -138,6 +148,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Verificando login para:', email);
       
+      // LIMPAR mensagem de erro anterior IMEDIATAMENTE no login
+      setForceLogoutReason(null);
+      
       // Buscar usuário na tabela usuarios_sistema
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
@@ -210,7 +223,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Timer de inatividade
+  // Timer de inatividade - CORRIGIDO para 15 minutos
   const {
     isWarningShown,
     timeUntilExpiry,
@@ -218,13 +231,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     extendSession,
     forceTimeout
   } = useInactivityTimer({
-    timeout: 20 * 60 * 1000, // 20 minutos
+    timeout: 15 * 60 * 1000, // 15 minutos (CORRIGIDO)
     warningTime: 2 * 60 * 1000, // 2 minutos de aviso
     onWarning: () => {
       console.log('Aviso de inatividade mostrado');
     },
     onTimeout: () => {
-      logout('Sessão expirada por inatividade');
+      logout('Sessão encerrada por inatividade'); // MENSAGEM CORRIGIDA
     },
     enabled: !!user
   });
@@ -240,7 +253,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     throttleMs: 30000 // 30 segundos
   });
 
-  // Verificação periódica de sessão MUITO mais rigorosa
+  // Verificação periódica de sessão - OTIMIZADA
   useEffect(() => {
     if (!user?.email) return;
 
@@ -258,11 +271,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Verificação inicial imediata
-    const initialCheck = setTimeout(checkSession, 1000);
+    // Verificação inicial em 500ms (mais rápida)
+    const initialCheck = setTimeout(checkSession, 500);
 
-    // Verificar a cada 5 segundos para detecção MUITO mais rápida
-    const interval = setInterval(checkSession, 5000);
+    // Verificar a cada 2 segundos para detecção ULTRA rápida
+    const interval = setInterval(checkSession, 2000);
     
     return () => {
       clearTimeout(initialCheck);
@@ -346,18 +359,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .eq('email', parsedUser.email)
             .maybeSingle();
 
-          if (!userData || !userData.ativo || userData.status_conexao !== 'conectado') {
-            console.log('Usuário inativo ou desconectado - limpando localStorage');
+          // CORREÇÃO: Ser mais tolerante em refresh - verificar apenas se usuário existe e está ativo
+          if (!userData || !userData.ativo) {
+            console.log('Usuário inativo - limpando localStorage');
             localStorage.removeItem('auth_user');
             localStorage.removeItem('session_token');
             setIsLoading(false);
             return;
           }
           
+          // Se status é desconectado mas temos sessão válida, reconectar silenciosamente
+          if (userData.status_conexao !== 'conectado') {
+            console.log('Reconectando usuário após refresh...');
+            await supabase
+              .from('usuarios_sistema')
+              .update({ status_conexao: 'conectado' })
+              .eq('email', parsedUser.email);
+          }
+          
           // Verificar se sessão ainda é válida
           const isValid = await sessionManager.validateSession(parsedUser.email);
           if (isValid) {
             setUser(parsedUser);
+            // Limpar mensagem de erro antiga se existir
+            setForceLogoutReason(null);
           } else {
             localStorage.removeItem('auth_user');
             localStorage.removeItem('session_token');
@@ -376,6 +401,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     initializeAuth();
   }, [sessionManager]);
 
+  // Auto-limpar mensagens de erro após 10 segundos
+  useEffect(() => {
+    if (forceLogoutReason) {
+      const timeout = setTimeout(() => {
+        setForceLogoutReason(null);
+      }, 10000); // 10 segundos
+
+      return () => clearTimeout(timeout);
+    }
+  }, [forceLogoutReason]);
+
   return (
     <AuthContext.Provider value={{ user, logout, isLoading, signIn }}>
       {children}
@@ -388,8 +424,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       />
       
       {forceLogoutReason && (
-        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
-          {forceLogoutReason}
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span>{forceLogoutReason}</span>
+            <button 
+              onClick={() => setForceLogoutReason(null)}
+              className="ml-4 text-red-500 hover:text-red-700 font-bold"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </AuthContext.Provider>
