@@ -11,12 +11,14 @@ import { UserPlus, Edit, Trash2, Search, Instagram } from "lucide-react";
 import { useClients, Cliente, ClienteInsert } from "@/hooks/useClients";
 import { ClientForm } from "@/components/ClientForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
+import { useNavigate } from "react-router-dom";
 
 const ClientRegistration = () => {
   const { clients, loading, createClient, updateClient, deleteClient } = useClients();
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,8 +59,8 @@ const ClientRegistration = () => {
             <UserPlus className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white">Cadastro de Clientes</h1>
-            <p className="text-blue-300">Gestão de clientes e prospects</p>
+            <h1 className="text-3xl font-bold text-white">Gestão de Clientes</h1>
+            <p className="text-blue-300">Gestão de clientes e análises de monitoramento</p>
           </div>
         </div>
 
@@ -119,8 +121,12 @@ const ClientRegistration = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClients.map((client) => (
-                      <TableRow key={client.id} className="border-blue-700/50 hover:bg-blue-700/25">
+                     {filteredClients.map((client) => (
+                       <TableRow 
+                         key={client.id} 
+                         className="border-blue-700/50 hover:bg-blue-700/25 cursor-pointer"
+                         onClick={() => navigate(`/gestao-clientes/${client.id}`)}
+                       >
                         <TableCell className="text-white">
                           <div>
                             <div className="font-medium">{client.nome_completo}</div>
@@ -149,29 +155,31 @@ const ClientRegistration = () => {
                             {client.ativo ? 'Ativo' : 'Inativo'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedClient(client);
-                                setIsFormOpen(true);
-                              }}
-                              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="border-red-600 text-red-400 hover:bg-red-700/50"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </AlertDialogTrigger>
+                         <TableCell>
+                           <div className="flex space-x-2">
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setSelectedClient(client);
+                                 setIsFormOpen(true);
+                               }}
+                               className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                             >
+                               <Edit className="w-4 h-4" />
+                             </Button>
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild>
+                                 <Button 
+                                   variant="outline" 
+                                   size="sm"
+                                   onClick={(e) => e.stopPropagation()}
+                                   className="border-red-600 text-red-400 hover:bg-red-700/50"
+                                 >
+                                   <Trash2 className="w-4 h-4" />
+                                 </Button>
+                               </AlertDialogTrigger>
                               <AlertDialogContent className="bg-blue-800 border-blue-700">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>

@@ -29,7 +29,7 @@ export const useSecurityInterceptor = ({ userEmail, onForceLogout }: UseSecurity
           const now = Date.now();
           
           // Evitar verificações muito frequentes (debounce)
-          if (now - lastCheckRef.current < 4000) {
+          if (now - lastCheckRef.current < 25000) {
             return;
           }
           lastCheckRef.current = now;
@@ -74,8 +74,10 @@ export const useSecurityInterceptor = ({ userEmail, onForceLogout }: UseSecurity
           }
         } catch (error) {
           console.error('Erro no heartbeat:', error);
+          // Em caso de erro de rede, não desconectar imediatamente
+          // Aguardar próxima verificação
         }
-      }, 5000); // Verificar a cada 5 segundos (menos agressivo)
+      }, 30000); // Verificar a cada 30 segundos (muito menos agressivo)
     };
 
     return () => {

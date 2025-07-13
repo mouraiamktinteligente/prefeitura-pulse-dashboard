@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AccessLogs from "./pages/AccessLogs";
 import PlatformUsers from "./pages/PlatformUsers";
 import ClientRegistration from "./pages/ClientRegistration";
+import ClientDetails from "./pages/ClientDetails";
 import AnalisePesquisa from "./pages/AnalisePesquisa";
 import RegistroMovimentacoes from "./pages/RegistroMovimentacoes";
 
@@ -62,6 +63,24 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <ClientRegistration />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/gestao-clientes" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <ClientRegistration />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/gestao-clientes/:clientId" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <ClientDetails />
           </main>
         </ProtectedRoute>
       } />

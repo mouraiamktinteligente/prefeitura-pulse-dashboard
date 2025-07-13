@@ -34,9 +34,9 @@ const menuItems = [
     url: "#",
   },
   {
-    title: "Cadastro",
+    title: "Gestão de Clientes",
     icon: UserPlus,
-    url: "/cadastro",
+    url: "/gestao-clientes",
   },
 ];
 

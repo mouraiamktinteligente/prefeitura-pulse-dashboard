@@ -167,13 +167,13 @@ export const useSessionManager = () => {
         .update({ status_conexao: 'conectado' })
         .eq('email', userEmail);
 
-      // Criar nova sessão - 15 minutos
+      // Criar nova sessão - 30 minutos
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
           user_email: userEmail,
           last_activity: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
+          expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutos
         })
         .select()
         .single();
@@ -273,7 +273,7 @@ export const useSessionManager = () => {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) return;
 
-      const newExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // CORRIGIDO para 15 minutos
+      const newExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // CORRIGIDO para 30 minutos
 
       const { error } = await supabase
         .from('sessoes_ativas')
