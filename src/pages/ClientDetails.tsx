@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,7 @@ import {
   Mail, 
   Phone, 
   Instagram, 
-  MapPin, 
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   BarChart3,
-  MessageSquare,
-  Upload,
   FileText,
   Download,
   Clock,
@@ -36,9 +29,7 @@ const ClientDetails = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const { clients, loading: clientsLoading } = useClients();
-  const { documentos, loading: docsLoading, fetchDocumentos, uploadDocument, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
   const { toast } = useToast();
 
   const client = clients.find(c => c.id === clientId);
@@ -49,65 +40,6 @@ const ClientDetails = () => {
     }
   }, [clientId, fetchDocumentos]);
 
-  const handleFileSelect = () => {
-    if (!clientId) {
-      toast({
-        title: "Cliente não selecionado",
-        description: "Erro interno: cliente não identificado",
-        variant: "destructive"
-      });
-      return;
-    }
-    fileInputRef.current?.click();
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !clientId || !client) return;
-
-    // Validar tipo de arquivo
-    const allowedTypes = ['application/pdf', 'text/plain', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Formato não suportado",
-        description: "Apenas arquivos PDF, TXT e imagens (JPG, PNG) são aceitos",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validar tamanho (50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "O arquivo deve ter no máximo 50MB",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setUploading(true);
-    await uploadDocument(clientId, file, client.nome_completo);
-    setUploading(false);
-
-    // Limpar input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handlePerformAnalysis = async () => {
-    toast({
-      title: "Nova análise",
-      description: "Para realizar uma nova análise, faça upload de um documento",
-    });
-    
-    // Scroll até a seção de upload
-    const uploadSection = document.getElementById('upload-section');
-    if (uploadSection) {
-      uploadSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   const formatDocument = (document: string, type: string): string => {
     return type === 'fisica' ? formatCPF(document) : formatCNPJ(document);
@@ -326,66 +258,6 @@ const ClientDetails = () => {
           </Card>
         </div>
 
-        {/* Upload de Documentos */}
-        <div className="mb-8" id="upload-section">
-          <Card className="bg-slate-900/50 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-slate-200">
-                <Upload className="w-5 h-5 text-blue-400" />
-                <span>Upload de Documentos para Análise</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">
-                  Enviar Documento
-                </label>
-                <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center bg-slate-800/20">
-                  <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-400 mb-4">
-                    Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
-                  </p>
-                  <p className="text-slate-500 text-sm mb-4">
-                    O arquivo será salvo automaticamente no Google Drive na pasta do cliente
-                  </p>
-                  <Button 
-                    onClick={handleFileSelect}
-                    disabled={uploading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {uploading ? 'Enviando...' : 'Selecionar Arquivo'}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.txt,.jpg,.jpeg,.png"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-200 mb-2">
-                    Nova Análise
-                  </h3>
-                  <p className="text-slate-400">
-                    Faça upload de um novo documento para análise automática
-                  </p>
-                </div>
-                <Button 
-                  onClick={handlePerformAnalysis}
-                  variant="outline"
-                  className="border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Realizar Análise Agora
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Lista de Documentos */}
         <Card className="bg-slate-900/50 border-slate-700/50">
