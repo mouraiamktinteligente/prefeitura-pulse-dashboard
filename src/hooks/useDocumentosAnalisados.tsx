@@ -24,26 +24,34 @@ export const useDocumentosAnalisados = () => {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'documentos_analisados'
         },
         (payload) => {
           console.log('📡 Documento atualizado em tempo real:', payload);
-          const updatedDoc = payload.new as DocumentoAnalisado;
           
-          setDocumentos(prev => 
-            prev.map(doc => 
-              doc.id === updatedDoc.id ? updatedDoc : doc
-            )
-          );
+          if (payload.eventType === 'UPDATE') {
+            const updatedDoc = payload.new as DocumentoAnalisado;
+            setDocumentos(prev => 
+              prev.map(doc => 
+                doc.id === updatedDoc.id ? updatedDoc : doc
+              )
+            );
 
-          // Mostrar toast quando status mudou para concluído
-          if (updatedDoc.status === 'concluído') {
-            toast({
-              title: "Análise concluída!",
-              description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
-            });
+            // Mostrar toast quando status mudou para concluído
+            if (updatedDoc.status === 'concluído') {
+              toast({
+                title: "Análise concluída!",
+                description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+              });
+            }
+          } else if (payload.eventType === 'INSERT') {
+            const newDoc = payload.new as DocumentoAnalisado;
+            setDocumentos(prev => [newDoc, ...prev]);
+          } else if (payload.eventType === 'DELETE') {
+            const deletedDoc = payload.old as DocumentoAnalisado;
+            setDocumentos(prev => prev.filter(doc => doc.id !== deletedDoc.id));
           }
         }
       )

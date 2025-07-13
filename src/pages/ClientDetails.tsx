@@ -1,379 +1,516 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Instagram, BarChart3, MessageCircle, Calendar, TrendingUp, Play, Loader2 } from "lucide-react";
-import { useClients } from "@/hooks/useClients";
-import { supabase } from "@/integrations/supabase/client";
-import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
-import { useToast } from "@/hooks/use-toast";
-
-interface AnalysisComment {
-  id: number;
-  comment: string;
-  sentiment: string;
-  username: string;
-  profile: string;
-  post_id: string;
-  postUrl: string;
-  comment_url: string;
-  likes_count: string;
-  created_at: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useClients } from '@/hooks/useClients';
+import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
+import { formatCPF, formatCNPJ, formatPhone } from '@/utils/validation';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  Phone, 
+  Instagram, 
+  MapPin, 
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BarChart3,
+  MessageSquare,
+  Upload,
+  FileText,
+  Download,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Trash2,
+  ExternalLink
+} from 'lucide-react';
 
 const ClientDetails = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
+  const { clients, loading: clientsLoading } = useClients();
+  const { documentos, loading: docsLoading, fetchDocumentos, uploadDocument, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { clients } = useClients();
-  
-  const [client, setClient] = useState<any>(null);
-  const [analyses, setAnalyses] = useState<AnalysisComment[]>([]);
-  const [loadingAnalyses, setLoadingAnalyses] = useState(true);
-  const [performingAnalysis, setPerformingAnalysis] = useState(false);
+
+  const client = clients.find(c => c.id === clientId);
 
   useEffect(() => {
-    const foundClient = clients.find(c => c.id === clientId);
-    if (foundClient) {
-      setClient(foundClient);
-      loadClientAnalyses(foundClient.instagram);
+    if (clientId) {
+      fetchDocumentos(clientId);
     }
-  }, [clientId, clients]);
+  }, [clientId, fetchDocumentos]);
 
-  const loadClientAnalyses = async (instagramProfile: string | null) => {
-    if (!instagramProfile) {
-      setLoadingAnalyses(false);
+  const handleFileSelect = () => {
+    if (!clientId) {
+      toast({
+        title: "Cliente não selecionado",
+        description: "Erro interno: cliente não identificado",
+        variant: "destructive"
+      });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !clientId || !client) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ['application/pdf', 'text/plain', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Formato não suportado",
+        description: "Apenas arquivos PDF, TXT e imagens (JPG, PNG) são aceitos",
+        variant: "destructive"
+      });
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('analysis-comments')
-        .select('*')
-        .eq('profile', instagramProfile)
-        .order('created_at', { ascending: false })
-        .limit(100);
+    // Validar tamanho (50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 50MB",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      if (error) {
-        console.error('Erro ao carregar análises:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as análises do cliente.",
-          variant: "destructive"
-        });
-        return;
-      }
+    setUploading(true);
+    await uploadDocument(clientId, file, client.nome_completo);
+    setUploading(false);
 
-      setAnalyses(data || []);
-    } catch (error) {
-      console.error('Erro ao carregar análises:', error);
-    } finally {
-      setLoadingAnalyses(false);
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handlePerformAnalysis = async () => {
-    if (!client?.instagram) {
-      toast({
-        title: "Erro",
-        description: "Cliente não possui Instagram cadastrado.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setPerformingAnalysis(true);
-    try {
-      // Simular análise em tempo real - aqui você implementaria a lógica real
-      toast({
-        title: "Análise Iniciada",
-        description: "A análise de sentimento está sendo processada...",
-      });
-
-      // Simular delay de processamento
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Recarregar análises após processamento
-      await loadClientAnalyses(client.instagram);
-
-      toast({
-        title: "Análise Concluída",
-        description: "Nova análise de sentimento foi processada com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao realizar análise:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao processar análise de sentimento.",
-        variant: "destructive"
-      });
-    } finally {
-      setPerformingAnalysis(false);
+    toast({
+      title: "Nova análise",
+      description: "Para realizar uma nova análise, faça upload de um documento",
+    });
+    
+    // Scroll até a seção de upload
+    const uploadSection = document.getElementById('upload-section');
+    if (uploadSection) {
+      uploadSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const formatDocument = (document: string, type: string) => {
+  const formatDocument = (document: string, type: string): string => {
     return type === 'fisica' ? formatCPF(document) : formatCNPJ(document);
   };
 
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment?.toLowerCase()) {
-      case 'positive':
-      case 'positivo':
-        return 'bg-green-500';
-      case 'negative':
-      case 'negativo':
-        return 'bg-red-500';
-      case 'neutral':
-      case 'neutro':
-        return 'bg-gray-500';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pendente':
+        return <Clock className="w-4 h-4 text-yellow-400" />;
+      case 'processando':
+        return <AlertCircle className="w-4 h-4 text-blue-400" />;
+      case 'concluído':
+      case 'finalizado':
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case 'erro':
+        return <XCircle className="w-4 h-4 text-red-400" />;
       default:
-        return 'bg-blue-500';
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
-  const getSentimentStats = () => {
-    const stats = {
-      positive: analyses.filter(a => a.sentiment?.toLowerCase().includes('positiv')).length,
-      negative: analyses.filter(a => a.sentiment?.toLowerCase().includes('negativ')).length,
-      neutral: analyses.filter(a => a.sentiment?.toLowerCase().includes('neutr')).length,
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      pendente: 'secondary',
+      processando: 'default',
+      concluído: 'default',
+      finalizado: 'default',
+      erro: 'destructive'
+    } as const;
+
+    const colors = {
+      pendente: 'bg-yellow-900/20 text-yellow-300 border-yellow-700',
+      processando: 'bg-blue-900/20 text-blue-300 border-blue-700',
+      concluído: 'bg-green-900/20 text-green-300 border-green-700',
+      finalizado: 'bg-green-900/20 text-green-300 border-green-700',
+      erro: 'bg-red-900/20 text-red-300 border-red-700'
     };
-    
-    const total = stats.positive + stats.negative + stats.neutral;
-    
+
+    const displayStatus = status === 'concluído' ? 'Concluído' : status;
+
+    return (
+      <Badge 
+        variant={variants[status as keyof typeof variants] || 'secondary'}
+        className={`${colors[status as keyof typeof colors] || ''} border`}
+      >
+        {getStatusIcon(status)}
+        <span className="ml-1 capitalize">{displayStatus}</span>
+      </Badge>
+    );
+  };
+
+  const getDocumentStats = () => {
+    const pendentes = documentos.filter(d => d.status === 'pendente').length;
+    const processando = documentos.filter(d => d.status === 'processando').length;
+    const concluidos = documentos.filter(d => d.status === 'concluído' || d.status === 'finalizado').length;
+    const total = documentos.length;
+
     return {
-      ...stats,
       total,
-      positivePercent: total > 0 ? Math.round((stats.positive / total) * 100) : 0,
-      negativePercent: total > 0 ? Math.round((stats.negative / total) * 100) : 0,
-      neutralPercent: total > 0 ? Math.round((stats.neutral / total) * 100) : 0,
+      pendentes,
+      processando,
+      concluidos
     };
   };
 
-  if (!client) {
+  if (clientsLoading) {
     return (
-      <div className="min-h-screen bg-blue-900 flex items-center justify-center">
-        <div className="text-white">Carregando dados do cliente...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando dados do cliente...</p>
+        </div>
       </div>
     );
   }
 
-  const stats = getSentimentStats();
+  if (!client) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Cliente não encontrado</p>
+          <Button 
+            onClick={() => navigate('/gestao-clientes')}
+            className="mt-4"
+          >
+            Voltar à Gestão de Clientes
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-blue-900 p-4">
-      <div className="container mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate('/gestao-clientes')}
-              className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+              className="border-blue-600/50 text-blue-400 hover:bg-blue-700/20"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
             </Button>
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+              <User className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">{client.nome_completo}</h1>
-              <p className="text-blue-300">Análises e monitoramento de sentimento</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                {client.nome_completo}
+              </h1>
+              <p className="text-muted-foreground">
+                Gestão de documentos e análises
+              </p>
             </div>
           </div>
-
-          <Button
-            onClick={handlePerformAnalysis}
-            disabled={performingAnalysis || !client.instagram}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {performingAnalysis ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Play className="w-4 h-4 mr-2" />
-            )}
-            {performingAnalysis ? 'Analisando...' : 'Realizar Análise Agora'}
-          </Button>
         </div>
 
         {/* Informações do Cliente */}
-        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+        <Card className="bg-slate-900/50 border-slate-700/50 mb-8">
           <CardHeader>
-            <CardTitle className="text-white">Informações do Cliente</CardTitle>
+            <CardTitle className="text-slate-200">Informações do Cliente</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <p className="text-blue-300 text-sm">Documento</p>
-                <p className="text-white font-medium">
-                  {formatDocument(client.cpf_cnpj, client.tipo_pessoa)}
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">Documento</p>
+                  <p className="font-medium text-slate-200">
+                    {formatDocument(client.cpf_cnpj, client.tipo_pessoa)}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-blue-300 text-sm">E-mail</p>
-                <p className="text-white font-medium">{client.email || '-'}</p>
+              
+              <div className="flex items-center space-x-3">
+                <Mail className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">E-mail</p>
+                  <p className="font-medium text-slate-200">{client.email || '-'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-blue-300 text-sm">WhatsApp</p>
-                <p className="text-white font-medium">
-                  {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
-                </p>
+              
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">WhatsApp</p>
+                  <p className="font-medium text-slate-200">
+                    {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-blue-300 text-sm">Instagram</p>
-                <div className="flex items-center gap-2">
-                  {client.instagram ? (
-                    <>
-                      <Instagram className="w-4 h-4 text-blue-300" />
-                      <p className="text-white font-medium">{client.instagram}</p>
-                    </>
-                  ) : (
-                    <p className="text-gray-400">Não cadastrado</p>
-                  )}
+              
+              <div className="flex items-center space-x-3">
+                <Instagram className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">Instagram</p>
+                  <p className="font-medium text-slate-200">{client.instagram || '-'}</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Estatísticas de Sentimento */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
-            <CardContent className="pt-6">
+        {/* Estatísticas de Documentos */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-300 text-sm">Total de Comentários</p>
-                  <p className="text-2xl font-bold text-white">{stats.total}</p>
+                  <p className="text-sm text-slate-400">Total de Documentos</p>
+                  <p className="text-2xl font-bold text-slate-200">{getDocumentStats().total}</p>
                 </div>
-                <MessageCircle className="w-8 h-8 text-blue-400" />
+                <BarChart3 className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-green-800/30 backdrop-blur-sm border-green-700/50">
-            <CardContent className="pt-6">
+          
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-300 text-sm">Positivos</p>
-                  <p className="text-2xl font-bold text-white">
-                    {stats.positive} ({stats.positivePercent}%)
-                  </p>
+                  <p className="text-sm text-slate-400">Pendentes</p>
+                  <p className="text-2xl font-bold text-yellow-400">{getDocumentStats().pendentes}</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-green-400" />
+                <Clock className="w-8 h-8 text-yellow-400" />
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-red-800/30 backdrop-blur-sm border-red-700/50">
-            <CardContent className="pt-6">
+          
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-red-300 text-sm">Negativos</p>
-                  <p className="text-2xl font-bold text-white">
-                    {stats.negative} ({stats.negativePercent}%)
-                  </p>
+                  <p className="text-sm text-slate-400">Processando</p>
+                  <p className="text-2xl font-bold text-blue-400">{getDocumentStats().processando}</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-red-400 rotate-180" />
+                <AlertCircle className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-gray-800/30 backdrop-blur-sm border-gray-700/50">
-            <CardContent className="pt-6">
+          
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-300 text-sm">Neutros</p>
-                  <p className="text-2xl font-bold text-white">
-                    {stats.neutral} ({stats.neutralPercent}%)
-                  </p>
+                  <p className="text-sm text-slate-400">Concluídos</p>
+                  <p className="text-2xl font-bold text-green-400">{getDocumentStats().concluidos}</p>
                 </div>
-                <div className="w-8 h-8 bg-gray-500 rounded-full" />
+                <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Análises Detalhadas */}
-        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+        {/* Upload de Documentos */}
+        <div className="mb-8" id="upload-section">
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-slate-200">
+                <Upload className="w-5 h-5 text-blue-400" />
+                <span>Upload de Documentos para Análise</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">
+                  Enviar Documento
+                </label>
+                <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center bg-slate-800/20">
+                  <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-400 mb-4">
+                    Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
+                  </p>
+                  <p className="text-slate-500 text-sm mb-4">
+                    O arquivo será salvo automaticamente no Google Drive na pasta do cliente
+                  </p>
+                  <Button 
+                    onClick={handleFileSelect}
+                    disabled={uploading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {uploading ? 'Enviando...' : 'Selecionar Arquivo'}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.txt,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-200 mb-2">
+                    Nova Análise
+                  </h3>
+                  <p className="text-slate-400">
+                    Faça upload de um novo documento para análise automática
+                  </p>
+                </div>
+                <Button 
+                  onClick={handlePerformAnalysis}
+                  variant="outline"
+                  className="border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Realizar Análise Agora
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Lista de Documentos */}
+        <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-white">Análises de Sentimento</CardTitle>
-              <Badge variant="outline" className="text-blue-200 border-blue-600">
-                {analyses.length} análises
-              </Badge>
-            </div>
+            <CardTitle className="text-slate-200">
+              Documentos Analisados
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {loadingAnalyses ? (
-              <div className="text-center py-8 text-white">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-                Carregando análises...
-              </div>
-            ) : analyses.length === 0 ? (
+            {docsLoading ? (
+              <p className="text-slate-400">Carregando documentos...</p>
+            ) : documentos.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-blue-300 mb-4">
-                  {client.instagram 
-                    ? 'Nenhuma análise encontrada para este cliente.'
-                    : 'Cliente não possui Instagram cadastrado.'}
+                <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 mb-2">Nenhum documento encontrado</p>
+                <p className="text-slate-500 text-sm">
+                  Faça upload de documentos para começar as análises
                 </p>
-                {client.instagram && (
-                  <Button
-                    onClick={handlePerformAnalysis}
-                    disabled={performingAnalysis}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {performingAnalysis ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Play className="w-4 h-4 mr-2" />
-                    )}
-                    Iniciar Primeira Análise
-                  </Button>
-                )}
               </div>
             ) : (
-              <div className="rounded-md border border-blue-700/50 overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-blue-700/50">
-                      <TableHead className="text-blue-100">Data</TableHead>
-                      <TableHead className="text-blue-100">Usuário</TableHead>
-                      <TableHead className="text-blue-100">Comentário</TableHead>
-                      <TableHead className="text-blue-100">Sentimento</TableHead>
-                      <TableHead className="text-blue-100">Curtidas</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {analyses.map((analysis) => (
-                      <TableRow key={analysis.id} className="border-blue-700/50">
-                        <TableCell className="text-blue-200">
-                          {new Date(analysis.created_at).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-white font-medium">
-                          {analysis.username || '-'}
-                        </TableCell>
-                        <TableCell className="text-blue-200 max-w-md">
-                          <p className="truncate">{analysis.comment || '-'}</p>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            className={`${getSentimentColor(analysis.sentiment)} text-white`}
+              <div className="space-y-3">
+                {documentos.map((documento) => (
+                  <div
+                    key={documento.id}
+                    className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-slate-400" />
+                        <div>
+                          <p className="font-medium text-slate-200">
+                            {documento.nome_arquivo}
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            {documento.tipo_arquivo} • {documento.nome_cliente || 'Cliente não identificado'} • Enviado em{' '}
+                            {new Date(documento.data_upload).toLocaleDateString('pt-BR')}
+                          </p>
+                          {documento.data_finalizacao && documento.status === 'concluído' && (
+                            <p className="text-xs text-green-400 flex items-center mt-1">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Concluído em {new Date(documento.data_finalizacao).toLocaleDateString('pt-BR')} às{' '}
+                              {new Date(documento.data_finalizacao).toLocaleTimeString('pt-BR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </p>
+                          )}
+                          {documento.google_drive_url && (
+                            <p className="text-xs text-green-400 flex items-center mt-1">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Salvo no Google Drive
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      {getStatusBadge(documento.status)}
+                      
+                      {/* Botão Google Drive */}
+                      {documento.google_drive_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(documento.google_drive_url!, '_blank')}
+                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span>Google Drive</span>
+                        </Button>
+                      )}
+                      
+                      {/* Botão Baixar Análise */}
+                      {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_analise && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadAnalise(documento)}
+                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Baixar Análise</span>
+                        </Button>
+                      )}
+                      
+                      {/* Botão Deletar */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
                           >
-                            {analysis.sentiment || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {analysis.likes_count || '0'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            <Trash2 className="w-4 h-4" />
+                            <span>Deletar</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-slate-900 border-slate-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-slate-200">
+                              Confirmar exclusão
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-slate-400">
+                              Tem certeza que deseja deletar o documento "{documento.nome_arquivo}" do cliente {documento.nome_cliente}? 
+                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente do Supabase
+                              {documento.google_drive_url ? ' (o arquivo permanecerá no Google Drive)' : ''}.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteDocument(documento)}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              Deletar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
