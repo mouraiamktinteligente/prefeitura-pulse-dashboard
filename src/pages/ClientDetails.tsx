@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ const ClientDetails = () => {
     if (clientId) {
       fetchDocumentos(clientId);
     }
-  }, [clientId, fetchDocumentos]);
+  }, [clientId]); // Removido fetchDocumentos das dependências para evitar loops
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -91,7 +91,7 @@ const ClientDetails = () => {
     );
   };
 
-  const getDocumentStats = () => {
+  const getDocumentStats = useMemo(() => {
     const pendentes = documentos.filter(d => d.status === 'pendente').length;
     const processando = documentos.filter(d => d.status === 'processando').length;
     const concluidos = documentos.filter(d => d.status === 'concluído' || d.status === 'finalizado').length;
@@ -103,7 +103,7 @@ const ClientDetails = () => {
       processando,
       concluidos
     };
-  };
+  }, [documentos]);
 
   if (clientsLoading) {
     return (
@@ -214,7 +214,7 @@ const ClientDetails = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Total de Documentos</p>
-                  <p className="text-2xl font-bold text-slate-200">{getDocumentStats().total}</p>
+                  <p className="text-2xl font-bold text-slate-200">{getDocumentStats.total}</p>
                 </div>
                 <BarChart3 className="w-8 h-8 text-blue-400" />
               </div>
@@ -226,7 +226,7 @@ const ClientDetails = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Pendentes</p>
-                  <p className="text-2xl font-bold text-yellow-400">{getDocumentStats().pendentes}</p>
+                  <p className="text-2xl font-bold text-yellow-400">{getDocumentStats.pendentes}</p>
                 </div>
                 <Clock className="w-8 h-8 text-yellow-400" />
               </div>
@@ -238,7 +238,7 @@ const ClientDetails = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Processando</p>
-                  <p className="text-2xl font-bold text-blue-400">{getDocumentStats().processando}</p>
+                  <p className="text-2xl font-bold text-blue-400">{getDocumentStats.processando}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-blue-400" />
               </div>
@@ -250,7 +250,7 @@ const ClientDetails = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Concluídos</p>
-                  <p className="text-2xl font-bold text-green-400">{getDocumentStats().concluidos}</p>
+                  <p className="text-2xl font-bold text-green-400">{getDocumentStats.concluidos}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>

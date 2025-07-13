@@ -8,15 +8,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Upload, FileText, Download, Clock, CheckCircle, XCircle, AlertCircle, Trash2, ExternalLink } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
+import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 import { useToast } from '@/hooks/use-toast';
 
 export const DocumentUpload = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { clients, loading: clientsLoading } = useClients();
-  const { documentos, loading: docsLoading, fetchDocumentos, uploadDocument, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
+  const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
+  const { uploading, uploadDocument } = useDocumentUpload();
   const { toast } = useToast();
 
   const selectedClient = clients.find(client => client.id === selectedClientId);
@@ -63,9 +64,10 @@ export const DocumentUpload = () => {
       return;
     }
 
-    setUploading(true);
-    await uploadDocument(selectedClientId, file, selectedClient.nome_completo);
-    setUploading(false);
+    const documento = await uploadDocument(selectedClientId, file, selectedClient.nome_completo, (newDoc) => {
+      // Atualizar lista local quando upload for bem-sucedido
+      fetchDocumentos(selectedClientId);
+    });
 
     // Limpar input
     if (fileInputRef.current) {

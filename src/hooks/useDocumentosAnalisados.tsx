@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useDocumentUpload } from './useDocumentUpload';
 import { useDocumentOperations } from './useDocumentOperations';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -14,58 +13,71 @@ export const useDocumentosAnalisados = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  const { uploading, uploadDocument: uploadDoc } = useDocumentUpload();
   const { deleteDocument: deleteDoc, downloadAnalise } = useDocumentOperations();
 
   // Real-time listener para atualizações de documentos
   useEffect(() => {
-    const channel = supabase
-      .channel('documentos-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'documentos_analisados'
-        },
-        (payload) => {
-          console.log('📡 Documento atualizado em tempo real:', payload);
-          
-          if (payload.eventType === 'UPDATE') {
-            const updatedDoc = payload.new as DocumentoAnalisado;
-            setDocumentos(prev => 
-              prev.map(doc => 
-                doc.id === updatedDoc.id ? updatedDoc : doc
-              )
-            );
+    let channel: any = null;
 
-            // Mostrar toast quando status mudou para concluído
-            if (updatedDoc.status === 'concluído') {
-              toast({
-                title: "Análise concluída!",
-                description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+    const setupRealtime = () => {
+      channel = supabase
+        .channel('documentos-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'documentos_analisados'
+          },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              const updatedDoc = payload.new as DocumentoAnalisado;
+              setDocumentos(prev => {
+                const exists = prev.find(doc => doc.id === updatedDoc.id);
+                if (!exists) return prev;
+                
+                return prev.map(doc => 
+                  doc.id === updatedDoc.id ? updatedDoc : doc
+                );
               });
+
+              // Mostrar toast quando status mudou para concluído
+              if (updatedDoc.status === 'concluído') {
+                toast({
+                  title: "Análise concluída!",
+                  description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+                });
+              }
+            } else if (payload.eventType === 'INSERT') {
+              const newDoc = payload.new as DocumentoAnalisado;
+              setDocumentos(prev => {
+                const exists = prev.find(doc => doc.id === newDoc.id);
+                if (exists) return prev;
+                return [newDoc, ...prev];
+              });
+            } else if (payload.eventType === 'DELETE') {
+              const deletedDoc = payload.old as DocumentoAnalisado;
+              setDocumentos(prev => prev.filter(doc => doc.id !== deletedDoc.id));
             }
-          } else if (payload.eventType === 'INSERT') {
-            const newDoc = payload.new as DocumentoAnalisado;
-            setDocumentos(prev => [newDoc, ...prev]);
-          } else if (payload.eventType === 'DELETE') {
-            const deletedDoc = payload.old as DocumentoAnalisado;
-            setDocumentos(prev => prev.filter(doc => doc.id !== deletedDoc.id));
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    };
+
+    setupRealtime();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [toast]);
 
-  const fetchDocumentos = async (clienteId?: string) => {
+  const fetchDocumentos = useCallback(async (clienteId?: string) => {
+    if (loading) return; // Evita múltiplas chamadas simultâneas
+    
     try {
       setLoading(true);
-      console.log('Buscando documentos...', clienteId ? `para cliente: ${clienteId}` : 'todos');
       
       let query = supabase
         .from('documentos_analisados')
@@ -88,7 +100,6 @@ export const useDocumentosAnalisados = () => {
         return;
       }
 
-      console.log('Documentos carregados:', data?.length || 0);
       setDocumentos(data || []);
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -100,18 +111,7 @@ export const useDocumentosAnalisados = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const uploadDocument = async (
-    clienteId: string,
-    file: File,
-    clienteNome: string
-  ): Promise<DocumentoAnalisado | null> => {
-    const result = await uploadDoc(clienteId, file, clienteNome, (documento) => {
-      setDocumentos(prev => [documento, ...prev]);
-    });
-    return result;
-  };
+  }, [loading, toast]);
 
   const deleteDocument = async (documento: DocumentoAnalisado) => {
     await deleteDoc(documento, () => {
@@ -121,9 +121,8 @@ export const useDocumentosAnalisados = () => {
 
   return {
     documentos,
-    loading: loading || uploading,
+    loading,
     fetchDocumentos,
-    uploadDocument,
     deleteDocument,
     downloadAnalise
   };
