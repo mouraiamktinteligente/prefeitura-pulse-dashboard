@@ -31,6 +31,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ client
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
           <Instagram className="w-5 h-5 text-pink-400" />
           Última Postagem no Instagram
+          <span className="text-red-500 text-sm font-medium">Em desenvolvimento</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 py-2 h-[400px] overflow-hidden">

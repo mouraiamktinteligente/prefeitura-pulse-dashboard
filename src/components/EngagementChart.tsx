@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 export const EngagementChart = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('semanal');
   const [selectedYear, setSelectedYear] = useState('2024');
-  const [monthsCount, setMonthsCount] = useState('6');
+  const [selectedInitialMonth, setSelectedInitialMonth] = useState('0'); // Janeiro = 0
 
   // Dados de exemplo para diferentes períodos
   const dailyData = [
@@ -42,8 +42,25 @@ export const EngagementChart = () => {
   ];
 
   const getMonthlyData = () => {
-    const count = parseInt(monthsCount);
-    return allMonthlyData.slice(0, count);
+    const initialMonthIndex = parseInt(selectedInitialMonth);
+    const months = [];
+    
+    for (let i = 0; i < 6; i++) {
+      const monthIndex = (initialMonthIndex + i) % 12;
+      if (allMonthlyData[monthIndex]) {
+        months.push(allMonthlyData[monthIndex]);
+      }
+    }
+    
+    return months;
+  };
+
+  const getMonthOptions = () => {
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return monthNames.map((month, index) => ({ value: index.toString(), label: month }));
   };
 
   const getCurrentData = () => {
@@ -74,14 +91,15 @@ export const EngagementChart = () => {
   }));
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[400px]">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-white flex items-center">
+        <CardTitle className="text-lg font-semibold text-white">
           📊 Histórico de Sentimento Médio
         </CardTitle>
+        <p className="text-sm text-blue-300">Análise temporal do sentimento médio</p>
       </CardHeader>
-      <CardContent>
-        <div className="h-48 mb-4">
+      <CardContent className="pb-2">
+        <div className="h-40 mb-3">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={currentData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -111,8 +129,8 @@ export const EngagementChart = () => {
         </div>
 
         {/* Seletor de Período */}
-        <div className="bg-blue-600 border border-blue-500 rounded-lg p-4">
-          <h4 className="font-semibold text-white mb-3">⏱️ Período de Análise</h4>
+        <div className="bg-blue-600 border border-blue-500 rounded-lg p-3">
+          <h4 className="font-semibold text-white mb-2">⏱️ Período de Análise</h4>
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger className="bg-blue-500 border-blue-400 text-white">
               <SelectValue placeholder="Selecione o período" />
@@ -126,12 +144,12 @@ export const EngagementChart = () => {
 
           {/* Controles adicionais para período mensal */}
           {selectedPeriod === 'mensal' && (
-            <div className="mt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="mt-3 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-blue-300 mb-1 block">Ano</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white">
+                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -142,30 +160,21 @@ export const EngagementChart = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-blue-300 mb-1 block">Quantidade de Meses</label>
-                  <Select value={monthsCount} onValueChange={setMonthsCount}>
-                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white">
+                  <label className="text-xs text-blue-300 mb-1 block">Mês Inicial</label>
+                  <Select value={selectedInitialMonth} onValueChange={setSelectedInitialMonth}>
+                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 mês</SelectItem>
-                      <SelectItem value="2">2 meses</SelectItem>
-                      <SelectItem value="3">3 meses</SelectItem>
-                      <SelectItem value="4">4 meses</SelectItem>
-                      <SelectItem value="5">5 meses</SelectItem>
-                      <SelectItem value="6">6 meses</SelectItem>
+                      {getMonthOptions().map(month => (
+                        <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
           )}
-
-          <p className="text-xs text-blue-300 mt-2">
-            {selectedPeriod === 'diario' && 'Últimos 7 dias'}
-            {selectedPeriod === 'semanal' && 'Últimas 4 semanas'}
-            {selectedPeriod === 'mensal' && `${monthsCount} meses de ${selectedYear}`}
-          </p>
         </div>
       </CardContent>
     </Card>
