@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, MessageSquare, AlertTriangle } from 'lucide-react';
+import { TrendingDown, MessageSquare, AlertTriangle, Smile, Meh, Frown } from 'lucide-react';
 
 interface MetricsCardsProps {
   totalComments?: number;
@@ -53,10 +53,21 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
 
   const averageSentiment = calculateAverageSentiment();
   
-  // Simulação de valor anterior para calcular variação (em um cenário real, isso viria de dados históricos)
-  const previousSentiment = averageSentiment > 0 ? averageSentiment - 0.3 : 0;
-  const sentimentChange = averageSentiment - previousSentiment;
-  const isPositiveChange = sentimentChange >= 0;
+  // Função para determinar o ícone baseado no sentimento
+  const getSentimentIcon = (score: number) => {
+    if (score >= 8) return Smile; // Muito feliz (8-10)
+    if (score >= 5) return Meh; // Levemente feliz/neutro (5-7)
+    if (score >= 2) return Frown; // Um pouco triste (2-4)
+    return Frown; // Muito triste (0-1)
+  };
+
+  // Função para determinar a cor do ícone baseado no sentimento
+  const getSentimentColor = (score: number) => {
+    if (score >= 8) return 'text-green-400'; // Verde para muito feliz
+    if (score >= 5) return 'text-yellow-400'; // Amarelo para neutro/levemente feliz
+    if (score >= 2) return 'text-orange-400'; // Laranja para um pouco triste
+    return 'text-red-400'; // Vermelho para muito triste
+  };
 
   // Force re-render when metrics change
   React.useEffect(() => {
@@ -81,8 +92,8 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       title: 'Sentimento Médio',
       value: averageSentiment.toFixed(1),
       period: 'de 10',
-      icon: TrendingUp,
-      color: averageSentiment >= 5 ? 'text-green-400' : 'text-red-400'
+      icon: getSentimentIcon(averageSentiment),
+      color: getSentimentColor(averageSentiment)
     },
     {
       title: 'Postagens Hoje',

@@ -85,7 +85,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
     }
     
     return (
-      <Card className="h-[400px]">
+      <Card className="h-[480px]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             📊 Análise de Sentimento
@@ -150,7 +150,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
 
   // Versão completa para Dashboard
   return (
-    <Card className="h-[400px]">
+    <Card className="h-[480px]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           📊 Análise de Sentimento
