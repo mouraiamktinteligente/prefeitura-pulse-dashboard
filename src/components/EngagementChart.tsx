@@ -5,6 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export const EngagementChart = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('semanal');
+  const [selectedYear, setSelectedYear] = useState('2024');
+  const [monthsCount, setMonthsCount] = useState('6');
 
   // Dados de exemplo para diferentes períodos
   const dailyData = [
@@ -24,14 +26,25 @@ export const EngagementChart = () => {
     { period: 'S4', sentiment: 7.8 }
   ];
 
-  const monthlyData = [
+  const allMonthlyData = [
     { period: 'Jan', sentiment: 6.8 },
     { period: 'Fev', sentiment: 7.2 },
     { period: 'Mar', sentiment: 7.9 },
     { period: 'Abr', sentiment: 8.1 },
     { period: 'Mai', sentiment: 7.6 },
-    { period: 'Jun', sentiment: 8.3 }
+    { period: 'Jun', sentiment: 8.3 },
+    { period: 'Jul', sentiment: 7.9 },
+    { period: 'Ago', sentiment: 8.2 },
+    { period: 'Set', sentiment: 7.4 },
+    { period: 'Out', sentiment: 8.0 },
+    { period: 'Nov', sentiment: 7.7 },
+    { period: 'Dez', sentiment: 8.5 }
   ];
+
+  const getMonthlyData = () => {
+    const count = parseInt(monthsCount);
+    return allMonthlyData.slice(0, count);
+  };
 
   const getCurrentData = () => {
     switch (selectedPeriod) {
@@ -40,10 +53,19 @@ export const EngagementChart = () => {
       case 'semanal':
         return weeklyData;
       case 'mensal':
-        return monthlyData;
+        return getMonthlyData();
       default:
         return weeklyData;
     }
+  };
+
+  const getYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear; i >= currentYear - 5; i--) {
+      years.push(i.toString());
+    }
+    return years;
   };
 
   const currentData = getCurrentData().map(item => ({
@@ -101,10 +123,48 @@ export const EngagementChart = () => {
               <SelectItem value="mensal">Mensal</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Controles adicionais para período mensal */}
+          {selectedPeriod === 'mensal' && (
+            <div className="mt-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-blue-300 mb-1 block">Ano</label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getYearOptions().map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-blue-300 mb-1 block">Quantidade de Meses</label>
+                  <Select value={monthsCount} onValueChange={setMonthsCount}>
+                    <SelectTrigger className="bg-blue-500 border-blue-400 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 mês</SelectItem>
+                      <SelectItem value="2">2 meses</SelectItem>
+                      <SelectItem value="3">3 meses</SelectItem>
+                      <SelectItem value="4">4 meses</SelectItem>
+                      <SelectItem value="5">5 meses</SelectItem>
+                      <SelectItem value="6">6 meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
           <p className="text-xs text-blue-300 mt-2">
             {selectedPeriod === 'diario' && 'Últimos 7 dias'}
             {selectedPeriod === 'semanal' && 'Últimas 4 semanas'}
-            {selectedPeriod === 'mensal' && 'Últimos 6 meses'}
+            {selectedPeriod === 'mensal' && `${monthsCount} meses de ${selectedYear}`}
           </p>
         </div>
       </CardContent>
