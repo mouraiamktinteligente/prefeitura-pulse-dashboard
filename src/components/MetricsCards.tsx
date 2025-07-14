@@ -74,8 +74,6 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       title: 'Comentários Analisados',
       value: totalComments.toLocaleString(),
       period: 'total acumulado',
-      trend: 'up',
-      change: '+12%',
       icon: MessageSquare,
       color: 'text-blue-400'
     },
@@ -83,17 +81,13 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       title: 'Sentimento Médio',
       value: averageSentiment.toFixed(1),
       period: 'de 10',
-      trend: isPositiveChange ? 'up' : 'down',
-      change: isPositiveChange ? `+${sentimentChange.toFixed(1)}` : sentimentChange.toFixed(1),
-      icon: isPositiveChange ? TrendingUp : TrendingDown,
+      icon: TrendingUp,
       color: averageSentiment >= 5 ? 'text-green-400' : 'text-red-400'
     },
     {
       title: 'Postagens Hoje',
       value: '24',
       period: 'publicações',
-      trend: 'down',
-      change: '-2',
       icon: TrendingDown,
       color: 'text-orange-400'
     },
@@ -101,8 +95,6 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       title: 'Risco Reputacional',
       value: negativeComments.toString(),
       period: 'comentários negativos',
-      trend: 'down',
-      change: '-3',
       icon: AlertTriangle,
       color: 'text-red-400'
     }
@@ -119,16 +111,6 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
                 <div className="flex items-baseline space-x-2">
                   <p className="text-2xl font-bold text-white">{metric.value}</p>
                   <span className="text-sm text-blue-300">{metric.period}</span>
-                </div>
-                <div className={`flex items-center space-x-1 mt-2 ${
-                  metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {metric.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3" />
-                  )}
-                  <span className="text-xs font-medium">{metric.change}</span>
                 </div>
               </div>
               <div className={`p-3 rounded-lg bg-blue-600 ${metric.color}`}>
