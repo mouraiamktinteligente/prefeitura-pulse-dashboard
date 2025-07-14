@@ -201,7 +201,15 @@ export const useSessionManager = () => {
         return false;
       }
 
-      console.log('validateSession: Validando sessão para:', userEmail);
+      console.log('validateSession: Validando sessão para:', userEmail, 'tentativa:', retryCount + 1);
+
+      // Implementar retry com limite
+      const maxRetries = 2;
+      if (retryCount >= maxRetries) {
+        console.log('validateSession: Máximo de tentativas atingido');
+        await registerAccessLog(userEmail, 'erro_sessao');
+        return false;
+      }
 
       // CRÍTICO: Verificar primeiro se o usuário está marcado como conectado
       const { data: userData, error: userError } = await supabase
@@ -211,7 +219,12 @@ export const useSessionManager = () => {
         .maybeSingle();
 
       if (userError || !userData) {
-        console.log('validateSession: Erro ao verificar status do usuário ou usuário não encontrado');
+        console.log('validateSession: Erro ao verificar status do usuário ou usuário não encontrado, tentativa:', retryCount + 1);
+        if (retryCount < maxRetries) {
+          console.log('validateSession: Tentando novamente em 2 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return validateSession(userEmail, retryCount + 1);
+        }
         await registerAccessLog(userEmail, 'erro_sessao');
         return false;
       }
@@ -235,7 +248,12 @@ export const useSessionManager = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Erro ao validar sessão:', error);
+        console.error('Erro ao validar sessão:', error, 'tentativa:', retryCount + 1);
+        if (retryCount < maxRetries) {
+          console.log('validateSession: Tentando novamente em 2 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return validateSession(userEmail, retryCount + 1);
+        }
         await registerAccessLog(userEmail, 'erro_sessao');
         return false;
       }

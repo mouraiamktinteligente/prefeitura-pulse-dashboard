@@ -268,7 +268,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (!isValid && !isRefreshing) {
           console.log('Sessão inválida detectada - forçando logout');
-          logout('Sessão invalidada');
+          logout('Sessão desconectada');
         }
       } catch (error) {
         console.error('Erro na verificação de sessão:', error);
@@ -278,11 +278,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Verificação inicial em 5 segundos (dar mais tempo para inicialização)
-    const initialCheck = setTimeout(checkSession, 5000);
+    // Verificação inicial em 30 segundos (dar mais tempo para inicialização)
+    const initialCheck = setTimeout(checkSession, 30000);
 
-    // Verificar a cada 15 segundos (muito menos agressivo)
-    const interval = setInterval(checkSession, 15000);
+    // Verificar a cada 30 segundos (menos agressivo)
+    const interval = setInterval(checkSession, 30000);
     
     return () => {
       clearTimeout(initialCheck);
