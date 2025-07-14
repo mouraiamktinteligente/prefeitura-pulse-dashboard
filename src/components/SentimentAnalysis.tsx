@@ -47,7 +47,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
       { name: 'Positivo', value: positivePercentage, color: '#3B82F6', label: `${positivePercentage}%` },
       { name: 'Neutro', value: neutralPercentage, color: '#10B981', label: `${neutralPercentage}%` },
       { name: 'Negativo', value: negativePercentage, color: '#EF4444', label: `${negativePercentage}%` }
-    ].filter(item => item.value > 0); // Remove fatias com 0%
+    ]; // Mantém todas as fatias para garantir legenda completa
   }, [metrics]);
 
   // Renderiza percentuais dentro das fatias com fonte visível
@@ -121,8 +121,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
                   <Cell 
                     key={`cell-${index}`} 
                     fill={entry.color}
-                    stroke="white"
-                    strokeWidth={1}
+                    stroke="none"
                   />
                 ))}
               </Pie>
@@ -130,17 +129,20 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </ResponsiveContainer>
         </div>
         
-        {/* Legenda mínima para versão compacta */}
+        {/* Legenda completa para versão compacta */}
         <div className="flex gap-2 mt-2 text-xs">
-          {data.map((item) => (
-            <div key={item.name} className="flex items-center gap-1">
-              <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-muted-foreground">{item.value}%</span>
-            </div>
-          ))}
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+            <span className="text-muted-foreground">Positivo: {data.find(d => d.name === 'Positivo')?.value || 0}%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+            <span className="text-muted-foreground">Neutro: {data.find(d => d.name === 'Neutro')?.value || 0}%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+            <span className="text-muted-foreground">Negativo: {data.find(d => d.name === 'Negativo')?.value || 0}%</span>
+          </div>
         </div>
       </div>
     );
@@ -177,8 +179,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
                   <Cell 
                     key={`cell-${index}`} 
                     fill={entry.color}
-                    stroke="white"
-                    strokeWidth={2}
+                    stroke="none"
                   />
                 ))}
               </Pie>
@@ -186,20 +187,21 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </ResponsiveContainer>
         </div>
         
-        {/* Apenas para fatias pequenas que não mostram label */}
-        {data.some(item => item.value < 5 && item.value > 0) && (
-          <div className="flex justify-center gap-6 mt-4">
-            {data.filter(item => item.value < 5 && item.value > 0).map((item) => (
-              <div key={item.name} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-sm font-medium">{item.name}: {item.value}%</span>
-              </div>
-            ))}
+        {/* Legenda completa sempre visível */}
+        <div className="flex justify-center gap-6 mt-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+            <span className="text-sm font-medium">Positivo: {data.find(d => d.name === 'Positivo')?.value || 0}%</span>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10B981' }} />
+            <span className="text-sm font-medium">Neutro: {data.find(d => d.name === 'Neutro')?.value || 0}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+            <span className="text-sm font-medium">Negativo: {data.find(d => d.name === 'Negativo')?.value || 0}%</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
