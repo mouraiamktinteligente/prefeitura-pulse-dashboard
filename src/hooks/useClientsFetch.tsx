@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,27 +7,22 @@ import type { Cliente } from './useClients';
 
 export const useClientsFetch = () => {
   const [clients, setClients] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const fetchingRef = useRef(false);
 
   const fetchClients = useCallback(async () => {
+    // Prevenir múltiplas chamadas simultâneas
+    if (fetchingRef.current || !user) {
+      return;
+    }
+
     try {
       console.log('Buscando clientes...');
+      fetchingRef.current = true;
       setLoading(true);
-      
-      if (!user) {
-        console.log('Usuário não autenticado no sistema customizado');
-        setLoading(false);
-        toast({
-          title: "Erro de autenticação",
-          description: "Usuário não autenticado",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Usuário autenticado:', user.email);
 
       const { data, error } = await supabase
         .from('cadastro_clientes')
@@ -46,6 +41,7 @@ export const useClientsFetch = () => {
 
       console.log('Clientes encontrados:', data?.length || 0);
       setClients(data || []);
+      setInitialized(true);
     } catch (error) {
       console.error('Erro inesperado na busca:', error);
       toast({
@@ -55,12 +51,13 @@ export const useClientsFetch = () => {
       });
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  }, [user, toast]);
+  }, [user]); // Removido toast das dependências para estabilizar
 
-  // Setup realtime subscription
+  // Setup realtime subscription - separado e estabilizado
   useEffect(() => {
-    if (!user) return;
+    if (!user || !initialized) return;
 
     console.log('Configurando subscription realtime para clientes...');
 
@@ -135,12 +132,13 @@ export const useClientsFetch = () => {
       console.log('Removendo subscription realtime...');
       supabase.removeChannel(channel);
     };
-  }, [user, toast]);
+  }, [user, initialized]); // Removido toast das dependências
 
   return {
     clients,
     setClients,
     loading,
-    fetchClients
+    fetchClients,
+    initialized
   };
 };

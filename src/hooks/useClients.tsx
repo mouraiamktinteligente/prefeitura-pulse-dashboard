@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClientsFetch } from './useClientsFetch';
 import { useClientOperations } from './useClientOperations';
@@ -11,8 +11,9 @@ export type ClienteUpdate = Database['public']['Tables']['cadastro_clientes']['U
 
 export const useClients = () => {
   const { user } = useAuth();
-  const { clients, setClients, loading, fetchClients } = useClientsFetch();
+  const { clients, setClients, loading, fetchClients, initialized } = useClientsFetch();
   const { createClient: createClientOp, updateClient: updateClientOp, deleteClient: deleteClientOp } = useClientOperations();
+  const hasCalledRef = useRef(false);
 
   const createClient = async (clientData: ClienteInsert) => {
     const data = await createClientOp(clientData);
@@ -32,13 +33,15 @@ export const useClients = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasCalledRef.current && !initialized) {
       console.log('useEffect: Usuário autenticado, buscando clientes...');
+      hasCalledRef.current = true;
       fetchClients();
-    } else {
+    } else if (!user) {
       console.log('useEffect: Usuário não autenticado');
+      hasCalledRef.current = false;
     }
-  }, [user]);
+  }, [user, initialized, fetchClients]);
 
   return {
     clients,

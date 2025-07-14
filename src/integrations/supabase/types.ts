@@ -567,6 +567,28 @@ export type Database = {
       }
     }
     Views: {
+      resumo_mensal_comments: {
+        Row: {
+          comentarios_negativos: number | null
+          comentarios_neutros: number | null
+          comentarios_positivos: number | null
+          indice_positividade: number | null
+          mes_ano: string | null
+          mes_formatado: string | null
+          mes_nome: string | null
+          perc_negativos: number | null
+          perc_neutros: number | null
+          perc_positivos: number | null
+          primeira_analise: string | null
+          profile: string | null
+          score_sentimento: number | null
+          tendencia_mensal: string | null
+          total_comentarios: number | null
+          ultima_analise: string | null
+          usuarios_unicos: number | null
+        }
+        Relationships: []
+      }
       resumo_pesquisas_profile: {
         Row: {
           fontes_diferentes: number | null
@@ -594,6 +616,25 @@ export type Database = {
           total_pesquisas: number | null
           ultima_atualizacao: string | null
           ultima_pesquisa: string | null
+        }
+        Relationships: []
+      }
+      resumo_semanal_comments: {
+        Row: {
+          comentarios_negativos: number | null
+          comentarios_neutros: number | null
+          comentarios_positivos: number | null
+          perc_negativos: number | null
+          perc_neutros: number | null
+          perc_positivos: number | null
+          profile: string | null
+          score_sentimento: number | null
+          semana_fim: string | null
+          semana_inicio: string | null
+          tendencia_semanal: string | null
+          total_comentarios: number | null
+          ultima_analise: string | null
+          usuarios_unicos: number | null
         }
         Relationships: []
       }
