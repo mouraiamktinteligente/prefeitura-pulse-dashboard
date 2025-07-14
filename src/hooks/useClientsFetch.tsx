@@ -14,9 +14,11 @@ export const useClientsFetch = () => {
   const fetchClients = async () => {
     try {
       console.log('Buscando clientes...');
+      setLoading(true);
       
       if (!user) {
         console.log('Usuário não autenticado no sistema customizado');
+        setLoading(false);
         toast({
           title: "Erro de autenticação",
           description: "Usuário não autenticado",

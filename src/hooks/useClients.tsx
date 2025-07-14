@@ -33,17 +33,12 @@ export const useClients = () => {
 
   useEffect(() => {
     if (user) {
-      console.log('useEffect: Usuário autenticado, aguardando 2 segundos antes de buscar clientes...');
-      // Adicionar delay para evitar conflito com validação de sessão
-      const timer = setTimeout(() => {
-        fetchClients();
-      }, 2000);
-      
-      return () => clearTimeout(timer);
+      console.log('useEffect: Usuário autenticado, buscando clientes...');
+      fetchClients();
     } else {
       console.log('useEffect: Usuário não autenticado, definindo loading como false');
     }
-  }, [user]);
+  }, [user, fetchClients]);
 
   return {
     clients,
