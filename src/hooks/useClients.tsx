@@ -36,9 +36,9 @@ export const useClients = () => {
       console.log('useEffect: Usuário autenticado, buscando clientes...');
       fetchClients();
     } else {
-      console.log('useEffect: Usuário não autenticado, definindo loading como false');
+      console.log('useEffect: Usuário não autenticado');
     }
-  }, [user, fetchClients]);
+  }, [user]);
 
   return {
     clients,

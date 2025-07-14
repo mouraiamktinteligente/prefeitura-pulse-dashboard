@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +11,7 @@ export const useClientsFetch = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       console.log('Buscando clientes...');
       setLoading(true);
@@ -56,7 +56,7 @@ export const useClientsFetch = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   // Setup realtime subscription
   useEffect(() => {
