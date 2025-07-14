@@ -13,12 +13,11 @@ export const SatisfactionThermometer = () => {
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
-          🌡️ Termômetro de Satisfação
+          📊 Análise Pesquisa Qualitativa
         </CardTitle>
-        <p className="text-sm text-blue-300">Baseado nas últimas 24h</p>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-6">
           {/* Circular Thermometer */}
           <div className="relative w-56 h-32 overflow-hidden">
             {/* Background Arc */}
@@ -95,11 +94,6 @@ export const SatisfactionThermometer = () => {
             <p className="text-sm text-blue-300">Satisfação Popular</p>
           </div>
 
-          {/* Trend Indicator */}
-          <div className="flex items-center space-x-2 text-green-400">
-            <TrendingUp className="h-4 w-4" />
-            <span className="text-sm font-medium">+{trend}% vs ontem</span>
-          </div>
         </div>
       </CardContent>
     </Card>

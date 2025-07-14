@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingDown, MessageSquare, AlertTriangle, Smile, Meh, Frown } from 'lucide-react';
+import { TrendingDown, MessageSquare, AlertTriangle, Smile, Meh, Frown, Calendar } from 'lucide-react';
 
 interface MetricsCardsProps {
   totalComments?: number;
@@ -99,7 +99,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       title: 'Postagens Hoje',
       value: '24',
       period: 'publicações',
-      icon: TrendingDown,
+      icon: Calendar,
       color: 'text-orange-400'
     },
     {
