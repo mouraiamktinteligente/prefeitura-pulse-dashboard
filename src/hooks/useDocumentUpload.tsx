@@ -33,15 +33,11 @@ export const useDocumentUpload = () => {
     return timestamp;
   };
 
-  const uploadToGoogleDrive = async (file: File, clientName: string): Promise<{webViewLink: string, folderId: string} | null> => {
+  const uploadToGoogleDrive = async (file: File, folderId: string): Promise<{webViewLink: string, folderId: string} | null> => {
     try {
       console.log('=== INICIANDO UPLOAD PARA GOOGLE DRIVE ===');
       console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
-      console.log('Cliente (original):', clientName);
-      
-      // Sanitizar nome do cliente para consistência
-      const sanitizedClientName = sanitizeFileName(clientName);
-      console.log('Cliente (sanitizado):', sanitizedClientName);
+      console.log('ID da pasta Google Drive:', folderId);
 
       // Convert file to base64
       const fileData = await new Promise<string>((resolve, reject) => {
@@ -63,7 +59,7 @@ export const useDocumentUpload = () => {
         body: {
           fileName: file.name,
           fileData,
-          clientName: sanitizedClientName, // Usar nome sanitizado
+          folderId: folderId, // Usar ID da pasta diretamente
           mimeType: file.type,
         },
       });
@@ -103,6 +99,26 @@ export const useDocumentUpload = () => {
       console.log('Cliente Nome:', clienteNome);
       console.log('Arquivo:', file.name, 'Tamanho:', file.size);
 
+      // Buscar o id_folder_drive do cliente
+      console.log('📁 Buscando id_folder_drive do cliente...');
+      const { data: clienteData, error: clienteError } = await supabase
+        .from('cadastro_clientes')
+        .select('id_folder_drive')
+        .eq('id', clienteId)
+        .single();
+
+      if (clienteError) {
+        console.error('Erro ao buscar cliente:', clienteError);
+        throw new Error(`Erro ao buscar dados do cliente: ${clienteError.message}`);
+      }
+
+      if (!clienteData?.id_folder_drive) {
+        console.error('Cliente não possui id_folder_drive configurado');
+        throw new Error('Cliente não possui pasta do Google Drive configurada. Configure a pasta nas informações do cliente.');
+      }
+
+      console.log('✓ ID da pasta do Google Drive encontrado:', clienteData.id_folder_drive);
+
       const tipoArquivo = detectFileType(file);
       const originalName = file.name;
       const readableFileName = generateReadableFileName(originalName);
@@ -130,8 +146,8 @@ export const useDocumentUpload = () => {
             cacheControl: '3600',
             upsert: false
           }),
-        // Upload para Google Drive
-        uploadToGoogleDrive(file, clienteNome)
+        // Upload para Google Drive usando o id_folder_drive
+        uploadToGoogleDrive(file, clienteData.id_folder_drive)
       ]);
 
       // Verificar resultado do Supabase
