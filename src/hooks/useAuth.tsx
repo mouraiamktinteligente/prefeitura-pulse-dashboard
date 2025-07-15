@@ -234,8 +234,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     extendSession,
     forceTimeout
   } = useInactivityTimer({
-    timeout: 15 * 60 * 1000, // 15 minutos (CORRIGIDO)
-    warningTime: 2 * 60 * 1000, // 2 minutos de aviso
+    timeout: 15 * 60 * 1000, // 15 minutos
+    warningTime: 5 * 1000, // 5 segundos de aviso
     onWarning: () => {
       console.log('Aviso de inatividade mostrado');
     },

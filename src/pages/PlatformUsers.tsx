@@ -268,19 +268,20 @@ const PlatformUsers = () => {
                                <Edit className="w-4 h-4" />
                              </Button>
                              
-                             {/* Botão de Desconectar */}
-                             {isUserOnline(user.email || '') && (
-                               <AlertDialog>
-                                 <AlertDialogTrigger asChild>
-                                   <Button 
-                                     variant="outline" 
-                                     size="sm"
-                                     disabled={loadingSessions}
-                                     className="border-orange-600 text-orange-400 hover:bg-orange-700/50"
-                                   >
-                                     <LogOut className="w-4 h-4" />
-                                   </Button>
-                                 </AlertDialogTrigger>
+                              {/* Botão de Desconectar - apenas se não for admin conectado desconectando outro admin */}
+                              {isUserOnline(user.email || '') && 
+                               !(user?.tipo_usuario === 'administrador' && user.tipo_usuario === 'administrador') && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      disabled={loadingSessions}
+                                      className="border-orange-600 text-orange-400 hover:bg-orange-700/50"
+                                    >
+                                      <LogOut className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
                                  <AlertDialogContent className="bg-blue-800 border-blue-700">
                                    <AlertDialogHeader>
                                      <AlertDialogTitle className="text-white">Desconectar usuário</AlertDialogTitle>

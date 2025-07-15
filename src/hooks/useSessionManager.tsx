@@ -167,13 +167,13 @@ export const useSessionManager = () => {
         .update({ status_conexao: 'conectado' })
         .eq('email', userEmail);
 
-      // Criar nova sessão - 30 minutos
+      // Criar nova sessão - 15 minutos
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
           user_email: userEmail,
           last_activity: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutos
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
         })
         .select()
         .single();
@@ -291,7 +291,7 @@ export const useSessionManager = () => {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) return;
 
-      const newExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // CORRIGIDO para 30 minutos
+      const newExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
 
       const { error } = await supabase
         .from('sessoes_ativas')
@@ -342,7 +342,49 @@ export const useSessionManager = () => {
 
   const disconnectUserByAdmin = useCallback(async (targetEmail: string, adminEmail: string): Promise<boolean> => {
     try {
-      console.log(`Admin ${adminEmail} desconectando usuário ${targetEmail}`);
+      console.log(`Admin ${adminEmail} tentando desconectar usuário ${targetEmail}`);
+
+      // Verificar se ambos os usuários existem e suas permissões
+      const { data: targetUser } = await supabase
+        .from('usuarios_sistema')
+        .select('tipo_usuario, nome_completo')
+        .eq('email', targetEmail)
+        .maybeSingle();
+
+      const { data: adminUser } = await supabase
+        .from('usuarios_sistema')
+        .select('tipo_usuario')
+        .eq('email', adminEmail)
+        .maybeSingle();
+
+      if (!targetUser || !adminUser) {
+        toast({
+          title: "Erro",
+          description: "Usuário não encontrado.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Validar permissões: admin não pode desconectar outro admin
+      if (adminUser.tipo_usuario === 'administrador' && targetUser.tipo_usuario === 'administrador') {
+        toast({
+          title: "Acesso Negado",
+          description: "Administradores não podem desconectar outros administradores.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Apenas admins podem desconectar usuários
+      if (adminUser.tipo_usuario !== 'administrador') {
+        toast({
+          title: "Acesso Negado",
+          description: "Apenas administradores podem desconectar usuários.",
+          variant: "destructive"
+        });
+        return false;
+      }
 
       // 1. PRIMEIRO: Marcar usuário como desconectado (fonte única da verdade)
       const { error: userError } = await supabase

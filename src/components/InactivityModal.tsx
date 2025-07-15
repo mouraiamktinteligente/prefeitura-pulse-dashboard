@@ -40,7 +40,7 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
           </div>
           <AlertDialogDescription className="space-y-2">
             <p>
-              Você está inativo há um tempo. Sua sessão expirará em breve por motivos de segurança.
+              Deseja se manter conectado?
             </p>
             {timeUntilExpiry > 0 && (
               <div className="text-center">
@@ -52,9 +52,13 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
                 </div>
               </div>
             )}
-            <p className="text-sm">
-              Deseja continuar logado ou sair agora?
-            </p>
+            {timeUntilExpiry === 0 && (
+              <div className="text-center py-2">
+                <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                  Sessão encerrada
+                </div>
+              </div>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
@@ -67,8 +71,9 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
           <AlertDialogAction 
             onClick={onContinue}
             className="sm:w-auto bg-blue-600 hover:bg-blue-700"
+            disabled={timeUntilExpiry === 0}
           >
-            Continuar Logado
+            Sim
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
