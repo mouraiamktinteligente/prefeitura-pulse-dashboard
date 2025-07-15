@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
-import { BarChart3 } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface SentimentAnalysisProps {
   clientId?: string;
@@ -224,9 +224,9 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
               variant="secondary"
               size="sm"
               onClick={onGerarAnalise}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 font-medium"
+              className="bg-green-600 hover:bg-green-700 text-white border-0 font-medium rounded-md px-4 py-2"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4 mr-2" />
               Gerar Análise
             </Button>
           </div>
