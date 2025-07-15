@@ -23,7 +23,10 @@ import {
   XCircle,
   AlertCircle,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Users,
+  Globe,
+  BarChart
 } from 'lucide-react';
 
 const ClientDetails = () => {
@@ -31,7 +34,22 @@ const ClientDetails = () => {
   const navigate = useNavigate();
   const { clients, loading: clientsLoading } = useClients();
   const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
-  const { relatoriosInstagram, loading: relatoriosLoading, fetchRelatoriosInstagram, deleteRelatorioInstagram, downloadRelatorio } = useRelatoriosAnalise();
+  const { 
+    relatoriosInstagram, 
+    relatoriosPrefeito, 
+    relatoriosWeb, 
+    relatoriosQualitativo, 
+    loading: relatoriosLoading, 
+    fetchRelatoriosInstagram, 
+    fetchRelatoriosPrefeito, 
+    fetchRelatoriosWeb, 
+    fetchRelatoriosQualitativo, 
+    deleteRelatorioInstagram, 
+    deleteRelatorioPrefeito, 
+    deleteRelatorioWeb, 
+    deleteRelatorioQualitativo, 
+    downloadRelatorio 
+  } = useRelatoriosAnalise();
   const { toast } = useToast();
 
   const client = clients.find(c => c.id === clientId);
@@ -45,8 +63,11 @@ const ClientDetails = () => {
   useEffect(() => {
     if (client?.instagram) {
       fetchRelatoriosInstagram(client.instagram);
+      fetchRelatoriosPrefeito(client.instagram);
+      fetchRelatoriosWeb(client.instagram);
+      fetchRelatoriosQualitativo(client.instagram);
     }
-  }, [client?.instagram]); // Buscar relatórios quando o Instagram estiver disponível
+  }, [client?.instagram]); // Buscar todos os relatórios quando o Instagram estiver disponível
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -414,7 +435,7 @@ const ClientDetails = () => {
               </div>
             ) : relatoriosLoading ? (
               <p className="text-slate-400">Carregando relatórios...</p>
-            ) : relatoriosInstagram.length === 0 ? (
+            ) : (relatoriosInstagram.length === 0 && relatoriosPrefeito.length === 0 && relatoriosWeb.length === 0 && relatoriosQualitativo.length === 0) ? (
               <div className="text-center py-8">
                 <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                 <p className="text-slate-400 mb-2">Nenhum relatório encontrado</p>
@@ -423,92 +444,378 @@ const ClientDetails = () => {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {relatoriosInstagram.map((relatorio) => (
-                  <div
-                    key={relatorio.id}
-                    className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="w-5 h-5 text-slate-400" />
-                        <div>
-                          <p className="font-medium text-slate-200">
-                            Relatório da Análise de Sentimento do Instagram
-                          </p>
-                          <p className="text-sm text-slate-400">
-                            PDF • {client.nome_completo} • Criado em{' '}
-                            {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
-                          </p>
-                          <p className="text-xs text-green-400 flex items-center mt-1">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
-                            {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </p>
+              <div className="space-y-6">
+                {/* Relatórios Instagram */}
+                {relatoriosInstagram.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                      <Instagram className="w-5 h-5 text-pink-400" />
+                      <span>Relatórios Instagram</span>
+                    </h4>
+                    {relatoriosInstagram.map((relatorio) => (
+                      <div
+                        key={relatorio.id}
+                        className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <Instagram className="w-5 h-5 text-pink-400" />
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                Relatório da Análise de Sentimento do Instagram
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                PDF • {client.nome_completo} • Criado em{' '}
+                                {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-green-400 flex items-center mt-1">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                                {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="ml-1">Concluído</span>
+                          </Badge>
+                          
+                          {relatorio.link_relatorio && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadRelatorio(relatorio)}
+                              className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar Relatório</span>
+                            </Button>
+                          )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Deletar</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-slate-200">
+                                  Confirmar exclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                  Tem certeza que deseja deletar este relatório de análise de sentimento do Instagram? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteRelatorioInstagram(relatorio)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="ml-1">Concluído</span>
-                      </Badge>
-                      
-                      {/* Botão Baixar Relatório */}
-                      {relatorio.link_relatorio && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => downloadRelatorio(relatorio)}
-                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Baixar Relatório</span>
-                        </Button>
-                      )}
-                      
-                      {/* Botão Deletar */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span>Deletar</span>
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-slate-900 border-slate-700">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-slate-200">
-                              Confirmar exclusão
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="text-slate-400">
-                              Tem certeza que deseja deletar este relatório de análise de sentimento do Instagram? 
-                              Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
-                              Cancelar
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteRelatorioInstagram(relatorio)}
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              Deletar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* Relatórios Prefeito */}
+                {relatoriosPrefeito.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                      <Users className="w-5 h-5 text-blue-400" />
+                      <span>Relatórios de Análise do Prefeito</span>
+                    </h4>
+                    {relatoriosPrefeito.map((relatorio) => (
+                      <div
+                        key={relatorio.id}
+                        className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <Users className="w-5 h-5 text-blue-400" />
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                Relatório de Análise do Prefeito
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                PDF • {client.nome_completo} • Criado em{' '}
+                                {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-green-400 flex items-center mt-1">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                                {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="ml-1">Concluído</span>
+                          </Badge>
+                          
+                          {relatorio.link_relatorio && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadRelatorio(relatorio)}
+                              className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar Relatório</span>
+                            </Button>
+                          )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Deletar</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-slate-200">
+                                  Confirmar exclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                  Tem certeza que deseja deletar este relatório de análise do prefeito? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteRelatorioPrefeito(relatorio)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Relatórios Web */}
+                {relatoriosWeb.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                      <Globe className="w-5 h-5 text-green-400" />
+                      <span>Relatórios de Análise Web</span>
+                    </h4>
+                    {relatoriosWeb.map((relatorio) => (
+                      <div
+                        key={relatorio.id}
+                        className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-green-400" />
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                Relatório de Análise Web
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                PDF • {client.nome_completo} • Criado em{' '}
+                                {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-green-400 flex items-center mt-1">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                                {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="ml-1">Concluído</span>
+                          </Badge>
+                          
+                          {relatorio.link_relatorio && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadRelatorio(relatorio)}
+                              className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar Relatório</span>
+                            </Button>
+                          )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Deletar</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-slate-200">
+                                  Confirmar exclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                  Tem certeza que deseja deletar este relatório de análise web? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteRelatorioWeb(relatorio)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Relatórios Qualitativos */}
+                {relatoriosQualitativo.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                      <BarChart className="w-5 h-5 text-purple-400" />
+                      <span>Relatórios Qualitativos</span>
+                    </h4>
+                    {relatoriosQualitativo.map((relatorio) => (
+                      <div
+                        key={relatorio.id}
+                        className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <BarChart className="w-5 h-5 text-purple-400" />
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                Relatório Qualitativo
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                PDF • {client.nome_completo} • Criado em{' '}
+                                {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-green-400 flex items-center mt-1">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                                {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="ml-1">Concluído</span>
+                          </Badge>
+                          
+                          {relatorio.link_relatorio && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadRelatorio(relatorio)}
+                              className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar Relatório</span>
+                            </Button>
+                          )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Deletar</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-slate-200">
+                                  Confirmar exclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                  Tem certeza que deseja deletar este relatório qualitativo? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteRelatorioQualitativo(relatorio)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
