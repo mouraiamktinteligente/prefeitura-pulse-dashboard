@@ -168,7 +168,7 @@ export const DocumentUpload = () => {
                   Formatos aceitos: PDF, TXT, JPG, PNG (máx. 50MB)
                 </p>
                 <p className="text-slate-500 text-sm mb-4">
-                  O arquivo será salvo automaticamente no Google Drive na pasta do cliente
+                  O arquivo será salvo automaticamente no Supabase Storage
                 </p>
                 <Button 
                   onClick={handleFileSelect}
@@ -231,12 +231,6 @@ export const DocumentUpload = () => {
                               })}
                             </p>
                           )}
-                          {documento.google_drive_url && (
-                            <p className="text-xs text-green-400 flex items-center mt-1">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Salvo no Google Drive
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -244,18 +238,6 @@ export const DocumentUpload = () => {
                     <div className="flex items-center space-x-3">
                       {getStatusBadge(documento.status)}
                       
-                      {/* Botão Google Drive */}
-                      {documento.google_drive_url && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(documento.google_drive_url!, '_blank')}
-                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          <span>Google Drive</span>
-                        </Button>
-                      )}
                       
                       {/* Botão Baixar Análise */}
                       {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_analise && (
@@ -289,8 +271,7 @@ export const DocumentUpload = () => {
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-slate-400">
                               Tem certeza que deseja deletar o documento "{documento.nome_arquivo}" do cliente {documento.nome_cliente}? 
-                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente do Supabase
-                              {documento.google_drive_url ? ' (o arquivo permanecerá no Google Drive)' : ''}.
+                              Esta ação não pode ser desfeita e o arquivo será removido permanentemente do Supabase.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
