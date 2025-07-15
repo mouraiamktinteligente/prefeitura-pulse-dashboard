@@ -1,19 +1,11 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useSessionManager } from "./useSessionManager";
 import { useActivityDetector } from "./useActivityDetector";
 import { useInactivityTimer } from "./useInactivityTimer";
 import { useSecurityInterceptor } from "./useSecurityInterceptor";
 import { InactivityModal } from "@/components/InactivityModal";
-
-interface AuthContextType {
-  user: any | null;
-  logout: (reason?: string) => Promise<void>;
-  isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from "@/contexts/AuthContext";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
@@ -465,12 +457,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       )}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

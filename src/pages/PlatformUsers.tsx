@@ -13,7 +13,7 @@ import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
 import { UserForm } from "@/components/UserForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
 import { useSessionManager } from "@/hooks/useSessionManager";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];

@@ -1,6 +1,6 @@
 
 import { useEffect, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useClientsFetch } from './useClientsFetch';
 import { useClientOperations } from './useClientOperations';
 import type { Database } from '@/integrations/supabase/types';

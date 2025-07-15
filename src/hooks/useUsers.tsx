@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMovimentacoes } from '@/hooks/useMovimentacoes';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from "@/integrations/supabase/types";
 
 // Tipo para inserção que corresponde ao schema do Supabase
