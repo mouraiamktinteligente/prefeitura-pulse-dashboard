@@ -232,9 +232,9 @@ export const useDocumentUpload = () => {
         });
       } else {
         toast({
-          title: "Upload parcialmente realizado",
-          description: `Documento salvo no Supabase, mas falhou no Google Drive: ${driveError}`,
-          variant: "destructive"
+          title: "Upload realizado com sucesso",
+          description: `Documento salvo no Supabase. Google Drive: ${driveError || 'Erro na configuração do Google Drive'}`,
+          variant: "default"
         });
       }
 

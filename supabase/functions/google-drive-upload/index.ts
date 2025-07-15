@@ -68,7 +68,7 @@ async function getAccessToken(): Promise<string> {
 
   const payload = {
     iss: clientEmail,
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    scope: 'https://www.googleapis.com/auth/drive',
     aud: 'https://oauth2.googleapis.com/token',
     exp: exp,
     iat: now
@@ -167,7 +167,7 @@ async function uploadFile(accessToken: string, folderId: string, fileName: strin
 
     console.log('📤 Enviando arquivo para Google Drive...');
 
-    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
+    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink&supportsAllDrives=true', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
