@@ -1,59 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  useHistoricoSentimentoDiario, 
+  useHistoricoSentimentoSemanal, 
+  useHistoricoSentimentoMensal,
+  calculateSentimentScore 
+} from '@/hooks/useHistoricoSentimento';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-export const EngagementChart = () => {
+interface EngagementChartProps {
+  profile?: string;
+}
+
+export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('semanal');
   const [selectedYear, setSelectedYear] = useState('2024');
   const [selectedInitialMonth, setSelectedInitialMonth] = useState('0'); // Janeiro = 0
 
-  // Dados de exemplo para diferentes períodos
-  const dailyData = [
-    { period: 'Seg', sentiment: 7.2 },
-    { period: 'Ter', sentiment: 6.8 },
-    { period: 'Qua', sentiment: 8.1 },
-    { period: 'Qui', sentiment: 7.5 },
-    { period: 'Sex', sentiment: 8.9 },
-    { period: 'Sáb', sentiment: 6.3 },
-    { period: 'Dom', sentiment: 5.8 }
-  ];
+  // Hooks para buscar dados reais
+  const { data: dailyData, isLoading: loadingDaily } = useHistoricoSentimentoDiario(profile);
+  const { data: weeklyData, isLoading: loadingWeekly } = useHistoricoSentimentoSemanal(profile);
+  const { data: monthlyData, isLoading: loadingMonthly } = useHistoricoSentimentoMensal(profile, selectedYear);
 
-  const weeklyData = [
-    { period: 'S1', sentiment: 7.1 },
-    { period: 'S2', sentiment: 6.9 },
-    { period: 'S3', sentiment: 8.2 },
-    { period: 'S4', sentiment: 7.8 }
-  ];
-
-  const allMonthlyData = [
-    { period: 'Jan', sentiment: 6.8 },
-    { period: 'Fev', sentiment: 7.2 },
-    { period: 'Mar', sentiment: 7.9 },
-    { period: 'Abr', sentiment: 8.1 },
-    { period: 'Mai', sentiment: 7.6 },
-    { period: 'Jun', sentiment: 8.3 },
-    { period: 'Jul', sentiment: 7.9 },
-    { period: 'Ago', sentiment: 8.2 },
-    { period: 'Set', sentiment: 7.4 },
-    { period: 'Out', sentiment: 8.0 },
-    { period: 'Nov', sentiment: 7.7 },
-    { period: 'Dez', sentiment: 8.5 }
-  ];
-
-  const getMonthlyData = () => {
-    const initialMonthIndex = parseInt(selectedInitialMonth);
-    const months = [];
+  // Processar dados diários
+  const processedDailyData = useMemo(() => {
+    if (!dailyData?.length) return [];
     
-    for (let i = 0; i < 6; i++) {
-      const monthIndex = (initialMonthIndex + i) % 12;
-      if (allMonthlyData[monthIndex]) {
-        months.push(allMonthlyData[monthIndex]);
-      }
-    }
+    return dailyData.slice(-7).map(item => ({
+      period: item.data_brasileira ? format(new Date(item.data_analise!), 'dd/MM', { locale: ptBR }) : 'N/A',
+      sentiment: item.score_sentimento || calculateSentimentScore(
+        item.comentarios_positivos || 0,
+        item.comentarios_neutros || 0,
+        item.comentarios_negativos || 0
+      ),
+      totalComments: item.total_comentarios || 0,
+      positivos: item.comentarios_positivos || 0,
+      neutros: item.comentarios_neutros || 0,
+      negativos: item.comentarios_negativos || 0
+    }));
+  }, [dailyData]);
+
+  // Processar dados semanais
+  const processedWeeklyData = useMemo(() => {
+    if (!weeklyData?.length) return [];
+    
+    return weeklyData.slice(-4).map((item, index) => ({
+      period: `S${index + 1}`,
+      sentiment: item.score_sentimento || calculateSentimentScore(
+        item.comentarios_positivos || 0,
+        item.comentarios_neutros || 0,
+        item.comentarios_negativos || 0
+      ),
+      totalComments: item.total_comentarios || 0,
+      positivos: item.comentarios_positivos || 0,
+      neutros: item.comentarios_neutros || 0,
+      negativos: item.comentarios_negativos || 0
+    }));
+  }, [weeklyData]);
+
+  // Processar dados mensais
+  const processedMonthlyData = useMemo(() => {
+    if (!monthlyData?.length) return [];
+    
+    const initialMonthIndex = parseInt(selectedInitialMonth);
+    const months = monthlyData
+      .filter(item => {
+        if (!item.mes_ano) return false;
+        const itemMonth = new Date(item.mes_ano).getMonth();
+        return itemMonth >= initialMonthIndex;
+      })
+      .slice(0, 6)
+      .map(item => ({
+        period: item.mes_nome || format(new Date(item.mes_ano!), 'MMM', { locale: ptBR }),
+        sentiment: item.score_sentimento || calculateSentimentScore(
+          item.comentarios_positivos || 0,
+          item.comentarios_neutros || 0,
+          item.comentarios_negativos || 0
+        ),
+        totalComments: item.total_comentarios || 0,
+        positivos: item.comentarios_positivos || 0,
+        neutros: item.comentarios_neutros || 0,
+        negativos: item.comentarios_negativos || 0
+      }));
     
     return months;
-  };
+  }, [monthlyData, selectedInitialMonth]);
 
   const getMonthOptions = () => {
     const monthNames = [
@@ -66,13 +100,26 @@ export const EngagementChart = () => {
   const getCurrentData = () => {
     switch (selectedPeriod) {
       case 'diario':
-        return dailyData;
+        return processedDailyData;
       case 'semanal':
-        return weeklyData;
+        return processedWeeklyData;
       case 'mensal':
-        return getMonthlyData();
+        return processedMonthlyData;
       default:
-        return weeklyData;
+        return processedWeeklyData;
+    }
+  };
+
+  const isLoading = () => {
+    switch (selectedPeriod) {
+      case 'diario':
+        return loadingDaily;
+      case 'semanal':
+        return loadingWeekly;
+      case 'mensal':
+        return loadingMonthly;
+      default:
+        return false;
     }
   };
 
@@ -100,8 +147,13 @@ export const EngagementChart = () => {
       </CardHeader>
       <CardContent className="pb-2">
         <div className="h-40 mb-3">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={currentData}>
+          {isLoading() ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-blue-300">Carregando dados...</div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={currentData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="period" stroke="#93c5fd" fontSize={12} />
               <YAxis 
@@ -117,15 +169,29 @@ export const EngagementChart = () => {
                   borderRadius: '8px',
                   color: 'white'
                 }}
-                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Score de Sentimento']}
+                formatter={(value: number, name: string, props: any) => {
+                  const data = props.payload;
+                  return [
+                    `${value.toFixed(1)}/10`,
+                    'Score de Sentimento'
+                  ];
+                }}
+                labelFormatter={(label: string, payload: any[]) => {
+                  if (payload?.length > 0) {
+                    const data = payload[0].payload;
+                    return `${label} - ${data.totalComments || 0} comentários`;
+                  }
+                  return label;
+                }}
               />
               <Bar 
                 dataKey="sentiment" 
                 fill="#60a5fa"
                 radius={[4, 4, 0, 0]}
               />
-            </BarChart>
-          </ResponsiveContainer>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Seletor de Período */}
