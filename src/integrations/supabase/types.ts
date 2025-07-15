@@ -546,18 +546,24 @@ export type Database = {
           created_at: string
           id: number
           link_relatorio: string | null
+          nome: string | null
+          nome_documento: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Relationships: []
@@ -567,18 +573,24 @@ export type Database = {
           created_at: string
           id: number
           link_relatorio: string | null
+          nome: string | null
+          nome_documento: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Relationships: []
@@ -588,18 +600,24 @@ export type Database = {
           created_at: string
           id: number
           link_relatorio: string | null
+          nome: string | null
+          nome_documento: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Relationships: []
@@ -609,18 +627,24 @@ export type Database = {
           created_at: string
           id: number
           link_relatorio: string | null
+          nome: string | null
+          nome_documento: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           link_relatorio?: string | null
+          nome?: string | null
+          nome_documento?: string | null
           profile?: string | null
         }
         Relationships: []

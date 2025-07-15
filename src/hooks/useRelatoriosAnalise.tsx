@@ -7,6 +7,8 @@ interface RelatorioAnaliseInstagram {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  nome?: string;
+  nome_documento?: string;
 }
 
 interface RelatorioAnalisePrefeito {
@@ -14,6 +16,8 @@ interface RelatorioAnalisePrefeito {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  nome?: string;
+  nome_documento?: string;
 }
 
 interface RelatorioAnaliseWeb {
@@ -21,6 +25,8 @@ interface RelatorioAnaliseWeb {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  nome?: string;
+  nome_documento?: string;
 }
 
 interface RelatorioQualitativo {
@@ -28,6 +34,8 @@ interface RelatorioQualitativo {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  nome?: string;
+  nome_documento?: string;
 }
 
 export const useRelatoriosAnalise = () => {
@@ -106,15 +114,22 @@ export const useRelatoriosAnalise = () => {
 
   // Funções para Relatório de Análise do Prefeito
   const fetchRelatoriosPrefeito = async (instagramProfile?: string) => {
-    if (!instagramProfile) return;
+    console.log('DEBUG: fetchRelatoriosPrefeito chamado com profile:', instagramProfile);
+    if (!instagramProfile) {
+      console.log('DEBUG: profile não fornecido, saindo...');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('DEBUG: Fazendo query na tabela relatorio_analise_prefeito...');
       const { data, error } = await supabase
         .from('relatorio_analise_prefeito')
         .select('*')
         .eq('profile', instagramProfile)
         .order('created_at', { ascending: false });
+
+      console.log('DEBUG: Resultado da query prefeito:', { data, error });
 
       if (error) {
         console.error('Erro ao buscar relatórios do Prefeito:', error);
@@ -126,6 +141,7 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
+      console.log('DEBUG: Dados encontrados para Prefeito:', data?.length || 0, 'itens');
       setRelatoriosPrefeito(data || []);
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -173,15 +189,22 @@ export const useRelatoriosAnalise = () => {
 
   // Funções para Relatório de Análise Web
   const fetchRelatoriosWeb = async (instagramProfile?: string) => {
-    if (!instagramProfile) return;
+    console.log('DEBUG: fetchRelatoriosWeb chamado com profile:', instagramProfile);
+    if (!instagramProfile) {
+      console.log('DEBUG: profile não fornecido, saindo...');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('DEBUG: Fazendo query na tabela relatorio_analise_web...');
       const { data, error } = await supabase
         .from('relatorio_analise_web')
         .select('*')
         .eq('profile', instagramProfile)
         .order('created_at', { ascending: false });
+
+      console.log('DEBUG: Resultado da query web:', { data, error });
 
       if (error) {
         console.error('Erro ao buscar relatórios Web:', error);
@@ -193,6 +216,7 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
+      console.log('DEBUG: Dados encontrados para Web:', data?.length || 0, 'itens');
       setRelatoriosWeb(data || []);
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -240,15 +264,22 @@ export const useRelatoriosAnalise = () => {
 
   // Funções para Relatório Qualitativo
   const fetchRelatoriosQualitativo = async (instagramProfile?: string) => {
-    if (!instagramProfile) return;
+    console.log('DEBUG: fetchRelatoriosQualitativo chamado com profile:', instagramProfile);
+    if (!instagramProfile) {
+      console.log('DEBUG: profile não fornecido, saindo...');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('DEBUG: Fazendo query na tabela relatorio_qualitativo...');
       const { data, error } = await supabase
         .from('relatorio_qualitativo')
         .select('*')
         .eq('profile', instagramProfile)
         .order('created_at', { ascending: false });
+
+      console.log('DEBUG: Resultado da query qualitativo:', { data, error });
 
       if (error) {
         console.error('Erro ao buscar relatórios Qualitativos:', error);
@@ -260,6 +291,7 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
+      console.log('DEBUG: Dados encontrados para Qualitativo:', data?.length || 0, 'itens');
       setRelatoriosQualitativo(data || []);
     } catch (error) {
       console.error('Erro inesperado:', error);
