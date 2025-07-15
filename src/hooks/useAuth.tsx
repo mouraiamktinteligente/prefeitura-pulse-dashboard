@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useSessionManager } from "./useSessionManager";
-import { useActivityDetector } from "./useActivityDetector";
-import { useInactivityTimer } from "./useInactivityTimer";
-import { useSecurityInterceptor } from "./useSecurityInterceptor";
-import { InactivityModal } from "@/components/InactivityModal";
 import { AuthContext } from "@/contexts/auth";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -15,16 +11,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   const sessionManager = useSessionManager();
 
-  // Sistema de interceptação de segurança - DESABILITADO durante refresh
-  const { forceSecurityCheck } = useSecurityInterceptor({
-    userEmail: user?.email || null,
-    onForceLogout: (reason: string) => {
-      if (!isRefreshing) {
-        console.log('Interceptador forçou logout:', reason);
-        logout(reason);
-      }
-    }
-  });
 
   // Função para obter o IP real do usuário
   const getRealIP = async (): Promise<string | null> => {
@@ -218,69 +204,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Timer de inatividade - CORRIGIDO para 15 minutos
-  const {
-    isWarningShown,
-    timeUntilExpiry,
-    resetTimer,
-    extendSession,
-    forceTimeout
-  } = useInactivityTimer({
-    timeout: 15 * 60 * 1000, // 15 minutos
-    warningTime: 5 * 1000, // 5 segundos de aviso
-    onWarning: () => {
-      console.log('Aviso de inatividade mostrado');
-    },
-    onTimeout: () => {
-      logout('Sessão encerrada por inatividade'); // MENSAGEM CORRIGIDA
-    },
-    enabled: !!user
-  });
 
-  // Detector de atividade
-  useActivityDetector({
-    onActivity: () => {
-      if (user?.email) {
-        sessionManager.updateActivity(user.email);
-        resetTimer();
-      }
-    },
-    throttleMs: 30000 // 30 segundos
-  });
-
-  // Verificação periódica de sessão - DESABILITADA durante refresh
-  useEffect(() => {
-    if (!user?.email || isRefreshing) return;
-
-    const checkSession = async () => {
-      try {
-        if (isRefreshing) return; // Double check
-        
-        const isValid = await sessionManager.validateSession(user.email);
-        
-        if (!isValid && !isRefreshing) {
-          console.log('Sessão inválida detectada - forçando logout');
-          logout('Sessão desconectada');
-        }
-      } catch (error) {
-        console.error('Erro na verificação de sessão:', error);
-        if (!isRefreshing) {
-          logout('Erro na validação de sessão');
-        }
-      }
-    };
-
-    // Verificação inicial em 30 segundos (dar mais tempo para inicialização)
-    const initialCheck = setTimeout(checkSession, 30000);
-
-    // Verificar a cada 30 segundos (menos agressivo)
-    const interval = setInterval(checkSession, 30000);
-    
-    return () => {
-      clearTimeout(initialCheck);
-      clearInterval(interval);
-    };
-  }, [user?.email, sessionManager, isRefreshing]);
 
   // Listener MÚLTIPLO para desconexão forçada por admin
   useEffect(() => {
@@ -375,8 +299,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 .update({ status_conexao: 'conectado' })
                 .eq('email', parsedUser.email);
               
-              // Atualizar atividade da sessão
-              await sessionManager.updateActivity(parsedUser.email);
               
               setUser(parsedUser);
               setForceLogoutReason(null);
@@ -434,13 +356,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthContext.Provider value={{ user, logout, isLoading, signIn }}>
       {children}
-      
-      <InactivityModal
-        isOpen={isWarningShown}
-        timeUntilExpiry={timeUntilExpiry}
-        onContinue={extendSession}
-        onLogout={() => forceTimeout()}
-      />
       
       {forceLogoutReason && (
         <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50 shadow-lg">

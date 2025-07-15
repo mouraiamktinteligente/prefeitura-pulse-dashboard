@@ -167,13 +167,13 @@ export const useSessionManager = () => {
         .update({ status_conexao: 'conectado' })
         .eq('email', userEmail);
 
-      // Criar nova sessão - 15 minutos
+      // Criar nova sessão sem expiração automática
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
           user_email: userEmail,
           last_activity: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 ano (sessão indefinida)
         })
         .select()
         .single();
@@ -193,52 +193,33 @@ export const useSessionManager = () => {
     }
   }, []);
 
-  const validateSession = useCallback(async (userEmail: string, retryCount: number = 0): Promise<boolean> => {
+  // Função simplificada para validação básica de sessão (apenas para casos específicos)
+  const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
     try {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) {
-        console.log('validateSession: Nenhum token encontrado');
         return false;
       }
 
-      console.log('validateSession: Validando sessão para:', userEmail, 'tentativa:', retryCount + 1);
-
-      // Implementar retry com limite
-      const maxRetries = 2;
-      if (retryCount >= maxRetries) {
-        console.log('validateSession: Máximo de tentativas atingido');
-        await registerAccessLog(userEmail, 'erro_sessao');
-        return false;
-      }
-
-      // CRÍTICO: Verificar primeiro se o usuário está marcado como conectado
+      // Verificar se usuário está ativo
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
         .select('status_conexao, ativo')
         .eq('email', userEmail)
         .maybeSingle();
 
-      if (userError || !userData) {
-        console.log('validateSession: Erro ao verificar status do usuário ou usuário não encontrado, tentativa:', retryCount + 1);
-        if (retryCount < maxRetries) {
-          console.log('validateSession: Tentando novamente em 2 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          return validateSession(userEmail, retryCount + 1);
-        }
-        await registerAccessLog(userEmail, 'erro_sessao');
+      if (userError || !userData || !userData.ativo) {
         return false;
       }
 
-      // Se usuário inativo ou desconectado, invalidar imediatamente
-      if (!userData.ativo || userData.status_conexao !== 'conectado') {
-        console.log('validateSession: Usuário inativo ou marcado como desconectado');
+      // Se usuário foi desconectado por admin, limpar dados locais
+      if (userData.status_conexao === 'desconectado') {
         localStorage.removeItem('session_token');
         localStorage.removeItem('auth_user');
-        await registerAccessLog(userEmail, userData.status_conexao === 'desconectado' ? 'desconectado_admin' : 'erro_sessao');
         return false;
       }
 
-      // Verificar sessão ativa
+      // Verificar se sessão ainda existe e está ativa
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .select('*')
@@ -247,69 +228,18 @@ export const useSessionManager = () => {
         .eq('ativo', true)
         .maybeSingle();
 
-      if (error) {
-        console.error('Erro ao validar sessão:', error, 'tentativa:', retryCount + 1);
-        if (retryCount < maxRetries) {
-          console.log('validateSession: Tentando novamente em 2 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          return validateSession(userEmail, retryCount + 1);
-        }
-        await registerAccessLog(userEmail, 'erro_sessao');
+      if (error || !data) {
         return false;
       }
 
-      if (!data) {
-        console.log('validateSession: Sessão não encontrada ou inativa na base de dados');
-        localStorage.removeItem('session_token');
-        localStorage.removeItem('auth_user');
-        await registerAccessLog(userEmail, 'erro_sessao');
-        return false;
-      }
-
-      // Verificar se sessão expirou
-      const now = new Date();
-      const expiresAt = new Date(data.expires_at);
-      
-      if (now > expiresAt) {
-        console.log('validateSession: Sessão expirada');
-        await invalidateSession(userEmail, 'timeout');
-        return false;
-      }
-
-      console.log('validateSession: Sessão válida');
       setCurrentSession(data);
       return true;
     } catch (error) {
       console.error('Erro ao validar sessão:', error);
-      await registerAccessLog(userEmail, 'erro_sessao');
       return false;
     }
   }, []);
 
-  const updateActivity = useCallback(async (userEmail: string): Promise<void> => {
-    try {
-      const sessionToken = localStorage.getItem('session_token');
-      if (!sessionToken) return;
-
-      const newExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
-
-      const { error } = await supabase
-        .from('sessoes_ativas')
-        .update({
-          last_activity: new Date().toISOString(),
-          expires_at: newExpiresAt
-        })
-        .eq('user_email', userEmail)
-        .eq('session_token', sessionToken)
-        .eq('ativo', true);
-
-      if (error) {
-        console.error('Erro ao atualizar atividade:', error);
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar atividade:', error);
-    }
-  }, []);
 
   const invalidateSession = useCallback(async (userEmail: string, motivo: 'logout' | 'timeout' | 'erro_sessao' | 'desconectado_admin' = 'logout'): Promise<void> => {
     try {
@@ -513,7 +443,6 @@ export const useSessionManager = () => {
     currentSession,
     createSession,
     validateSession,
-    updateActivity,
     invalidateSession,
     disconnectUserByAdmin,
     getActiveUsers,
