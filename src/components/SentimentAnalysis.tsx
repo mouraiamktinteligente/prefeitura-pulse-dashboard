@@ -1,19 +1,23 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useParams } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
+import { BarChart3 } from 'lucide-react';
 
 interface SentimentAnalysisProps {
   clientId?: string;
   compact?: boolean;
+  onGerarAnalise?: () => void;
 }
 
 export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({ 
   clientId: propClientId, 
-  compact = false 
+  compact = false,
+  onGerarAnalise
 }) => {
   const { clientId: paramClientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
@@ -101,8 +105,8 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   // Versão compacta para ClientCard
   if (compact) {
     return (
-      <div className="h-full flex flex-col items-center justify-center">
-        <div className="w-24 h-24">
+      <div className="h-full flex flex-col items-center justify-between">
+        <div className="w-20 h-20">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -110,7 +114,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
                 cx="50%"
                 cy="50%"
                 innerRadius={0}
-                outerRadius={48}
+                outerRadius={40}
                 dataKey="value"
                 startAngle={90}
                 endAngle={450}
@@ -129,21 +133,46 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </ResponsiveContainer>
         </div>
         
-        {/* Legenda completa para versão compacta */}
-        <div className="flex gap-2 mt-2 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
-            <span className="text-muted-foreground">Positivo: {data.find(d => d.name === 'Positivo')?.value || 0}%</span>
+        {/* Legenda mais compacta */}
+        <div className="space-y-1 text-xs w-full">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+              <span className="text-white">Positivo</span>
+            </div>
+            <span className="text-white font-semibold">{data.find(d => d.name === 'Positivo')?.value || 0}%</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
-            <span className="text-muted-foreground">Neutro: {data.find(d => d.name === 'Neutro')?.value || 0}%</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+              <span className="text-white">Neutro</span>
+            </div>
+            <span className="text-white font-semibold">{data.find(d => d.name === 'Neutro')?.value || 0}%</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
-            <span className="text-muted-foreground">Negativo: {data.find(d => d.name === 'Negativo')?.value || 0}%</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+              <span className="text-white">Negativo</span>
+            </div>
+            <span className="text-white font-semibold">{data.find(d => d.name === 'Negativo')?.value || 0}%</span>
           </div>
         </div>
+
+        {/* Botão Gerar Análise */}
+        {onGerarAnalise && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onGerarAnalise();
+            }}
+            className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 text-xs font-medium"
+          >
+            <BarChart3 className="w-3 h-3 mr-1" />
+            Gerar Análise
+          </Button>
+        )}
       </div>
     );
   }

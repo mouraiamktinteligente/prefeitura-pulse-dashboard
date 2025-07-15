@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Instagram } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
@@ -15,6 +16,11 @@ interface ClientCardProps {
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const { metrics } = useClientMetrics(client.instagram || undefined);
+  const navigate = useNavigate();
+
+  const handleGerarAnalise = () => {
+    navigate(`/gestao-clientes/${client.id}`);
+  };
   
   // Post simulado do Instagram
   const mockPost = {
@@ -57,7 +63,11 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
             Análise de Sentimento
           </h4>
           <div className="h-40">
-            <SentimentAnalysis clientId={client.id} compact={true} />
+            <SentimentAnalysis 
+              clientId={client.id} 
+              compact={true} 
+              onGerarAnalise={handleGerarAnalise}
+            />
           </div>
         </div>
 
