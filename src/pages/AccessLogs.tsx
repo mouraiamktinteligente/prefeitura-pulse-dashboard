@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Search, RefreshCw, LogOut, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import {
   Select,
   SelectContent,

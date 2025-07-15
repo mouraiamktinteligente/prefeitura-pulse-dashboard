@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeFileName } from '@/utils/fileUtils';
 import { useMovimentacoes } from '@/hooks/useMovimentacoes';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import type { DocumentoAnalisado } from './useDocumentosAnalisados';
 
 export const useDocumentOperations = () => {

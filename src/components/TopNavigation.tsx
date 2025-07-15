@@ -3,7 +3,7 @@ import React from 'react';
 import { BarChart3, Megaphone, CheckSquare, UserPlus, LogOut, Shield, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useNavigate } from "react-router-dom";
 import {

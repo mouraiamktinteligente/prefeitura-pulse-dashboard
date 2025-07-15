@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useMovimentacoes } from '@/hooks/useMovimentacoes';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import type { Cliente, ClienteInsert, ClienteUpdate } from './useClients';
 
 export const useClientOperations = () => {

@@ -5,7 +5,7 @@ import { useActivityDetector } from "./useActivityDetector";
 import { useInactivityTimer } from "./useInactivityTimer";
 import { useSecurityInterceptor } from "./useSecurityInterceptor";
 import { InactivityModal } from "@/components/InactivityModal";
-import { AuthContext } from "@/contexts/AuthContext";
+import { AuthContext } from "@/contexts/auth";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
