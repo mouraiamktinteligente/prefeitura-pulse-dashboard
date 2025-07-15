@@ -158,21 +158,6 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </div>
         </div>
 
-        {/* Botão Gerar Análise */}
-        {onGerarAnalise && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onGerarAnalise();
-            }}
-            className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 text-xs font-medium"
-          >
-            <BarChart3 className="w-3 h-3 mr-1" />
-            Gerar Análise
-          </Button>
-        )}
       </div>
     );
   }
@@ -231,6 +216,21 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
             <span className="text-xs font-medium">Negativo: {data.find(d => d.name === 'Negativo')?.value || 0}%</span>
           </div>
         </div>
+        
+        {/* Botão Gerar Análise */}
+        {onGerarAnalise && (
+          <div className="mt-4 flex justify-center">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onGerarAnalise}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 font-medium"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Gerar Análise
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

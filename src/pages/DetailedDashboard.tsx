@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Header } from '../components/Header';
@@ -19,6 +19,7 @@ const DetailedDashboard = () => {
   const [isConnected, setIsConnected] = useState(true);
   const { clientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
+  const navigate = useNavigate();
   
   const selectedClient = clients.find(client => client.id === clientId);
   const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram || undefined);
@@ -39,6 +40,12 @@ const DetailedDashboard = () => {
       return format(new Date(lastActivity), "dd/MM/yyyy - HH:mm", { locale: ptBR });
     } catch {
       return null;
+    }
+  };
+
+  const handleGerarAnalise = () => {
+    if (clientId) {
+      navigate(`/gestao-clientes/${clientId}`);
     }
   };
 
@@ -79,7 +86,7 @@ const DetailedDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            <SentimentAnalysis />
+            <SentimentAnalysis onGerarAnalise={handleGerarAnalise} />
             <SatisfactionThermometer />
           </div>
           

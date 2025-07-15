@@ -63,11 +63,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
             Análise de Sentimento
           </h4>
           <div className="h-40">
-            <SentimentAnalysis 
-              clientId={client.id} 
-              compact={true} 
-              onGerarAnalise={handleGerarAnalise}
-            />
+      <SentimentAnalysis 
+        clientId={client.id}
+        compact={true}
+      />
           </div>
         </div>
 
