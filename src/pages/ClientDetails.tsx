@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
+import { useRelatoriosAnalise } from '@/hooks/useRelatoriosAnalise';
 import { formatCPF, formatCNPJ, formatPhone } from '@/utils/validation';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -30,6 +31,7 @@ const ClientDetails = () => {
   const navigate = useNavigate();
   const { clients, loading: clientsLoading } = useClients();
   const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
+  const { relatoriosInstagram, loading: relatoriosLoading, fetchRelatoriosInstagram, deleteRelatorioInstagram, downloadRelatorio } = useRelatoriosAnalise();
   const { toast } = useToast();
 
   const client = clients.find(c => c.id === clientId);
@@ -39,6 +41,12 @@ const ClientDetails = () => {
       fetchDocumentos(clientId);
     }
   }, [clientId]); // Removido fetchDocumentos das dependências para evitar loops
+
+  useEffect(() => {
+    if (client?.instagram) {
+      fetchRelatoriosInstagram(client.instagram);
+    }
+  }, [client?.instagram]); // Buscar relatórios quando o Instagram estiver disponível
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -373,6 +381,124 @@ const ClientDetails = () => {
                             </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => deleteDocument(documento)}
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              Deletar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Relatórios de Análises de Sentimento */}
+        <Card className="bg-slate-900/50 border-slate-700/50 mt-8">
+          <CardHeader>
+            <CardTitle className="text-slate-200">
+              Relatórios de Análises de Sentimento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!client?.instagram ? (
+              <div className="text-center py-8">
+                <Instagram className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 mb-2">Instagram não cadastrado</p>
+                <p className="text-slate-500 text-sm">
+                  Cadastre o Instagram do cliente para visualizar os relatórios
+                </p>
+              </div>
+            ) : relatoriosLoading ? (
+              <p className="text-slate-400">Carregando relatórios...</p>
+            ) : relatoriosInstagram.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 mb-2">Nenhum relatório encontrado</p>
+                <p className="text-slate-500 text-sm">
+                  Ainda não há relatórios de análise de sentimento para este perfil
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {relatoriosInstagram.map((relatorio) => (
+                  <div
+                    key={relatorio.id}
+                    className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-slate-400" />
+                        <div>
+                          <p className="font-medium text-slate-200">
+                            Relatório da Análise de Sentimento do Instagram
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            PDF • {client.nome_completo} • Criado em{' '}
+                            {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                          <p className="text-xs text-green-400 flex items-center mt-1">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                            {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span className="ml-1">Concluído</span>
+                      </Badge>
+                      
+                      {/* Botão Baixar Relatório */}
+                      {relatorio.link_relatorio && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadRelatorio(relatorio)}
+                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Baixar Relatório</span>
+                        </Button>
+                      )}
+                      
+                      {/* Botão Deletar */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Deletar</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-slate-900 border-slate-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-slate-200">
+                              Confirmar exclusão
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-slate-400">
+                              Tem certeza que deseja deletar este relatório de análise de sentimento do Instagram? 
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteRelatorioInstagram(relatorio)}
                               className="bg-red-600 hover:bg-red-700 text-white"
                             >
                               Deletar

@@ -418,6 +418,90 @@ export type Database = {
         }
         Relationships: []
       }
+      promessas_prefeito: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          estado: string | null
+          id: number
+          profile: string | null
+          promessas1: string | null
+          promessas10: string | null
+          promessas11: string | null
+          promessas12: string | null
+          promessas13: string | null
+          promessas14: string | null
+          promessas15: string | null
+          promessas16: string | null
+          promessas17: string | null
+          promessas18: string | null
+          promessas19: string | null
+          promessas2: string | null
+          promessas20: string | null
+          promessas3: string | null
+          promessas4: string | null
+          promessas5: string | null
+          promessas6: string | null
+          promessas7: string | null
+          promessas8: string | null
+          promessas9: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: number
+          profile?: string | null
+          promessas1?: string | null
+          promessas10?: string | null
+          promessas11?: string | null
+          promessas12?: string | null
+          promessas13?: string | null
+          promessas14?: string | null
+          promessas15?: string | null
+          promessas16?: string | null
+          promessas17?: string | null
+          promessas18?: string | null
+          promessas19?: string | null
+          promessas2?: string | null
+          promessas20?: string | null
+          promessas3?: string | null
+          promessas4?: string | null
+          promessas5?: string | null
+          promessas6?: string | null
+          promessas7?: string | null
+          promessas8?: string | null
+          promessas9?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: number
+          profile?: string | null
+          promessas1?: string | null
+          promessas10?: string | null
+          promessas11?: string | null
+          promessas12?: string | null
+          promessas13?: string | null
+          promessas14?: string | null
+          promessas15?: string | null
+          promessas16?: string | null
+          promessas17?: string | null
+          promessas18?: string | null
+          promessas19?: string | null
+          promessas2?: string | null
+          promessas20?: string | null
+          promessas3?: string | null
+          promessas4?: string | null
+          promessas5?: string | null
+          promessas6?: string | null
+          promessas7?: string | null
+          promessas8?: string | null
+          promessas9?: string | null
+        }
+        Relationships: []
+      }
       registro_movimentacoes: {
         Row: {
           acao_realizada: string
@@ -454,6 +538,90 @@ export type Database = {
           ip_address?: string | null
           tabela_afetada?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      relatorio_analise_instagram: {
+        Row: {
+          created_at: string
+          id: number
+          link_relatorio: string | null
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Relationships: []
+      }
+      relatorio_analise_prefeito: {
+        Row: {
+          created_at: string
+          id: number
+          link_relatorio: string | null
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Relationships: []
+      }
+      relatorio_analise_web: {
+        Row: {
+          created_at: string
+          id: number
+          link_relatorio: string | null
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Relationships: []
+      }
+      relatorio_qualitativo: {
+        Row: {
+          created_at: string
+          id: number
+          link_relatorio: string | null
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          link_relatorio?: string | null
+          profile?: string | null
         }
         Relationships: []
       }
@@ -567,6 +735,63 @@ export type Database = {
       }
     }
     Views: {
+      comparativo_diario_sentimentos: {
+        Row: {
+          classificacao_volume: string | null
+          comentarios_dia_anterior: number | null
+          comentarios_negativos: number | null
+          comentarios_neutros: number | null
+          comentarios_positivos: number | null
+          crescimento_positivos_perc: number | null
+          crescimento_total_perc: number | null
+          data_brasileira: string | null
+          data_formatada: string | null
+          indice_positividade: number | null
+          negativos_dia_anterior: number | null
+          perc_negativos: number | null
+          perc_neutros: number | null
+          perc_positivos: number | null
+          perc_positivos_dia_anterior: number | null
+          positivos_dia_anterior: number | null
+          profile: string | null
+          score_dia_anterior: number | null
+          score_sentimento: number | null
+          status_atividade: string | null
+          tendencia_diaria: string | null
+          tendencia_evolucao: string | null
+          total_comentarios: number | null
+          usuarios_unicos: number | null
+          variacao_negativos: number | null
+          variacao_positivos: number | null
+          variacao_score: number | null
+          variacao_total: number | null
+        }
+        Relationships: []
+      }
+      resumo_diario_comments: {
+        Row: {
+          classificacao_volume: string | null
+          comentarios_negativos: number | null
+          comentarios_neutros: number | null
+          comentarios_positivos: number | null
+          data_analise: string | null
+          data_brasileira: string | null
+          data_completa: string | null
+          data_formatada: string | null
+          indice_positividade: number | null
+          perc_negativos: number | null
+          perc_neutros: number | null
+          perc_positivos: number | null
+          primeira_analise: string | null
+          profile: string | null
+          score_sentimento: number | null
+          tendencia_diaria: string | null
+          total_comentarios: number | null
+          ultima_analise: string | null
+          usuarios_unicos: number | null
+        }
+        Relationships: []
+      }
       resumo_mensal_comments: {
         Row: {
           comentarios_negativos: number | null
