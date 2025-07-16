@@ -92,23 +92,33 @@ const PlatformUsers = () => {
 
   useEffect(() => {
     loadActiveUsers();
-    const interval = setInterval(loadActiveUsers, 30000); // Atualizar a cada 30 segundos
+    
+    // Intervalo menos frequente para evitar sobrecarga
+    const interval = setInterval(loadActiveUsers, 60000); // Atualizar a cada 1 minuto
+
+    let debounceTimeout: NodeJS.Timeout;
 
     // Realtime listener para sessões ativas (atualizar status online)
     const sessionChannel = supabase
-      .channel('session-status-updates')
+      .channel('session-status-updates-platform')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'sessoes_ativas'
       }, (payload) => {
         console.log('Session status changed:', payload);
-        loadActiveUsers(); // Recarregar status online dos usuários
+        
+        // Debounce para evitar múltiplas atualizações seguidas
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          loadActiveUsers(); // Recarregar status online dos usuários
+        }, 2000);
       })
       .subscribe();
 
     return () => {
       clearInterval(interval);
+      clearTimeout(debounceTimeout);
       supabase.removeChannel(sessionChannel);
     };
   }, []);
