@@ -237,7 +237,7 @@ const ClientDetails = () => {
         </Card>
 
         {/* Estatísticas de Documentos */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-slate-900/50 border-slate-700/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -258,18 +258,6 @@ const ClientDetails = () => {
                   <p className="text-2xl font-bold text-yellow-400">{getDocumentStats.pendentes}</p>
                 </div>
                 <Clock className="w-8 h-8 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-900/50 border-slate-700/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Processando</p>
-                  <p className="text-2xl font-bold text-blue-400">{getDocumentStats.processando}</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
