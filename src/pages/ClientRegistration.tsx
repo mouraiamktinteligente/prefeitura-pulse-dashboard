@@ -124,10 +124,12 @@ const ClientRegistration = () => {
                      {filteredClients.map((client) => (
                        <TableRow 
                          key={client.id} 
-                         className="border-blue-700/50 hover:bg-blue-700/25 cursor-pointer"
-                         onClick={() => navigate(`/gestao-clientes/${client.id}`)}
+                         className="border-blue-700/50 hover:bg-blue-700/25"
                        >
-                        <TableCell className="text-white">
+                        <TableCell 
+                          className="text-white cursor-pointer"
+                          onClick={() => navigate(`/gestao-clientes/${client.id}`)}
+                        >
                           <div>
                             <div className="font-medium">{client.nome_completo}</div>
                             {client.razao_social && (
@@ -135,7 +137,10 @@ const ClientRegistration = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-blue-200">
+                        <TableCell 
+                          className="text-blue-200 cursor-pointer"
+                          onClick={() => navigate(`/gestao-clientes/${client.id}`)}
+                        >
                           {formatDocument(client.cpf_cnpj, client.tipo_pessoa)}
                         </TableCell>
                         <TableCell className="text-blue-200">{client.email || '-'}</TableCell>
@@ -157,29 +162,33 @@ const ClientRegistration = () => {
                         </TableCell>
                          <TableCell>
                            <div className="flex space-x-2">
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setSelectedClient(client);
-                                 setIsFormOpen(true);
-                               }}
-                               className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
-                             >
-                               <Edit className="w-4 h-4" />
-                             </Button>
-                             <AlertDialog>
-                               <AlertDialogTrigger asChild>
-                                 <Button 
-                                   variant="outline" 
-                                   size="sm"
-                                   onClick={(e) => e.stopPropagation()}
-                                   className="border-red-600 text-red-400 hover:bg-red-700/50"
-                                 >
-                                   <Trash2 className="w-4 h-4" />
-                                 </Button>
-                               </AlertDialogTrigger>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  setSelectedClient(client);
+                                  setIsFormOpen(true);
+                                }}
+                                className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                    }}
+                                    className="border-red-600 text-red-400 hover:bg-red-700/50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
                               <AlertDialogContent className="bg-blue-800 border-blue-700">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-white">Confirmar exclusão</AlertDialogTitle>
@@ -188,15 +197,19 @@ const ClientRegistration = () => {
                                     Esta ação não pode ser desfeita.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteClient(client.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
+                                 <AlertDialogFooter>
+                                   <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
+                                   <AlertDialogAction
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       e.preventDefault();
+                                       handleDeleteClient(client.id);
+                                     }}
+                                     className="bg-red-600 hover:bg-red-700"
+                                   >
+                                     Excluir
+                                   </AlertDialogAction>
+                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
                           </div>

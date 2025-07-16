@@ -116,11 +116,7 @@ export const useClientsFetch = () => {
           setClients(prev => 
             prev.filter(client => client.id !== deletedClient.id)
           );
-          
-          toast({
-            title: "Cliente excluído",
-            description: `${deletedClient.nome_completo} foi removido`,
-          });
+          // Toast removido para evitar duplicação - o useClientOperations já mostra
         }
       )
       .subscribe();
