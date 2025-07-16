@@ -198,27 +198,49 @@ export const useUsers = () => {
         (payload) => {
           console.log('Usuarios realtime event:', payload);
           
-          // Mostrar toast quando outro usuário faz alterações
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Novo usuário",
-              description: `Usuário "${payload.new.nome_completo}" foi criado por outro usuário`,
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            toast({
-              title: "Usuário atualizado", 
-              description: `Usuário "${payload.new.nome_completo}" foi atualizado por outro usuário`,
-            });
-          } else if (payload.eventType === 'DELETE') {
-            toast({
-              title: "Usuário removido",
-              description: "Um usuário foi removido por outro usuário",
-              variant: "destructive"
-            });
+          // Filtrar atualizações automáticas de status_conexao para evitar loop
+          if (payload.eventType === 'UPDATE' && payload.old && payload.new) {
+            const oldData = payload.old as any;
+            const newData = payload.new as any;
+            
+            // Se apenas o status_conexao mudou, não mostrar toast nem recarregar
+            const statusChanged = oldData.status_conexao !== newData.status_conexao;
+            const otherFieldsChanged = Object.keys(newData).some(key => 
+              key !== 'status_conexao' && key !== 'updated_at' && oldData[key] !== newData[key]
+            );
+            
+            if (statusChanged && !otherFieldsChanged) {
+              console.log('Ignorando atualização automática de status_conexao');
+              return;
+            }
           }
           
-          // Recarregar lista para refletir mudanças
-          fetchUsers();
+          // Debounce para evitar múltiplas atualizações seguidas
+          const timeoutId = setTimeout(() => {
+            // Mostrar toast apenas para mudanças relevantes
+            if (payload.eventType === 'INSERT') {
+              toast({
+                title: "Novo usuário",
+                description: `Usuário "${payload.new.nome_completo}" foi criado`,
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              toast({
+                title: "Usuário atualizado", 
+                description: `Usuário "${payload.new.nome_completo}" foi atualizado`,
+              });
+            } else if (payload.eventType === 'DELETE') {
+              toast({
+                title: "Usuário removido",
+                description: "Um usuário foi removido",
+                variant: "destructive"
+              });
+            }
+            
+            // Recarregar lista para refletir mudanças
+            fetchUsers();
+          }, 500);
+
+          return () => clearTimeout(timeoutId);
         }
       )
       .subscribe();
