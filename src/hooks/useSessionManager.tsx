@@ -148,24 +148,24 @@ export const useSessionManager = () => {
         .eq('ativo', true)
         .maybeSingle();
 
-      // Se já existe sessão ativa, verificar IP
+      // Se já existe sessão ativa, desconectar automaticamente a sessão anterior
       if (existingSession) {
-        if (existingSession.ip_address && existingSession.ip_address !== realIP) {
-          throw new Error('USUÁRIO_JA_CONECTADO_OUTRO_IP');
-        }
+        console.log(`Usuário ${userEmail} já possui sessão ativa. Desconectando sessão anterior...`);
         
-        // Se mesmo IP, renovar sessão existente
-        const renewed = await supabase.rpc('renovar_sessao', {
-          p_user_email: userEmail,
-          p_session_token: existingSession.session_token
-        });
+        // Invalidar sessão anterior
+        await supabase
+          .from('sessoes_ativas')
+          .update({ 
+            ativo: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_email', userEmail)
+          .eq('ativo', true);
+
+        // Registrar log da desconexão anterior
+        await registerAccessLog(userEmail, 'logout');
         
-        if (renewed.data) {
-          console.log('Sessão existente renovada para:', userEmail);
-          setCurrentSession(existingSession);
-          localStorage.setItem('session_token', existingSession.session_token);
-          return existingSession.session_token;
-        }
+        console.log(`Sessão anterior de ${userEmail} foi desconectada. Criando nova sessão...`);
       }
 
       // SEGURANÇA: Verificar múltiplas sessões do mesmo IP
