@@ -290,65 +290,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('Verificando usuário salvo...');
     
     const initializeAuth = async () => {
-      setIsRefreshing(true); // Marcar como refresh em andamento
+      setIsRefreshing(true);
       
       const savedUser = localStorage.getItem('auth_user');
-      if (savedUser) {
+      const sessionToken = localStorage.getItem('session_token');
+      
+      if (savedUser && sessionToken) {
         try {
           const parsedUser = JSON.parse(savedUser);
           console.log('Usuário encontrado no localStorage:', parsedUser.email);
           
-          // Durante refresh, usar validateSession que inclui renovação automática
-          const isSessionValid = await sessionManager.validateSession(parsedUser.email);
-          
-          if (isSessionValid) {
-            console.log('Sessão validada com sucesso, restaurando usuário...');
-            
-            // Garantir que usuário está marcado como conectado
-            await supabase
-              .from('usuarios_sistema')
-              .update({ status_conexao: 'conectado' })
-              .eq('email', parsedUser.email);
-            
-            setUser(parsedUser);
-            setForceLogoutReason(null);
-            setIsLoading(false);
-            setIsRefreshing(false);
-            return;
-          }
-          
-          // Se validação falhou, verificar motivo ANTES de assumir desconexão administrativa
-          const { data: userData } = await supabase
-            .from('usuarios_sistema')
-            .select('status_conexao, ativo')
-            .eq('email', parsedUser.email)
+          // Verificação simplificada: apenas verificar se a sessão existe e está ativa
+          const { data: sessionData, error } = await supabase
+            .from('sessoes_ativas')
+            .select('*')
+            .eq('user_email', parsedUser.email)
+            .eq('session_token', sessionToken)
+            .eq('ativo', true)
             .maybeSingle();
-
-          if (!userData || !userData.ativo) {
-            console.log('Usuário não encontrado ou inativo');
-          } else {
-            // Verificar se ainda há sessões ativas antes de assumir desconexão administrativa
-            const { data: activeSessions } = await supabase
-              .from('sessoes_ativas')
-              .select('*')
-              .eq('user_email', parsedUser.email)
-              .eq('ativo', true);
-
-            if (activeSessions && activeSessions.length > 0) {
-              console.log('Usuário tem sessões ativas - não foi desconexão administrativa');
-              // Não mostrar mensagem de desconectado por admin se há sessões ativas
-            } else if (userData.status_conexao === 'desconectado') {
-              // Só mostrar mensagem de admin se realmente não há sessões e foi marcado como desconectado
-              console.log('Usuário foi desconectado administrativamente');
-              setForceLogoutReason('Você foi desconectado por um administrador');
+          
+          if (!error && sessionData) {
+            // Verificar se a sessão não expirou por inatividade (15 minutos)
+            const lastActivity = new Date(sessionData.last_activity);
+            const now = new Date();
+            const minutosInativo = (now.getTime() - lastActivity.getTime()) / (1000 * 60);
+            
+            if (minutosInativo <= 15) {
+              console.log('Sessão válida encontrada, restaurando usuário...');
+              
+              // Atualizar atividade para renovar a sessão
+              await supabase
+                .from('sessoes_ativas')
+                .update({ 
+                  last_activity: new Date().toISOString(),
+                  expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+                })
+                .eq('id', sessionData.id);
+              
+              // Garantir que usuário está marcado como conectado
+              await supabase
+                .from('usuarios_sistema')
+                .update({ status_conexao: 'conectado' })
+                .eq('email', parsedUser.email);
+              
+              setUser(parsedUser);
+              setForceLogoutReason(null);
+              setIsLoading(false);
+              setIsRefreshing(false);
+              return;
             } else {
-              console.log('Sessão expirada por inatividade');
+              console.log(`Sessão expirada por inatividade (${minutosInativo.toFixed(1)} minutos)`);
             }
           }
           
-          // Limpar dados locais
+          // Se chegou aqui, sessão é inválida - limpar dados
+          console.log('Sessão inválida, limpando dados locais');
           localStorage.removeItem('auth_user');
           localStorage.removeItem('session_token');
+          
         } catch (error) {
           console.error('Erro ao recuperar usuário:', error);
           localStorage.removeItem('auth_user');
@@ -361,7 +360,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     initializeAuth();
-  }, [sessionManager]);
+  }, []);
 
   // Auto-limpar mensagens de erro após 10 segundos
   useEffect(() => {

@@ -259,70 +259,6 @@ export const useSessionManager = () => {
     }
   }, []);
 
-  // Função para validação baseada em inatividade de 15 minutos
-  const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
-    const normalizedEmail = userEmail.trim().toLowerCase();
-    
-    try {
-      const sessionToken = localStorage.getItem('session_token');
-      if (!sessionToken) {
-        return false;
-      }
-
-      // Verificar se usuário está ativo
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios_sistema')
-        .select('status_conexao, ativo')
-        .eq('email', normalizedEmail)
-        .maybeSingle();
-
-      if (userError || !userData || !userData.ativo) {
-        return false;
-      }
-
-      // Se usuário foi desconectado por admin, limpar dados locais
-      if (userData.status_conexao === 'desconectado') {
-        localStorage.removeItem('session_token');
-        localStorage.removeItem('auth_user');
-        return false;
-      }
-
-      // Verificar se sessão ainda existe e está ativa
-      const { data, error } = await supabase
-        .from('sessoes_ativas')
-        .select('*')
-        .eq('user_email', normalizedEmail)
-        .eq('session_token', sessionToken)
-        .eq('ativo', true)
-        .maybeSingle();
-
-      if (error || !data) {
-        return false;
-      }
-
-      // Verificar inatividade de 15 minutos baseada em last_activity
-      const lastActivity = new Date(data.last_activity);
-      const now = new Date();
-      const minutosInativo = (now.getTime() - lastActivity.getTime()) / (1000 * 60);
-      
-      if (minutosInativo > 15) {
-        console.log(`Sessão expirada por inatividade (${minutosInativo.toFixed(1)} minutos) para:`, userEmail);
-        await invalidateSession(userEmail, 'timeout');
-        return false;
-      }
-
-      // Atualizar atividade automaticamente na validação
-      await updateUserActivity(normalizedEmail);
-
-      setCurrentSession(data);
-      return true;
-    } catch (error) {
-      console.error('Erro ao validar sessão:', error);
-      return false;
-    }
-  }, [updateUserActivity]);
-
-
   const invalidateSession = useCallback(async (userEmail: string, motivo: 'logout' | 'timeout' | 'erro_sessao' | 'desconectado_admin' = 'logout'): Promise<void> => {
     try {
       const sessionToken = localStorage.getItem('session_token');
@@ -351,6 +287,54 @@ export const useSessionManager = () => {
       console.error('Erro ao invalidar sessão:', error);
     }
   }, []);
+
+  // Função para validação baseada em inatividade de 15 minutos - SIMPLIFICADA
+  const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    const sessionToken = localStorage.getItem('session_token');
+    
+    if (!sessionToken) {
+      console.log('Nenhum token de sessão encontrado');
+      return false;
+    }
+    
+    try {
+      // Verificação direta: sessão existe, está ativa e não expirou?
+      const { data: sessionData, error } = await supabase
+        .from('sessoes_ativas')
+        .select('*')
+        .eq('user_email', normalizedEmail)
+        .eq('session_token', sessionToken)
+        .eq('ativo', true)
+        .maybeSingle();
+
+      if (error || !sessionData) {
+        console.log('Sessão não encontrada ou inativa');
+        return false;
+      }
+
+      // Verificar inatividade de 15 minutos
+      const lastActivity = new Date(sessionData.last_activity);
+      const now = new Date();
+      const minutosInativo = (now.getTime() - lastActivity.getTime()) / (1000 * 60);
+      
+      if (minutosInativo > 15) {
+        console.log(`Sessão expirada por inatividade (${minutosInativo.toFixed(1)} minutos)`);
+        await invalidateSession(normalizedEmail, 'timeout');
+        return false;
+      }
+
+      // Atualizar atividade para renovar sessão
+      await updateUserActivity(normalizedEmail);
+      setCurrentSession(sessionData);
+      return true;
+      
+    } catch (error) {
+      console.error('Erro ao validar sessão:', error);
+      return false;
+    }
+  }, [updateUserActivity, invalidateSession]);
+
 
   const disconnectUserByAdmin = useCallback(async (targetEmail: string, adminEmail: string): Promise<boolean> => {
     try {
