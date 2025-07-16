@@ -182,14 +182,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         return { error: null };
       } catch (sessionError) {
-        console.error('Erro ao criar sessão:', sessionError);
+        console.error('Erro ao criar sessão no signIn:', sessionError);
+        console.log('Mensagem do erro de sessão:', sessionError.message);
         
-        // Tratar erro específico de usuário já conectado
+        // Capturar e retornar erro específico de usuário já conectado
         if (sessionError.message?.includes('Este usuário já está conectado')) {
+          console.log('Retornando erro de usuário já conectado:', sessionError.message);
           return { error: { message: sessionError.message } };
         }
         if (sessionError.message?.includes('já possui uma sessão ativa')) {
           return { error: { message: sessionError.message } };
+        }
+        if (sessionError.message?.includes('USUARIO_JA_CONECTADO')) {
+          return { error: { message: 'Este usuário já está conectado. Para ter acesso, utilize outro login e senha.' } };
         }
         
         return { error: { message: 'Erro ao estabelecer sessão. Tente novamente.' } };

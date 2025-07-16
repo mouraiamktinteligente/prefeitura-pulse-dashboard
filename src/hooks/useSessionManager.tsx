@@ -185,17 +185,28 @@ export const useSessionManager = () => {
 
       if (error) {
         console.error('Erro ao criar sessão:', error);
+        console.log('Código do erro:', error.code);
+        console.log('Detalhes do erro:', error.details);
+        console.log('Mensagem completa:', error.message);
         
-        // Capturar erro específico de usuário já conectado
+        // Capturar erro específico de usuário já conectado do trigger
         if (error.message?.includes('USUARIO_JA_CONECTADO')) {
-          throw new Error('Este usuário já está conectado. Para ter acesso, utilize outro login e senha.');
+          const errorMessage = 'Este usuário já está conectado. Para ter acesso, utilize outro login e senha.';
+          console.log('Erro de sessão única detectado, lançando:', errorMessage);
+          throw new Error(errorMessage);
+        }
+        
+        if (error.code === 'P0001' || error.message?.includes('Este usuário já está conectado')) {
+          const errorMessage = 'Este usuário já está conectado. Para ter acesso, utilize outro login e senha.';
+          console.log('Erro P0001 detectado, lançando:', errorMessage);
+          throw new Error(errorMessage);
         }
         
         if (error.message?.includes('duplicate key value violates unique constraint')) {
           throw new Error('Este usuário já possui uma sessão ativa.');
         }
         
-        return null;
+        throw new Error('Erro interno ao criar sessão');
       }
 
       console.log('Nova sessão criada:', data.session_token, 'para IP:', realIP);
@@ -203,10 +214,13 @@ export const useSessionManager = () => {
       localStorage.setItem('session_token', data.session_token);
       return data.session_token;
     } catch (error) {
-      console.error('Erro ao criar sessão:', error);
+      console.error('Erro geral ao criar sessão:', error);
+      console.log('Tipo do erro:', typeof error);
+      console.log('Mensagem do erro:', error.message);
       
-      // Tratar erros específicos de sessão única
+      // Propagar erros de sessão única sem alteração
       if (error.message?.includes('Este usuário já está conectado')) {
+        console.log('Propagando erro de sessão única:', error.message);
         throw error; // Repassar a mensagem exata
       }
       if (error.message?.includes('USUARIO_JA_CONECTADO')) {
