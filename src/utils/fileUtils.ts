@@ -28,6 +28,12 @@ export const generateUniqueFileName = (originalName: string): string => {
   return originalName;
 };
 
+// Função específica para gerar nomes sanitizados para o Supabase Storage
+export const generateStorageFileName = (originalName: string): string => {
+  // Sanitizar o nome do arquivo para uso no storage (sem acentos, espaços viram underscores)
+  return sanitizeFileName(originalName);
+};
+
 // Função para normalizar nomes para comparação (remove acentos e caracteres especiais)
 export const normalizeForComparison = (name: string): string => {
   return name

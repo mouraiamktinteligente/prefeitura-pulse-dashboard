@@ -1,7 +1,7 @@
 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { sanitizeFileName } from '@/utils/fileUtils';
+import { sanitizeFileName, generateStorageFileName } from '@/utils/fileUtils';
 import { useMovimentacoes } from '@/hooks/useMovimentacoes';
 import { useAuth } from '@/contexts/auth';
 import type { DocumentoAnalisado } from './useDocumentosAnalisados';
@@ -64,7 +64,8 @@ export const useDocumentOperations = () => {
 
       // Construir caminho do arquivo no Supabase Storage
       const clientFolderName = documento.nome_cliente ? sanitizeFileName(documento.nome_cliente) : documento.cliente_id;
-      const filePath = `${clientFolderName}/${documento.nome_arquivo}`;
+      const storageFileName = generateStorageFileName(documento.nome_arquivo); // Usar nome sanitizado
+      const filePath = `${clientFolderName}/${storageFileName}`;
       
       console.log('Deletando arquivo do Supabase Storage:', filePath);
 

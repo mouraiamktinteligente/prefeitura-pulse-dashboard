@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { detectFileType, generateReadableFileName, sanitizeFileName } from '@/utils/fileUtils';
+import { detectFileType, generateReadableFileName, sanitizeFileName, generateStorageFileName } from '@/utils/fileUtils';
 import type { DocumentoAnalisado, DocumentoAnalisadoInsert } from './useDocumentosAnalisados';
 
 export const useDocumentUpload = () => {
@@ -50,15 +50,17 @@ export const useDocumentUpload = () => {
 
       const tipoArquivo = detectFileType(file);
       const originalName = file.name;
-      const readableFileName = generateReadableFileName(originalName);
+      const readableFileName = generateReadableFileName(originalName); // Nome original para o banco
+      const storageFileName = generateStorageFileName(originalName); // Nome sanitizado para storage
       
       // Estrutura melhorada: criar pasta com nome sanitizado do cliente
       const clientFolderName = sanitizeFileName(clienteNome);
-      const filePath = `${clientFolderName}/${readableFileName}`;
+      const filePath = `${clientFolderName}/${storageFileName}`; // Usar nome sanitizado no storage
 
       console.log('📁 Estrutura do arquivo:', { 
         originalName, 
-        readableFileName, 
+        readableFileName, // Nome para banco (original)
+        storageFileName, // Nome para storage (sanitizado)
         clientFolderName,
         filePath, 
         tipoArquivo 
