@@ -356,24 +356,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [forceLogoutReason]);
 
-  // VALIDAÇÃO PERIÓDICA DE SESSÃO (Heartbeat)
+  // VALIDAÇÃO PERIÓDICA DE SESSÃO (Heartbeat) - Reduzido para 5 minutos
   useEffect(() => {
     if (!user?.email) return;
 
-    // Verificar sessão a cada 2 minutos
+    // Verificar sessão a cada 5 minutos para ser menos agressivo
     const heartbeat = setInterval(async () => {
       try {
         const isValid = await sessionManager.validateSession(user.email);
         if (!isValid) {
           console.log('Sessão inválida detectada no heartbeat, fazendo logout...');
-          logout('Sua sessão expirou por inatividade');
+          logout('Sua sessão expirou por inatividade de 15 minutos');
         }
       } catch (error) {
         console.error('Erro no heartbeat de validação:', error);
       }
-    }, 2 * 60 * 1000); // 2 minutos
+    }, 5 * 60 * 1000); // 5 minutos (menos agressivo)
 
     return () => clearInterval(heartbeat);
+  }, [user?.email, sessionManager]);
+
+  // ACTIVITY TRACKING - Atualizar atividade em interações do usuário
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const updateActivity = () => {
+      if (sessionManager.updateUserActivity) {
+        sessionManager.updateUserActivity(user.email);
+      }
+    };
+
+    // Eventos que indicam atividade do usuário
+    const events = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+    
+    // Debounce para evitar atualizações excessivas
+    let debounceTimer: NodeJS.Timeout;
+    const debouncedUpdateActivity = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(updateActivity, 30000); // Atualizar no máximo a cada 30 segundos
+    };
+
+    events.forEach(event => {
+      document.addEventListener(event, debouncedUpdateActivity, { passive: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, debouncedUpdateActivity);
+      });
+      clearTimeout(debounceTimer);
+    };
   }, [user?.email, sessionManager]);
 
   return (

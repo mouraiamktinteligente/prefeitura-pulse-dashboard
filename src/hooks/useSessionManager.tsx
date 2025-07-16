@@ -178,7 +178,7 @@ export const useSessionManager = () => {
           user_email: normalizedEmail,  // Usar email normalizado
           ip_address: realIP,
           last_activity: new Date().toISOString()
-          // expires_at usa o DEFAULT de 4 horas configurado no banco
+          // expires_at usa o DEFAULT de 15 minutos configurado no banco
         })
         .select()
         .single();
@@ -207,7 +207,32 @@ export const useSessionManager = () => {
     }
   }, []);
 
-  // Função para validação e renovação automática de sessão
+  // Função para atualizar atividade do usuário
+  const updateUserActivity = useCallback(async (userEmail: string): Promise<void> => {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    const sessionToken = localStorage.getItem('session_token');
+    
+    if (!sessionToken) return;
+    
+    try {
+      // Atualizar last_activity na sessão ativa
+      await supabase
+        .from('sessoes_ativas')
+        .update({ 
+          last_activity: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // Mais 15 minutos
+        })
+        .eq('user_email', normalizedEmail)
+        .eq('session_token', sessionToken)
+        .eq('ativo', true);
+        
+      console.log('Atividade atualizada para:', normalizedEmail);
+    } catch (error) {
+      console.error('Erro ao atualizar atividade:', error);
+    }
+  }, []);
+
+  // Função para validação baseada em inatividade de 15 minutos
   const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
     const normalizedEmail = userEmail.trim().toLowerCase();
     
@@ -248,22 +273,19 @@ export const useSessionManager = () => {
         return false;
       }
 
-      // Verificar se sessão não expirou
-      if (new Date(data.expires_at) <= new Date()) {
-        console.log('Sessão expirada para:', userEmail);
+      // Verificar inatividade de 15 minutos baseada em last_activity
+      const lastActivity = new Date(data.last_activity);
+      const now = new Date();
+      const minutosInativo = (now.getTime() - lastActivity.getTime()) / (1000 * 60);
+      
+      if (minutosInativo > 15) {
+        console.log(`Sessão expirada por inatividade (${minutosInativo.toFixed(1)} minutos) para:`, userEmail);
         await invalidateSession(userEmail, 'timeout');
         return false;
       }
 
-      // RENOVAÇÃO AUTOMÁTICA: Se faltam menos de 30 minutos para expirar
-      const minutosParaExpirar = (new Date(data.expires_at).getTime() - new Date().getTime()) / (1000 * 60);
-      if (minutosParaExpirar < 30) {
-        console.log('Renovando sessão automaticamente para:', normalizedEmail);
-        await supabase.rpc('renovar_sessao', {
-          p_user_email: normalizedEmail,
-          p_session_token: sessionToken
-        });
-      }
+      // Atualizar atividade automaticamente na validação
+      await updateUserActivity(normalizedEmail);
 
       setCurrentSession(data);
       return true;
@@ -271,7 +293,7 @@ export const useSessionManager = () => {
       console.error('Erro ao validar sessão:', error);
       return false;
     }
-  }, []);
+  }, [updateUserActivity]);
 
 
   const invalidateSession = useCallback(async (userEmail: string, motivo: 'logout' | 'timeout' | 'erro_sessao' | 'desconectado_admin' = 'logout'): Promise<void> => {
@@ -530,6 +552,7 @@ export const useSessionManager = () => {
     currentSession,
     createSession,
     validateSession,
+    updateUserActivity,
     invalidateSession,
     disconnectUserByAdmin,
     getActiveUsers,
