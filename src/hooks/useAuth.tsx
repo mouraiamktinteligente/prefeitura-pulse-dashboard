@@ -184,11 +184,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (sessionError) {
         console.error('Erro ao criar sessão:', sessionError);
         
-        // Tratar erros específicos de sessão
-        if (sessionError.message?.includes('já está conectado em outro local')) {
+        // Tratar erro específico de usuário já conectado
+        if (sessionError.message?.includes('Este usuário já está conectado')) {
           return { error: { message: sessionError.message } };
         }
-        if (sessionError.message?.includes('múltiplas sessões')) {
+        if (sessionError.message?.includes('já possui uma sessão ativa')) {
           return { error: { message: sessionError.message } };
         }
         
@@ -312,7 +312,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
           }
           
-          // Se validação falhou, verificar motivo
+          // Se validação falhou, verificar motivo ANTES de assumir desconexão administrativa
           const { data: userData } = await supabase
             .from('usuarios_sistema')
             .select('status_conexao, ativo')
@@ -321,11 +321,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           if (!userData || !userData.ativo) {
             console.log('Usuário não encontrado ou inativo');
-          } else if (userData.status_conexao === 'desconectado') {
-            console.log('Usuário foi desconectado administrativamente');
-            setForceLogoutReason('Você foi desconectado por um administrador');
           } else {
-            console.log('Sessão expirada por inatividade');
+            // Verificar se ainda há sessões ativas antes de assumir desconexão administrativa
+            const { data: activeSessions } = await supabase
+              .from('sessoes_ativas')
+              .select('*')
+              .eq('user_email', parsedUser.email)
+              .eq('ativo', true);
+
+            if (activeSessions && activeSessions.length > 0) {
+              console.log('Usuário tem sessões ativas - não foi desconexão administrativa');
+              // Não mostrar mensagem de desconectado por admin se há sessões ativas
+            } else if (userData.status_conexao === 'desconectado') {
+              // Só mostrar mensagem de admin se realmente não há sessões e foi marcado como desconectado
+              console.log('Usuário foi desconectado administrativamente');
+              setForceLogoutReason('Você foi desconectado por um administrador');
+            } else {
+              console.log('Sessão expirada por inatividade');
+            }
           }
           
           // Limpar dados locais

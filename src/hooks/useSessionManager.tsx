@@ -185,9 +185,16 @@ export const useSessionManager = () => {
 
       if (error) {
         console.error('Erro ao criar sessão:', error);
-        if (error.message?.includes('duplicate key value violates unique constraint')) {
-          throw new Error('SESSAO_UNICA_VIOLADA');
+        
+        // Capturar erro específico de usuário já conectado
+        if (error.message?.includes('USUARIO_JA_CONECTADO')) {
+          throw new Error('Este usuário já está conectado. Para ter acesso, utilize outro login e senha.');
         }
+        
+        if (error.message?.includes('duplicate key value violates unique constraint')) {
+          throw new Error('Este usuário já possui uma sessão ativa.');
+        }
+        
         return null;
       }
 
@@ -197,12 +204,18 @@ export const useSessionManager = () => {
       return data.session_token;
     } catch (error) {
       console.error('Erro ao criar sessão:', error);
-      if (error.message === 'USUÁRIO_JA_CONECTADO_OUTRO_IP') {
-        throw new Error('Este usuário já está conectado em outro local. Apenas uma sessão ativa é permitida por usuário.');
+      
+      // Tratar erros específicos de sessão única
+      if (error.message?.includes('Este usuário já está conectado')) {
+        throw error; // Repassar a mensagem exata
+      }
+      if (error.message?.includes('USUARIO_JA_CONECTADO')) {
+        throw new Error('Este usuário já está conectado. Para ter acesso, utilize outro login e senha.');
       }
       if (error.message === 'SESSAO_UNICA_VIOLADA') {
-        throw new Error('Não é possível criar múltiplas sessões para o mesmo usuário.');
+        throw new Error('Este usuário já possui uma sessão ativa.');
       }
+      
       throw error;
     }
   }, []);
