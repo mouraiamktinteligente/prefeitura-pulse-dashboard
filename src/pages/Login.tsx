@@ -35,9 +35,14 @@ const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
+        // Verificar se é erro de usuário já conectado
+        const isUserAlreadyConnected = error.message?.includes('já está conectado');
+        
         toast({
-          title: "Credenciais inválidas",
-          description: "E-mail ou senha incorretos. Verifique os dados e tente novamente.",
+          title: isUserAlreadyConnected ? "Usuário já conectado" : "Credenciais inválidas",
+          description: isUserAlreadyConnected 
+            ? error.message 
+            : "E-mail ou senha incorretos. Verifique os dados e tente novamente.",
           variant: "destructive"
         });
       } else {
