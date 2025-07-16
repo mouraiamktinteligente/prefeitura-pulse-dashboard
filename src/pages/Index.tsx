@@ -11,8 +11,6 @@ import { HeatMap } from '../components/HeatMap';
 import { CrisisTimeline } from '../components/CrisisTimeline';
 
 const Index = () => {
-  const [isConnected, setIsConnected] = useState(true);
-
   // Simulate real-time data updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,7 +23,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-blue-900">
-      <Header isConnected={isConnected} />
+      <Header isConnected={true} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Metrics Cards - usando valores padrão para dashboard geral */}

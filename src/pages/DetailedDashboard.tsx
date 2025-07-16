@@ -16,7 +16,6 @@ import { useClients } from '@/hooks/useClients';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 
 const DetailedDashboard = () => {
-  const [isConnected, setIsConnected] = useState(true);
   const { clientId } = useParams<{ clientId: string }>();
   const { clients } = useClients();
   const navigate = useNavigate();
@@ -51,7 +50,7 @@ const DetailedDashboard = () => {
 
   return (
     <div className="min-h-screen bg-blue-900">
-      <Header isConnected={isConnected} clientName={selectedClient?.nome_completo} />
+      <Header isConnected={true} clientName={selectedClient?.nome_completo} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Última análise info */}

@@ -45,18 +45,11 @@ export const Header: React.FC<HeaderProps> = ({ isConnected, clientName }) => {
             </div>
           </div>
 
-          {/* Date/Time and Status */}
-          <div className="text-right space-y-2">
+          {/* Date/Time */}
+          <div className="text-right">
             <div className="text-sm text-blue-300">
               {formatDateTime(currentTime)}
             </div>
-            <Badge 
-              variant={isConnected ? "default" : "destructive"}
-              className={`${isConnected ? 'bg-green-600' : 'bg-red-600'} text-white border-0`}
-            >
-              <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`} />
-              {isConnected ? 'Sistema Online' : 'Desconectado'}
-            </Badge>
           </div>
         </div>
       </div>

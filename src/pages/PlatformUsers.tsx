@@ -159,17 +159,14 @@ const PlatformUsers = () => {
     <div className="min-h-screen bg-blue-900 p-4">
       <div className="container mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Usuários da Plataforma</h1>
-              <p className="text-blue-300">Gestão de usuários administradores e operadores</p>
-            </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+            <Users className="w-6 h-6 text-white" />
           </div>
-          <RealtimeIndicator showOnlineUsers className="hidden md:flex text-white" />
+          <div>
+            <h1 className="text-3xl font-bold text-white">Usuários da Plataforma</h1>
+            <p className="text-blue-300">Gestão de usuários administradores e operadores</p>
+          </div>
         </div>
 
         {/* Filtros */}
