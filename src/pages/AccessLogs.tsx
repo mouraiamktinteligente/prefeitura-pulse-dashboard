@@ -333,12 +333,9 @@ const AccessLogs = () => {
             <CardTitle className="text-white flex items-center space-x-2">
               <Calendar className="w-5 h-5" />
               <span>Filtros</span>
-              <Badge variant="outline" className="ml-2 text-green-400 border-green-400">
-                Atualização automática
-              </Badge>
             </CardTitle>
             <CardDescription className="text-blue-300">
-              Filtre os logs por email, mês ou ano • Os dados são atualizados automaticamente em tempo real
+              Filtre os logs por email, mês ou ano
             </CardDescription>
           </CardHeader>
           <CardContent>
