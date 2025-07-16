@@ -19,23 +19,13 @@ export const detectFileType = (file: File): string => {
 };
 
 export const generateReadableFileName = (originalName: string): string => {
-  // Sanitizar nome original
-  const sanitized = sanitizeFileName(originalName);
-  
-  // Separar nome e extensão
-  const lastDotIndex = sanitized.lastIndexOf('.');
-  const nameWithoutExt = lastDotIndex > 0 ? sanitized.substring(0, lastDotIndex) : sanitized;
-  const extension = lastDotIndex > 0 ? sanitized.substring(lastDotIndex) : '';
-  
-  // Adicionar timestamp para evitar conflitos
-  const timestamp = Date.now();
-  
-  return `${nameWithoutExt}_${timestamp}${extension}`;
+  // Preservar nome original exatamente como enviado pelo usuário
+  return originalName;
 };
 
 export const generateUniqueFileName = (originalName: string): string => {
-  // Manter compatibilidade com código existente
-  return generateReadableFileName(originalName);
+  // Manter compatibilidade com código existente - preserva nome original
+  return originalName;
 };
 
 // Função para normalizar nomes para comparação (remove acentos e caracteres especiais)

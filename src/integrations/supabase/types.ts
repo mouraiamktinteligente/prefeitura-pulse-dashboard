@@ -163,6 +163,7 @@ export type Database = {
           id: string
           nome_arquivo: string
           nome_cliente: string | null
+          nome_relatorio: string | null
           status: string
           tipo_arquivo: string
           updated_at: string
@@ -179,6 +180,7 @@ export type Database = {
           id?: string
           nome_arquivo: string
           nome_cliente?: string | null
+          nome_relatorio?: string | null
           status?: string
           tipo_arquivo: string
           updated_at?: string
@@ -195,6 +197,7 @@ export type Database = {
           id?: string
           nome_arquivo?: string
           nome_cliente?: string | null
+          nome_relatorio?: string | null
           status?: string
           tipo_arquivo?: string
           updated_at?: string
