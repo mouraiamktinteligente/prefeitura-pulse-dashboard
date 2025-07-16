@@ -137,36 +137,20 @@ export const useSessionManager = () => {
   };
 
   const createSession = useCallback(async (userEmail: string): Promise<string | null> => {
+    if (!userEmail) {
+      throw new Error('Email do usuário é obrigatório');
+    }
+
+    // Normalizar email antes de qualquer operação
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    
     try {
       const realIP = await getRealIP();
       
-      // SEGURANÇA: Verificar se já existe sessão ativa para este usuário
-      const { data: existingSession } = await supabase
-        .from('sessoes_ativas')
-        .select('*')
-        .eq('user_email', userEmail)
-        .eq('ativo', true)
-        .maybeSingle();
-
-      // Se já existe sessão ativa, desconectar automaticamente a sessão anterior
-      if (existingSession) {
-        console.log(`Usuário ${userEmail} já possui sessão ativa. Desconectando sessão anterior...`);
-        
-        // Invalidar sessão anterior
-        await supabase
-          .from('sessoes_ativas')
-          .update({ 
-            ativo: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_email', userEmail)
-          .eq('ativo', true);
-
-        // Registrar log da desconexão anterior
-        await registerAccessLog(userEmail, 'logout');
-        
-        console.log(`Sessão anterior de ${userEmail} foi desconectada. Criando nova sessão...`);
-      }
+      console.log(`[SESSÃO] Iniciando criação de sessão para: ${normalizedEmail}`);
+      
+      // IMPORTANTE: O trigger do banco irá automaticamente desconectar outras sessões
+      // Não precisamos fazer verificação manual aqui pois o banco garante atomicidade
 
       // SEGURANÇA: Verificar múltiplas sessões do mesmo IP
       if (realIP) {
@@ -183,13 +167,15 @@ export const useSessionManager = () => {
       await supabase
         .from('usuarios_sistema')
         .update({ status_conexao: 'conectado' })
-        .eq('email', userEmail);
+        .eq('email', normalizedEmail);
 
-      // Criar nova sessão com expiração de 4 horas
+      // CRIAR SESSÃO: O trigger automaticamente previne múltiplas sessões
+      console.log(`[SESSÃO] Criando nova sessão para: ${normalizedEmail} no IP: ${realIP}`);
+      
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
-          user_email: userEmail,
+          user_email: normalizedEmail,  // Usar email normalizado
           ip_address: realIP,
           last_activity: new Date().toISOString()
           // expires_at usa o DEFAULT de 4 horas configurado no banco
@@ -223,6 +209,8 @@ export const useSessionManager = () => {
 
   // Função para validação e renovação automática de sessão
   const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    
     try {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) {
@@ -233,7 +221,7 @@ export const useSessionManager = () => {
       const { data: userData, error: userError } = await supabase
         .from('usuarios_sistema')
         .select('status_conexao, ativo')
-        .eq('email', userEmail)
+        .eq('email', normalizedEmail)
         .maybeSingle();
 
       if (userError || !userData || !userData.ativo) {
@@ -251,7 +239,7 @@ export const useSessionManager = () => {
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .select('*')
-        .eq('user_email', userEmail)
+        .eq('user_email', normalizedEmail)
         .eq('session_token', sessionToken)
         .eq('ativo', true)
         .maybeSingle();
@@ -270,9 +258,9 @@ export const useSessionManager = () => {
       // RENOVAÇÃO AUTOMÁTICA: Se faltam menos de 30 minutos para expirar
       const minutosParaExpirar = (new Date(data.expires_at).getTime() - new Date().getTime()) / (1000 * 60);
       if (minutosParaExpirar < 30) {
-        console.log('Renovando sessão automaticamente para:', userEmail);
+        console.log('Renovando sessão automaticamente para:', normalizedEmail);
         await supabase.rpc('renovar_sessao', {
-          p_user_email: userEmail,
+          p_user_email: normalizedEmail,
           p_session_token: sessionToken
         });
       }
