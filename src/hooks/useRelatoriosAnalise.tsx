@@ -46,6 +46,119 @@ export const useRelatoriosAnalise = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Setup realtime listeners
+  useEffect(() => {
+    const setupRealtimeListeners = () => {
+      // Listener para relatórios Instagram
+      const instagramChannel = supabase
+        .channel('relatorio-instagram-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'relatorio_analise_instagram'
+        }, (payload) => {
+          console.log('Instagram realtime event:', payload);
+          if (payload.eventType === 'INSERT') {
+            setRelatoriosInstagram(prev => [payload.new as RelatorioAnaliseInstagram, ...prev]);
+            toast({
+              title: "Novo relatório Instagram",
+              description: "Um novo relatório foi gerado",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setRelatoriosInstagram(prev => prev.filter(r => r.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setRelatoriosInstagram(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new as RelatorioAnaliseInstagram : r
+            ));
+          }
+        })
+        .subscribe();
+
+      // Listener para relatórios Prefeito
+      const prefeitoChannel = supabase
+        .channel('relatorio-prefeito-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'relatorio_analise_prefeito'
+        }, (payload) => {
+          console.log('Prefeito realtime event:', payload);
+          if (payload.eventType === 'INSERT') {
+            setRelatoriosPrefeito(prev => [payload.new as RelatorioAnalisePrefeito, ...prev]);
+            toast({
+              title: "Novo relatório Prefeito",
+              description: "Um novo relatório foi gerado",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setRelatoriosPrefeito(prev => prev.filter(r => r.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setRelatoriosPrefeito(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new as RelatorioAnalisePrefeito : r
+            ));
+          }
+        })
+        .subscribe();
+
+      // Listener para relatórios Web
+      const webChannel = supabase
+        .channel('relatorio-web-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'relatorio_analise_web'
+        }, (payload) => {
+          console.log('Web realtime event:', payload);
+          if (payload.eventType === 'INSERT') {
+            setRelatoriosWeb(prev => [payload.new as RelatorioAnaliseWeb, ...prev]);
+            toast({
+              title: "Novo relatório Web",
+              description: "Um novo relatório foi gerado",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setRelatoriosWeb(prev => prev.filter(r => r.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setRelatoriosWeb(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new as RelatorioAnaliseWeb : r
+            ));
+          }
+        })
+        .subscribe();
+
+      // Listener para relatórios Qualitativo
+      const qualitativoChannel = supabase
+        .channel('relatorio-qualitativo-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'relatorio_qualitativo'
+        }, (payload) => {
+          console.log('Qualitativo realtime event:', payload);
+          if (payload.eventType === 'INSERT') {
+            setRelatoriosQualitativo(prev => [payload.new as RelatorioQualitativo, ...prev]);
+            toast({
+              title: "Novo relatório Qualitativo",
+              description: "Um novo relatório foi gerado",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setRelatoriosQualitativo(prev => prev.filter(r => r.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setRelatoriosQualitativo(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new as RelatorioQualitativo : r
+            ));
+          }
+        })
+        .subscribe();
+
+      return [instagramChannel, prefeitoChannel, webChannel, qualitativoChannel];
+    };
+
+    const channels = setupRealtimeListeners();
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [toast]);
+
   const fetchRelatoriosInstagram = async (instagramProfile?: string) => {
     if (!instagramProfile) return;
     

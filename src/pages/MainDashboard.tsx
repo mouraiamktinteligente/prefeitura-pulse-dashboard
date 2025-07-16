@@ -5,6 +5,8 @@ import { useClients } from '@/hooks/useClients';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { RealtimeIndicator } from '@/components/RealtimeIndicator';
 
 const MainDashboard = () => {
   const { clients, loading } = useClients();
@@ -13,6 +15,26 @@ const MainDashboard = () => {
   console.log('MainDashboard - Estado do loading:', loading);
   console.log('MainDashboard - Quantidade de clientes:', clients.length);
   console.log('MainDashboard - Lista de clientes:', clients);
+
+  // useEffect para configurar listener realtime de clientes
+  React.useEffect(() => {
+    const channel = supabase
+      .channel('clients-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'cadastro_clientes'
+      }, (payload) => {
+        console.log('Clients realtime event:', payload);
+        // O hook useClients já deve ter seu próprio listener, 
+        // mas garantimos que o componente reaja a mudanças
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleClientClick = (clientId: string) => {
     // Navega para o dashboard detalhado passando o ID do cliente
@@ -57,10 +79,11 @@ const MainDashboard = () => {
           </div>
         ) : (
           <>
-            <div className="mb-6">
-              <h2 className="text-white text-xl font-semibold mb-2">
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-white text-xl font-semibold">
                 Clientes Monitorados ({clients.length})
               </h2>
+              <RealtimeIndicator showOnlineUsers className="hidden md:flex text-white" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">

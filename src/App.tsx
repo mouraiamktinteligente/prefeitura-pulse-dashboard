@@ -19,6 +19,7 @@ import ClientRegistration from "./pages/ClientRegistration";
 import ClientDetails from "./pages/ClientDetails";
 import AnalisePesquisa from "./pages/AnalisePesquisa";
 import RegistroMovimentacoes from "./pages/RegistroMovimentacoes";
+import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 
 const queryClient = new QueryClient();
 
@@ -140,6 +141,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <div className="min-h-screen flex flex-col w-full">
+              <RealtimeNotifications />
               <AppRoutes />
             </div>
           </AuthProvider>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -437,6 +437,26 @@ export const useSessionManager = () => {
       console.error('Erro ao buscar usuários ativos:', error);
       return [];
     }
+  }, []);
+
+  // Setup realtime listener para sessões ativas
+  useEffect(() => {
+    const channel = supabase
+      .channel('sessoes-ativas-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sessoes_ativas'
+      }, (payload) => {
+        console.log('Sessões ativas realtime event:', payload);
+        // Atualizar dados automaticamente quando há mudanças nas sessões
+        // Não fazemos fetch automático para evitar loops, deixamos os componentes decidir
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

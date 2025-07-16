@@ -15,6 +15,8 @@ import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { useAuth } from "@/contexts/auth";
 import type { Database } from "@/integrations/supabase/types";
+import { supabase } from '@/integrations/supabase/client';
+import { RealtimeIndicator } from '@/components/RealtimeIndicator';
 
 type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
@@ -91,7 +93,24 @@ const PlatformUsers = () => {
   useEffect(() => {
     loadActiveUsers();
     const interval = setInterval(loadActiveUsers, 30000); // Atualizar a cada 30 segundos
-    return () => clearInterval(interval);
+
+    // Realtime listener para sessões ativas (atualizar status online)
+    const sessionChannel = supabase
+      .channel('session-status-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sessoes_ativas'
+      }, (payload) => {
+        console.log('Session status changed:', payload);
+        loadActiveUsers(); // Recarregar status online dos usuários
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(sessionChannel);
+    };
   }, []);
 
   const getUserTypeIcon = (type: string) => {
@@ -130,14 +149,17 @@ const PlatformUsers = () => {
     <div className="min-h-screen bg-blue-900 p-4">
       <div className="container mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-            <Users className="w-6 h-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Usuários da Plataforma</h1>
+              <p className="text-blue-300">Gestão de usuários administradores e operadores</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Usuários da Plataforma</h1>
-            <p className="text-blue-300">Gestão de usuários administradores e operadores</p>
-          </div>
+          <RealtimeIndicator showOnlineUsers className="hidden md:flex text-white" />
         </div>
 
         {/* Filtros */}

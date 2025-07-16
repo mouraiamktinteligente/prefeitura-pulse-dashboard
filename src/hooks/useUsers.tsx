@@ -184,6 +184,48 @@ export const useUsers = () => {
 
   useEffect(() => {
     fetchUsers();
+
+    // Setup realtime listener para usuarios_sistema
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // escutar INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'usuarios_sistema'
+        },
+        (payload) => {
+          console.log('Usuarios realtime event:', payload);
+          
+          // Mostrar toast quando outro usuário faz alterações
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Novo usuário",
+              description: `Usuário "${payload.new.nome_completo}" foi criado por outro usuário`,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            toast({
+              title: "Usuário atualizado", 
+              description: `Usuário "${payload.new.nome_completo}" foi atualizado por outro usuário`,
+            });
+          } else if (payload.eventType === 'DELETE') {
+            toast({
+              title: "Usuário removido",
+              description: "Um usuário foi removido por outro usuário",
+              variant: "destructive"
+            });
+          }
+          
+          // Recarregar lista para refletir mudanças
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {
