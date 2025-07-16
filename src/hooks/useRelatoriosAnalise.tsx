@@ -38,6 +38,25 @@ interface RelatorioQualitativo {
   nome_documento?: string;
 }
 
+// Função auxiliar para deduplicar relatórios
+const deduplicateReports = <T extends { id: number; profile: string | null; nome_documento?: string | null; created_at: string }>(
+  reports: T[]
+): T[] => {
+  const seen = new Set<string>();
+  return reports.filter(report => {
+    if (!report.profile || !report.nome_documento) return true;
+    
+    const dateKey = new Date(report.created_at).toDateString();
+    const key = `${report.profile}-${report.nome_documento}-${dateKey}`;
+    
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
 export const useRelatoriosAnalise = () => {
   const [relatoriosInstagram, setRelatoriosInstagram] = useState<RelatorioAnaliseInstagram[]>([]);
   const [relatoriosPrefeito, setRelatoriosPrefeito] = useState<RelatorioAnalisePrefeito[]>([]);
@@ -180,7 +199,9 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
-      setRelatoriosInstagram(data || []);
+      // Aplicar deduplicação como fallback
+      const uniqueReports = deduplicateReports(data || []);
+      setRelatoriosInstagram(uniqueReports);
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -307,7 +328,9 @@ export const useRelatoriosAnalise = () => {
       }
 
       console.log('DEBUG: Dados encontrados para Prefeito:', data?.length || 0, 'itens');
-      setRelatoriosPrefeito(data || []);
+      // Aplicar deduplicação como fallback
+      const uniqueReports = deduplicateReports(data || []);
+      setRelatoriosPrefeito(uniqueReports);
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -399,7 +422,9 @@ export const useRelatoriosAnalise = () => {
       }
 
       console.log('DEBUG: Dados encontrados para Web:', data?.length || 0, 'itens');
-      setRelatoriosWeb(data || []);
+      // Aplicar deduplicação como fallback
+      const uniqueReports = deduplicateReports(data || []);
+      setRelatoriosWeb(uniqueReports);
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -491,7 +516,9 @@ export const useRelatoriosAnalise = () => {
       }
 
       console.log('DEBUG: Dados encontrados para Qualitativo:', data?.length || 0, 'itens');
-      setRelatoriosQualitativo(data || []);
+      // Aplicar deduplicação como fallback
+      const uniqueReports = deduplicateReports(data || []);
+      setRelatoriosQualitativo(uniqueReports);
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
