@@ -138,7 +138,9 @@ export const useSessionManager = () => {
 
   const createSession = useCallback(async (userEmail: string): Promise<string | null> => {
     try {
-      // CRITICAL: Verificar se já existe sessão ativa antes de criar nova
+      const realIP = await getRealIP();
+      
+      // SEGURANÇA: Verificar se já existe sessão ativa para este usuário
       const { data: existingSession } = await supabase
         .from('sessoes_ativas')
         .select('*')
@@ -146,54 +148,80 @@ export const useSessionManager = () => {
         .eq('ativo', true)
         .maybeSingle();
 
-      // Se já existe sessão ativa e não expirou, retornar ela
-      if (existingSession && new Date(existingSession.expires_at) > new Date()) {
-        console.log('Sessão ativa existente encontrada, reutilizando...');
-        setCurrentSession(existingSession);
-        localStorage.setItem('session_token', existingSession.session_token);
-        return existingSession.session_token;
+      // Se já existe sessão ativa, verificar IP
+      if (existingSession) {
+        if (existingSession.ip_address && existingSession.ip_address !== realIP) {
+          throw new Error('USUÁRIO_JA_CONECTADO_OUTRO_IP');
+        }
+        
+        // Se mesmo IP, renovar sessão existente
+        const renewed = await supabase.rpc('renovar_sessao', {
+          p_user_email: userEmail,
+          p_session_token: existingSession.session_token
+        });
+        
+        if (renewed.data) {
+          console.log('Sessão existente renovada para:', userEmail);
+          setCurrentSession(existingSession);
+          localStorage.setItem('session_token', existingSession.session_token);
+          return existingSession.session_token;
+        }
       }
 
-      // Invalidar todas as sessões antigas antes de criar nova
-      await supabase
-        .from('sessoes_ativas')
-        .update({ ativo: false })
-        .eq('user_email', userEmail)
-        .eq('ativo', true);
+      // SEGURANÇA: Verificar múltiplas sessões do mesmo IP
+      if (realIP) {
+        const { data: multipleIpSessions } = await supabase.rpc('verificar_sessoes_multiplas_ip', {
+          p_ip_address: realIP
+        });
+        
+        if (multipleIpSessions && multipleIpSessions.length > 0) {
+          console.warn('Múltiplas sessões detectadas no IP:', realIP, multipleIpSessions);
+        }
+      }
 
-      // Marcar usuário como conectado
+      // Marcar usuário como conectado ANTES de criar sessão
       await supabase
         .from('usuarios_sistema')
         .update({ status_conexao: 'conectado' })
         .eq('email', userEmail);
 
-      // Criar nova sessão sem expiração automática
+      // Criar nova sessão com expiração de 4 horas
       const { data, error } = await supabase
         .from('sessoes_ativas')
         .insert({
           user_email: userEmail,
-          last_activity: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 ano (sessão indefinida)
+          ip_address: realIP,
+          last_activity: new Date().toISOString()
+          // expires_at usa o DEFAULT de 4 horas configurado no banco
         })
         .select()
         .single();
 
       if (error) {
         console.error('Erro ao criar sessão:', error);
+        if (error.message?.includes('duplicate key value violates unique constraint')) {
+          throw new Error('SESSAO_UNICA_VIOLADA');
+        }
         return null;
       }
 
-      console.log('Nova sessão criada:', data.session_token);
+      console.log('Nova sessão criada:', data.session_token, 'para IP:', realIP);
       setCurrentSession(data);
       localStorage.setItem('session_token', data.session_token);
       return data.session_token;
     } catch (error) {
       console.error('Erro ao criar sessão:', error);
-      return null;
+      if (error.message === 'USUÁRIO_JA_CONECTADO_OUTRO_IP') {
+        throw new Error('Este usuário já está conectado em outro local. Apenas uma sessão ativa é permitida por usuário.');
+      }
+      if (error.message === 'SESSAO_UNICA_VIOLADA') {
+        throw new Error('Não é possível criar múltiplas sessões para o mesmo usuário.');
+      }
+      throw error;
     }
   }, []);
 
-  // Função simplificada para validação básica de sessão (apenas para casos específicos)
+  // Função para validação e renovação automática de sessão
   const validateSession = useCallback(async (userEmail: string): Promise<boolean> => {
     try {
       const sessionToken = localStorage.getItem('session_token');
@@ -230,6 +258,23 @@ export const useSessionManager = () => {
 
       if (error || !data) {
         return false;
+      }
+
+      // Verificar se sessão não expirou
+      if (new Date(data.expires_at) <= new Date()) {
+        console.log('Sessão expirada para:', userEmail);
+        await invalidateSession(userEmail, 'timeout');
+        return false;
+      }
+
+      // RENOVAÇÃO AUTOMÁTICA: Se faltam menos de 30 minutos para expirar
+      const minutosParaExpirar = (new Date(data.expires_at).getTime() - new Date().getTime()) / (1000 * 60);
+      if (minutosParaExpirar < 30) {
+        console.log('Renovando sessão automaticamente para:', userEmail);
+        await supabase.rpc('renovar_sessao', {
+          p_user_email: userEmail,
+          p_session_token: sessionToken
+        });
       }
 
       setCurrentSession(data);
@@ -316,7 +361,23 @@ export const useSessionManager = () => {
         return false;
       }
 
-      // 1. PRIMEIRO: Marcar usuário como desconectado (fonte única da verdade)
+      // SEQUÊNCIA CRÍTICA PARA DESCONEXÃO EFETIVA:
+      
+      // 1. INVALIDAR TODAS as sessões primeiro (mais crítico)
+      const { error: sessionError } = await supabase
+        .from('sessoes_ativas')
+        .update({ 
+          ativo: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_email', targetEmail)
+        .eq('ativo', true);
+
+      if (sessionError) {
+        console.error('Erro ao invalidar sessões:', sessionError);
+      }
+
+      // 2. Marcar usuário como desconectado
       const { error: userError } = await supabase
         .from('usuarios_sistema')
         .update({ status_conexao: 'desconectado' })
@@ -326,81 +387,80 @@ export const useSessionManager = () => {
         console.error('Erro ao marcar usuário como desconectado:', userError);
         toast({
           title: "Erro",
-          description: "Não foi possível desconectar o usuário.",
+          description: "Não foi possível desconectar o usuário completamente.",
           variant: "destructive"
         });
         return false;
       }
 
-      // 2. Invalidar TODAS as sessões do usuário alvo
-      await supabase
-        .from('sessoes_ativas')
-        .update({ 
-          ativo: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_email', targetEmail)
-        .eq('ativo', true);
-
-      // 3. Registrar log de acesso com status específico
+      // 3. Registrar log de acesso
       await registerAccessLog(targetEmail, 'desconectado_admin', adminEmail);
 
-      // 4. Sistema de ping-pong escalado para garantir desconexão
+      // 4. SISTEMA REALTIME MÚLTIPLO para garantir desconexão instantânea
       const forceDisconnectSequence = async () => {
         const channels = [
-          supabase.channel('admin-disconnect'),
-          supabase.channel(`user-${targetEmail}`),
-          supabase.channel(`force-logout-${targetEmail}`),
-          supabase.channel('global-security')
+          'admin-disconnect',
+          `user-${targetEmail}`,
+          `force-logout-${targetEmail}`,
+          'global-security',
+          'session-killer'
         ];
 
-        // Enviar múltiplas mensagens em intervalos crescentes
-        const intervals = [0, 2000, 5000, 10000]; // 0s, 2s, 5s, 10s
-        
-        intervals.forEach((delay, index) => {
-          setTimeout(async () => {
-            console.log(`Enviando comando de desconexão #${index + 1} para ${targetEmail}`);
-            
-            for (const channel of channels) {
-              try {
-                await channel.send({
-                  type: 'broadcast',
-                  event: 'force_logout',
-                  payload: { 
-                    targetEmail,
-                    reason: 'Desconectado por administrador',
-                    adminEmail,
-                    attempt: index + 1,
-                    timestamp: new Date().toISOString()
-                  }
-                });
-              } catch (err) {
-                console.error(`Erro ao enviar por canal ${channel.topic}:`, err);
+        // Mensagens imediatas em todos os canais
+        for (const channelName of channels) {
+          try {
+            const channel = supabase.channel(channelName);
+            await channel.send({
+              type: 'broadcast',
+              event: 'force_logout',
+              payload: { 
+                targetEmail,
+                reason: 'Desconectado por administrador',
+                adminEmail,
+                timestamp: new Date().toISOString(),
+                critical: true
               }
-            }
-          }, delay);
-        });
+            });
+            
+            // Desinscrever canal imediatamente após uso
+            setTimeout(() => supabase.removeChannel(channel), 1000);
+          } catch (err) {
+            console.error(`Erro no canal ${channelName}:`, err);
+          }
+        }
 
-        // Cleanup dos canais após 15 segundos
-        setTimeout(() => {
-          channels.forEach(channel => {
+        // Repetir comando após 3 segundos para garantir
+        setTimeout(async () => {
+          for (const channelName of channels) {
             try {
-              supabase.removeChannel(channel);
+              const channel = supabase.channel(`${channelName}-retry`);
+              await channel.send({
+                type: 'broadcast',
+                event: 'force_logout',
+                payload: { 
+                  targetEmail,
+                  reason: 'Desconectado por administrador (retry)',
+                  adminEmail,
+                  timestamp: new Date().toISOString(),
+                  retry: true
+                }
+              });
+              setTimeout(() => supabase.removeChannel(channel), 1000);
             } catch (err) {
-              console.error('Erro ao remover canal:', err);
+              console.error(`Erro no retry ${channelName}:`, err);
             }
-          });
-        }, 15000);
+          }
+        }, 3000);
       };
 
-      // Executar sequência de desconexão
+      // Executar desconexão realtime
       await forceDisconnectSequence();
 
       console.log(`Usuário ${targetEmail} desconectado com sucesso por ${adminEmail}`);
       
       toast({
-        title: "Sucesso",
-        description: "Usuário desconectado com sucesso."
+        title: "Sucesso", 
+        description: `Usuário ${targetEmail} foi desconectado com sucesso.`
       });
       return true;
     } catch (error) {
@@ -459,6 +519,25 @@ export const useSessionManager = () => {
     };
   }, []);
 
+  // Função para limpar sessões expiradas (chamada periodicamente)
+  const cleanupExpiredSessions = useCallback(async () => {
+    try {
+      await supabase.rpc('limpar_sessoes_expiradas');
+    } catch (error) {
+      console.error('Erro ao limpar sessões expiradas:', error);
+    }
+  }, []);
+
+  // Cleanup automático a cada 5 minutos
+  useEffect(() => {
+    const cleanup = setInterval(cleanupExpiredSessions, 5 * 60 * 1000); // 5 minutos
+    
+    // Executar uma vez imediatamente
+    cleanupExpiredSessions();
+    
+    return () => clearInterval(cleanup);
+  }, [cleanupExpiredSessions]);
+
   return {
     currentSession,
     createSession,
@@ -466,6 +545,7 @@ export const useSessionManager = () => {
     invalidateSession,
     disconnectUserByAdmin,
     getActiveUsers,
-    registerAccessLog
+    registerAccessLog,
+    cleanupExpiredSessions
   };
 };

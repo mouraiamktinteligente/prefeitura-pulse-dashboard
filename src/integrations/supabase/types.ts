@@ -655,6 +655,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          ip_address: string | null
           last_activity: string
           session_token: string
           updated_at: string
@@ -665,6 +666,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          ip_address?: string | null
           last_activity?: string
           session_token?: string
           updated_at?: string
@@ -675,6 +677,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          ip_address?: string | null
           last_activity?: string
           session_token?: string
           updated_at?: string
@@ -920,6 +923,17 @@ export type Database = {
       limpar_sessoes_expiradas: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      renovar_sessao: {
+        Args: { p_user_email: string; p_session_token: string }
+        Returns: boolean
+      }
+      verificar_sessoes_multiplas_ip: {
+        Args: { p_ip_address: string }
+        Returns: {
+          user_email: string
+          count_sessions: number
+        }[]
       }
     }
     Enums: {

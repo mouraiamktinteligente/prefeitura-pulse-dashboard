@@ -82,19 +82,67 @@ export const searchCEP = async (cep: string) => {
   if (cleanCEP.length !== 8) return null;
 
   try {
-    const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+    // Primeira tentativa: ViaCEP
+    const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     
-    if (data.erro) return null;
+    if (data.erro) {
+      console.log('CEP não encontrado no ViaCEP');
+      return null;
+    }
+    
+    console.log('CEP encontrado:', data);
     
     return {
-      rua: data.logradouro,
-      bairro: data.bairro,
-      cidade: data.localidade,
-      estado: data.uf
+      rua: data.logradouro || '',
+      bairro: data.bairro || '',
+      cidade: data.localidade || '',
+      estado: data.uf || ''
     };
   } catch (error) {
-    console.error('Erro ao buscar CEP:', error);
-    return null;
+    console.error('Erro ao buscar CEP no ViaCEP:', error);
+    
+    // Fallback: Tentativa com API alternativa
+    try {
+      const response = await fetch(`https://cep.awesomeapi.com.br/json/${cleanCEP}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 400) {
+        console.log('CEP não encontrado na API alternativa');
+        return null;
+      }
+      
+      console.log('CEP encontrado na API alternativa:', data);
+      
+      return {
+        rua: data.address || '',
+        bairro: data.district || '',
+        cidade: data.city || '',
+        estado: data.state || ''
+      };
+    } catch (fallbackError) {
+      console.error('Erro ao buscar CEP na API alternativa:', fallbackError);
+      return null;
+    }
   }
 };

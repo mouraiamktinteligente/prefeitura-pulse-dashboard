@@ -158,28 +158,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log('Login aprovado para:', userData.email);
       
-      // Criar sessão ativa
-      const sessionToken = await sessionManager.createSession(userData.email);
-      if (!sessionToken) {
-        return { error: { message: 'Erro ao criar sessão' } };
-      }
-      
-      // Criar objeto de usuário
-      const authenticatedUser = {
-        id: userData.id,
-        email: userData.email,
-        nome_completo: userData.nome_completo,
-        tipo_usuario: userData.tipo_usuario,
-        permissoes: userData.permissoes
-      };
+      try {
+        // Criar sessão ativa com verificação de IP e sessão única
+        const sessionToken = await sessionManager.createSession(userData.email);
+        if (!sessionToken) {
+          return { error: { message: 'Erro ao criar sessão' } };
+        }
+        
+        // Criar objeto de usuário
+        const authenticatedUser = {
+          id: userData.id,
+          email: userData.email,
+          nome_completo: userData.nome_completo,
+          tipo_usuario: userData.tipo_usuario,
+          permissoes: userData.permissoes
+        };
 
-      setUser(authenticatedUser);
-      localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
-      
-      // Registrar log de acesso com IP real e navegador correto
-      await sessionManager.registerAccessLog(userData.email, 'login');
-      
-      return { error: null };
+        setUser(authenticatedUser);
+        localStorage.setItem('auth_user', JSON.stringify(authenticatedUser));
+        
+        // Registrar log de acesso com IP real e navegador correto
+        await sessionManager.registerAccessLog(userData.email, 'login');
+        
+        return { error: null };
+      } catch (sessionError) {
+        console.error('Erro ao criar sessão:', sessionError);
+        
+        // Tratar erros específicos de sessão
+        if (sessionError.message?.includes('já está conectado em outro local')) {
+          return { error: { message: sessionError.message } };
+        }
+        if (sessionError.message?.includes('múltiplas sessões')) {
+          return { error: { message: sessionError.message } };
+        }
+        
+        return { error: { message: 'Erro ao estabelecer sessão. Tente novamente.' } };
+      }
     } catch (error) {
       console.error('Erro no login:', error);
       return { error: { message: 'Credenciais inválidas' } };
@@ -212,18 +226,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Múltiplos canais para garantir que a mensagem chegue
     const channels = [
-      { name: 'admin-disconnect', event: 'user_disconnected' },
-      { name: `user-${user.email}`, event: 'force_logout' },
-      { name: `force-logout-${user.email}`, event: 'force_logout' },
-      { name: 'global-security', event: 'force_logout' }
+      'admin-disconnect',
+      `user-${user.email}`,
+      `force-logout-${user.email}`,
+      'global-security',
+      'session-killer'
     ];
 
-    const subscriptions = channels.map(({ name, event }) => {
+    const subscriptions = channels.map((channelName) => {
       return supabase
-        .channel(name)
-        .on('broadcast', { event }, (payload) => {
-          if (payload.targetEmail === user.email || event === 'force_logout') {
-            console.log(`Logout forçado recebido via canal ${name}:`, payload);
+        .channel(channelName)
+        .on('broadcast', { event: 'force_logout' }, (payload) => {
+          if (payload.targetEmail === user.email || payload.critical) {
+            console.log(`Logout forçado recebido via canal ${channelName}:`, payload);
             logout('Você foi desconectado por um administrador');
           }
         })
@@ -278,37 +293,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const parsedUser = JSON.parse(savedUser);
           console.log('Usuário encontrado no localStorage:', parsedUser.email);
           
-          // Durante refresh, verificar primeiro se a sessão ainda existe
-          const sessionToken = localStorage.getItem('session_token');
-          if (sessionToken) {
-            const { data: sessionData } = await supabase
-              .from('sessoes_ativas')
-              .select('*')
-              .eq('user_email', parsedUser.email)
-              .eq('session_token', sessionToken)
-              .eq('ativo', true)
-              .maybeSingle();
-
-            // Se sessão existe e não expirou, apenas restaurar usuário
-            if (sessionData && new Date(sessionData.expires_at) > new Date()) {
-              console.log('Sessão válida encontrada, restaurando usuário...');
-              
-              // Garantir que usuário está marcado como conectado
-              await supabase
-                .from('usuarios_sistema')
-                .update({ status_conexao: 'conectado' })
-                .eq('email', parsedUser.email);
-              
-              
-              setUser(parsedUser);
-              setForceLogoutReason(null);
-              setIsLoading(false);
-              setIsRefreshing(false);
-              return;
-            }
+          // Durante refresh, usar validateSession que inclui renovação automática
+          const isSessionValid = await sessionManager.validateSession(parsedUser.email);
+          
+          if (isSessionValid) {
+            console.log('Sessão validada com sucesso, restaurando usuário...');
+            
+            // Garantir que usuário está marcado como conectado
+            await supabase
+              .from('usuarios_sistema')
+              .update({ status_conexao: 'conectado' })
+              .eq('email', parsedUser.email);
+            
+            setUser(parsedUser);
+            setForceLogoutReason(null);
+            setIsLoading(false);
+            setIsRefreshing(false);
+            return;
           }
           
-          // Se não tem sessão válida, verificar se usuário ainda existe e está ativo
+          // Se validação falhou, verificar motivo
           const { data: userData } = await supabase
             .from('usuarios_sistema')
             .select('status_conexao, ativo')
@@ -317,15 +321,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           if (!userData || !userData.ativo) {
             console.log('Usuário não encontrado ou inativo');
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('session_token');
-            setIsLoading(false);
-            setIsRefreshing(false);
-            return;
+          } else if (userData.status_conexao === 'desconectado') {
+            console.log('Usuário foi desconectado administrativamente');
+            setForceLogoutReason('Você foi desconectado por um administrador');
+          } else {
+            console.log('Sessão expirada por inatividade');
           }
           
-          // Se usuário existe mas não tem sessão válida, limpar localStorage
-          console.log('Sessão expirada, limpando localStorage');
+          // Limpar dados locais
           localStorage.removeItem('auth_user');
           localStorage.removeItem('session_token');
         } catch (error) {
@@ -352,6 +355,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return () => clearTimeout(timeout);
     }
   }, [forceLogoutReason]);
+
+  // VALIDAÇÃO PERIÓDICA DE SESSÃO (Heartbeat)
+  useEffect(() => {
+    if (!user?.email) return;
+
+    // Verificar sessão a cada 2 minutos
+    const heartbeat = setInterval(async () => {
+      try {
+        const isValid = await sessionManager.validateSession(user.email);
+        if (!isValid) {
+          console.log('Sessão inválida detectada no heartbeat, fazendo logout...');
+          logout('Sua sessão expirou por inatividade');
+        }
+      } catch (error) {
+        console.error('Erro no heartbeat de validação:', error);
+      }
+    }, 2 * 60 * 1000); // 2 minutos
+
+    return () => clearInterval(heartbeat);
+  }, [user?.email, sessionManager]);
 
   return (
     <AuthContext.Provider value={{ user, logout, isLoading, signIn }}>
