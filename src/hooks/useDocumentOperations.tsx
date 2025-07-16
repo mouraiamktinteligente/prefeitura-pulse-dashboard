@@ -67,6 +67,13 @@ export const useDocumentOperations = () => {
       const storageFileName = generateStorageFileName(documento.nome_arquivo); // Usar nome sanitizado
       const filePath = `${clientFolderName}/${storageFileName}`;
       
+      console.log('🔍 Debugging paths para deleção:', {
+        clientFolderName,
+        nomeArquivoOriginal: documento.nome_arquivo,
+        storageFileName,
+        filePath
+      });
+      
       console.log('Deletando arquivo do Supabase Storage:', filePath);
 
       // Deletar o arquivo do storage
@@ -75,13 +82,27 @@ export const useDocumentOperations = () => {
         .remove([filePath]);
 
       if (storageError) {
-        console.error('Erro ao deletar arquivo do storage:', storageError);
-        toast({
-          title: "Erro ao deletar arquivo",
-          description: storageError.message,
-          variant: "destructive"
-        });
-        return;
+        console.error('❌ Erro ao deletar arquivo do storage:', storageError);
+        console.log('💡 Tentando com nome original do arquivo...');
+        
+        // Tentar com o nome original como fallback
+        const fallbackPath = `${clientFolderName}/${documento.nome_arquivo}`;
+        const { error: fallbackError } = await supabase.storage
+          .from('analises-documentos')
+          .remove([fallbackPath]);
+          
+        if (fallbackError) {
+          console.error('❌ Erro também com nome original:', fallbackError);
+          toast({
+            title: "Erro ao deletar arquivo",
+            description: `Erro no storage: ${storageError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+        console.log('✓ Arquivo deletado com nome original como fallback');
+      } else {
+        console.log('✓ Arquivo deletado do Supabase Storage com nome sanitizado');
       }
 
       console.log('✓ Arquivo deletado do Supabase Storage');

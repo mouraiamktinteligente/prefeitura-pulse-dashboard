@@ -193,8 +193,50 @@ export const useRelatoriosAnalise = () => {
     }
   };
 
+  const deleteFromGoogleDrive = async (linkRelatorio: string | null): Promise<boolean> => {
+    if (!linkRelatorio) {
+      console.log('Relatório não tem link do Google Drive, pulando deleção');
+      return true;
+    }
+
+    try {
+      console.log('Deletando relatório do Google Drive:', linkRelatorio);
+      
+      const response = await supabase.functions.invoke('google-drive-delete', {
+        body: {
+          googleDriveUrl: linkRelatorio,
+          fileName: 'Relatório de Análise',
+          clientName: 'Sistema de Análise',
+        },
+      });
+
+      if (response.error) {
+        console.error('Erro na função de deleção do Google Drive:', response.error);
+        return false;
+      }
+
+      if (response.data?.success) {
+        console.log('✓ Relatório deletado do Google Drive com sucesso');
+        return true;
+      } else {
+        console.error('Resposta de erro na deleção do Google Drive:', response.data);
+        return false;
+      }
+    } catch (error) {
+      console.error('Erro ao deletar relatório do Google Drive:', error);
+      return false;
+    }
+  };
+
   const deleteRelatorioInstagram = async (relatorio: RelatorioAnaliseInstagram) => {
     try {
+      // Primeiro, tentar deletar do Google Drive (se existir)
+      let driveDeleteSuccess = true;
+      if (relatorio.link_relatorio) {
+        console.log('Deletando relatório Instagram do Google Drive...');
+        driveDeleteSuccess = await deleteFromGoogleDrive(relatorio.link_relatorio);
+      }
+
       const { error } = await supabase
         .from('relatorio_analise_instagram')
         .delete()
@@ -211,10 +253,20 @@ export const useRelatoriosAnalise = () => {
       }
 
       setRelatoriosInstagram(prev => prev.filter(r => r.id !== relatorio.id));
-      toast({
-        title: "Sucesso",
-        description: "Relatório deletado com sucesso",
-      });
+      
+      // Mostrar toast baseado no resultado
+      if (driveDeleteSuccess) {
+        toast({
+          title: "Sucesso",
+          description: "Relatório deletado com sucesso do banco e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Parcialmente deletado",
+          description: "Relatório removido do banco, mas houve erro ao deletar do Google Drive",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -270,6 +322,13 @@ export const useRelatoriosAnalise = () => {
 
   const deleteRelatorioPrefeito = async (relatorio: RelatorioAnalisePrefeito) => {
     try {
+      // Primeiro, tentar deletar do Google Drive (se existir)
+      let driveDeleteSuccess = true;
+      if (relatorio.link_relatorio) {
+        console.log('Deletando relatório Prefeito do Google Drive...');
+        driveDeleteSuccess = await deleteFromGoogleDrive(relatorio.link_relatorio);
+      }
+
       const { error } = await supabase
         .from('relatorio_analise_prefeito')
         .delete()
@@ -286,10 +345,20 @@ export const useRelatoriosAnalise = () => {
       }
 
       setRelatoriosPrefeito(prev => prev.filter(r => r.id !== relatorio.id));
-      toast({
-        title: "Sucesso",
-        description: "Relatório deletado com sucesso",
-      });
+      
+      // Mostrar toast baseado no resultado
+      if (driveDeleteSuccess) {
+        toast({
+          title: "Sucesso",
+          description: "Relatório deletado com sucesso do banco e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Parcialmente deletado",
+          description: "Relatório removido do banco, mas houve erro ao deletar do Google Drive",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -345,6 +414,13 @@ export const useRelatoriosAnalise = () => {
 
   const deleteRelatorioWeb = async (relatorio: RelatorioAnaliseWeb) => {
     try {
+      // Primeiro, tentar deletar do Google Drive (se existir)
+      let driveDeleteSuccess = true;
+      if (relatorio.link_relatorio) {
+        console.log('Deletando relatório Web do Google Drive...');
+        driveDeleteSuccess = await deleteFromGoogleDrive(relatorio.link_relatorio);
+      }
+
       const { error } = await supabase
         .from('relatorio_analise_web')
         .delete()
@@ -361,10 +437,20 @@ export const useRelatoriosAnalise = () => {
       }
 
       setRelatoriosWeb(prev => prev.filter(r => r.id !== relatorio.id));
-      toast({
-        title: "Sucesso",
-        description: "Relatório deletado com sucesso",
-      });
+      
+      // Mostrar toast baseado no resultado
+      if (driveDeleteSuccess) {
+        toast({
+          title: "Sucesso",
+          description: "Relatório deletado com sucesso do banco e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Parcialmente deletado",
+          description: "Relatório removido do banco, mas houve erro ao deletar do Google Drive",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
@@ -420,6 +506,13 @@ export const useRelatoriosAnalise = () => {
 
   const deleteRelatorioQualitativo = async (relatorio: RelatorioQualitativo) => {
     try {
+      // Primeiro, tentar deletar do Google Drive (se existir)
+      let driveDeleteSuccess = true;
+      if (relatorio.link_relatorio) {
+        console.log('Deletando relatório Qualitativo do Google Drive...');
+        driveDeleteSuccess = await deleteFromGoogleDrive(relatorio.link_relatorio);
+      }
+
       const { error } = await supabase
         .from('relatorio_qualitativo')
         .delete()
@@ -436,10 +529,20 @@ export const useRelatoriosAnalise = () => {
       }
 
       setRelatoriosQualitativo(prev => prev.filter(r => r.id !== relatorio.id));
-      toast({
-        title: "Sucesso",
-        description: "Relatório deletado com sucesso",
-      });
+      
+      // Mostrar toast baseado no resultado
+      if (driveDeleteSuccess) {
+        toast({
+          title: "Sucesso",
+          description: "Relatório deletado com sucesso do banco e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Parcialmente deletado",
+          description: "Relatório removido do banco, mas houve erro ao deletar do Google Drive",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
