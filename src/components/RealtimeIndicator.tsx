@@ -43,11 +43,6 @@ export const RealtimeIndicator: React.FC<RealtimeIndicatorProps> = ({
         </Badge>
       )}
 
-      {/* Indicador de tempo real */}
-      <div className="flex items-center gap-1">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span className="text-xs text-muted-foreground">Tempo real</span>
-      </div>
     </div>
   );
 };
