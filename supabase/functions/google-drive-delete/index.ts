@@ -126,23 +126,45 @@ async function getAccessToken(): Promise<string> {
 
 function extractFileIdFromUrl(url: string): string | null {
   try {
+    console.log('Extraindo ID da URL:', url);
+    
     // URL formats that contain file ID:
     // https://drive.google.com/file/d/FILE_ID/view?usp=sharing
     // https://drive.google.com/open?id=FILE_ID
+    // https://docs.google.com/document/d/FILE_ID/edit
+    // https://docs.google.com/spreadsheets/d/FILE_ID/edit
+    // https://docs.google.com/presentation/d/FILE_ID/edit
     
     const patterns = [
+      // Google Drive file URLs
       /\/file\/d\/([a-zA-Z0-9-_]+)/,
-      /[?&]id=([a-zA-Z0-9-_]+)/
+      // Google Drive open URLs  
+      /[?&]id=([a-zA-Z0-9-_]+)/,
+      // Google Docs URLs
+      /\/document\/d\/([a-zA-Z0-9-_]+)/,
+      // Google Sheets URLs
+      /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
+      // Google Slides URLs
+      /\/presentation\/d\/([a-zA-Z0-9-_]+)/,
+      // Generic Google Apps URLs
+      /\/d\/([a-zA-Z0-9-_]+)/
     ];
     
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match) {
-        return match[1];
+        const fileId = match[1];
+        console.log('ID extraído com sucesso:', fileId);
+        return fileId;
       }
     }
     
     console.error('Não foi possível extrair ID do arquivo da URL:', url);
+    console.error('Formatos suportados:');
+    console.error('- https://drive.google.com/file/d/FILE_ID');
+    console.error('- https://docs.google.com/document/d/FILE_ID');
+    console.error('- https://docs.google.com/spreadsheets/d/FILE_ID');
+    console.error('- https://docs.google.com/presentation/d/FILE_ID');
     return null;
   } catch (error) {
     console.error('Erro ao extrair ID do arquivo:', error);
