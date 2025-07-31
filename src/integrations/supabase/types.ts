@@ -956,6 +956,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      force_logout_user: {
+        Args: { user_email: string; motivo?: string }
+        Returns: undefined
+      }
       limpar_sessoes_expiradas: {
         Args: Record<PropertyKey, never>
         Returns: undefined
