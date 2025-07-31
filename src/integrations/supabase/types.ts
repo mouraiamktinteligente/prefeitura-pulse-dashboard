@@ -957,7 +957,7 @@ export type Database = {
         Returns: string
       }
       force_logout_user: {
-        Args: { user_email: string; motivo?: string }
+        Args: { p_user_email: string; p_motivo?: string }
         Returns: undefined
       }
       limpar_sessoes_expiradas: {
