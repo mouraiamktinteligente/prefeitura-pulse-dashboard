@@ -18,31 +18,66 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Função para verificar se ainda há sessões ativas
+  const checkActiveSessions = async (userEmail: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('sessoes_ativas')
+        .select('id')
+        .eq('user_email', userEmail)
+        .eq('ativo', true);
+      
+      if (error) throw error;
+      return (data?.length || 0) > 0;
+    } catch (error) {
+      console.error('Erro ao verificar sessões ativas:', error);
+      return true; // Em caso de erro, assume que há sessões ativas
+    }
+  };
+
   // Função para forçar desconexão em caso de sessão travada
   const forceDisconnect = async (userEmail: string) => {
     setIsForceClearing(true);
     try {
-      // Usar a função RPC para forçar logout
+      // 1. Usar a função RPC para forçar logout
       await supabase.rpc('force_logout_user', {
         p_user_email: userEmail,
         p_motivo: 'force_disconnect_login'
       });
 
-      // Limpar dados locais também
+      // 2. Limpar dados locais também
       localStorage.removeItem('auth_user');
       localStorage.removeItem('session_token');
       sessionStorage.clear();
 
-      toast({
-        title: "Sessão Limpa",
-        description: "Sessão anterior foi removida. Tente fazer login novamente.",
-        variant: "default"
-      });
+      // 3. Aguardar um pouco para a propagação das mudanças
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Tentar login novamente após 2 segundos
-      setTimeout(() => {
-        handleSubmit(new Event('submit') as any);
-      }, 2000);
+      // 4. Verificar se as sessões foram realmente limpas (com retry)
+      let sessionsCleaned = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const hasActiveSessions = await checkActiveSessions(userEmail);
+        if (!hasActiveSessions) {
+          sessionsCleaned = true;
+          break;
+        }
+        // Aguardar mais um pouco antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
+      if (sessionsCleaned) {
+        toast({
+          title: "Sessão Limpa com Sucesso",
+          description: "Todas as sessões anteriores foram removidas. Você pode tentar fazer login agora.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "A limpeza pode ainda estar em andamento. Aguarde alguns segundos antes de tentar login novamente.",
+          variant: "default"
+        });
+      }
 
     } catch (error) {
       console.error('Erro ao forçar desconexão:', error);
