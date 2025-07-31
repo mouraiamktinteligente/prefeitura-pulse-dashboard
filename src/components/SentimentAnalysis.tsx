@@ -25,7 +25,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   const effectiveClientId = propClientId || paramClientId;
   const selectedClient = clients.find(client => client.id === effectiveClientId);
   
-  const { metrics: clientMetrics, loading: clientLoading } = useClientMetrics(selectedClient?.instagram || undefined);
+  const { metrics: clientMetrics, loading: clientLoading } = useClientMetrics(selectedClient?.instagram_prefeitura || undefined);
   const { metrics: aggregatedMetrics, loading: aggregatedLoading } = useAggregatedMetrics();
   
   const metrics = effectiveClientId ? clientMetrics : aggregatedMetrics;

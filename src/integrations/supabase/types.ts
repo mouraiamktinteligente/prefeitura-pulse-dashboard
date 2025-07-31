@@ -98,7 +98,8 @@ export type Database = {
           endereco_rua: string | null
           id: string
           id_folder_drive: string | null
-          instagram: string | null
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
           nome_completo: string
           nome_responsavel: string | null
           razao_social: string | null
@@ -120,7 +121,8 @@ export type Database = {
           endereco_rua?: string | null
           id?: string
           id_folder_drive?: string | null
-          instagram?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
           nome_completo: string
           nome_responsavel?: string | null
           razao_social?: string | null
@@ -142,7 +144,8 @@ export type Database = {
           endereco_rua?: string | null
           id?: string
           id_folder_drive?: string | null
-          instagram?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
           nome_completo?: string
           nome_responsavel?: string | null
           razao_social?: string | null
@@ -247,6 +250,39 @@ export type Database = {
           status_conexao?: string | null
           updated_at?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      monitoria_relatorios: {
+        Row: {
+          created_at: string
+          id: number
+          profile: string | null
+          relatorio_instagram_prefeito: string | null
+          relatorio_instagram_prefeitura: string | null
+          relatorio_qualitativo: string | null
+          relatorio_web_prefeito: string | null
+          relatorio_web_prefeitura: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          profile?: string | null
+          relatorio_instagram_prefeito?: string | null
+          relatorio_instagram_prefeitura?: string | null
+          relatorio_qualitativo?: string | null
+          relatorio_web_prefeito?: string | null
+          relatorio_web_prefeitura?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          profile?: string | null
+          relatorio_instagram_prefeito?: string | null
+          relatorio_instagram_prefeitura?: string | null
+          relatorio_qualitativo?: string | null
+          relatorio_web_prefeito?: string | null
+          relatorio_web_prefeitura?: string | null
         }
         Relationships: []
       }

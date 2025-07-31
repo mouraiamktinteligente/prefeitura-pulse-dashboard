@@ -28,7 +28,8 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
     cpf_cnpj: client?.cpf_cnpj || '',
     email: client?.email || '',
     whatsapp: client?.whatsapp || '',
-    instagram: client?.instagram || '',
+    instagram_prefeitura: client?.instagram_prefeitura || '',
+    instagram_prefeito: client?.instagram_prefeito || '',
     endereco_cep: client?.endereco_cep || '',
     endereco_rua: client?.endereco_rua || '',
     endereco_numero: client?.endereco_numero || '',
@@ -73,7 +74,8 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
         nome_responsavel: formData.nome_responsavel || null,
         email: formData.email || null,
         whatsapp: formData.whatsapp || null,
-        instagram: formData.instagram || null,
+        instagram_prefeitura: formData.instagram_prefeitura || null,
+        instagram_prefeito: formData.instagram_prefeito || null,
         endereco_cep: formData.endereco_cep || null,
         endereco_rua: formData.endereco_rua || null,
         endereco_numero: formData.endereco_numero || null,
@@ -152,10 +154,12 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
           <ContactFields
             email={formData.email}
             whatsapp={formData.whatsapp}
-            instagram={formData.instagram}
+            instagram_prefeitura={formData.instagram_prefeitura}
+            instagram_prefeito={formData.instagram_prefeito}
             onEmailChange={(value) => setFormData(prev => ({ ...prev, email: value }))}
             onWhatsappChange={(value) => setFormData(prev => ({ ...prev, whatsapp: value }))}
-            onInstagramChange={(value) => setFormData(prev => ({ ...prev, instagram: value }))}
+            onInstagramPrefeituraChange={(value) => setFormData(prev => ({ ...prev, instagram_prefeitura: value }))}
+            onInstagramPrefeitoChange={(value) => setFormData(prev => ({ ...prev, instagram_prefeito: value }))}
             variant="dark"
           />
 

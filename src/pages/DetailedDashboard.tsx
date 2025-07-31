@@ -21,7 +21,7 @@ const DetailedDashboard = () => {
   const navigate = useNavigate();
   
   const selectedClient = clients.find(client => client.id === clientId);
-  const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram || undefined);
+  const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram_prefeitura || undefined);
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -91,7 +91,7 @@ const DetailedDashboard = () => {
           
           {/* Center Column */}
           <div className="space-y-6">
-            <EngagementChart profile={selectedClient?.instagram} />
+            <EngagementChart profile={selectedClient?.instagram_prefeitura} />
             <InstagramLatestPost clientName={selectedClient?.nome_completo} />
           </div>
           

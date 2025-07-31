@@ -8,20 +8,24 @@ import { formatPhone } from "@/utils/validation";
 interface ContactFieldsProps {
   email: string;
   whatsapp: string;
-  instagram: string;
+  instagram_prefeitura: string;
+  instagram_prefeito: string;
   onEmailChange: (value: string) => void;
   onWhatsappChange: (value: string) => void;
-  onInstagramChange: (value: string) => void;
+  onInstagramPrefeituraChange: (value: string) => void;
+  onInstagramPrefeitoChange: (value: string) => void;
   variant?: 'default' | 'dark';
 }
 
 export const ContactFields = ({ 
   email, 
   whatsapp, 
-  instagram, 
+  instagram_prefeitura,
+  instagram_prefeito,
   onEmailChange, 
   onWhatsappChange, 
-  onInstagramChange,
+  onInstagramPrefeituraChange,
+  onInstagramPrefeitoChange,
   variant = 'default'
 }: ContactFieldsProps) => {
   const isDark = variant === 'dark';
@@ -29,7 +33,7 @@ export const ContactFields = ({
   const labelClasses = isDark ? "text-white text-sm font-medium mb-2 block" : "";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <Label htmlFor="email" className={labelClasses}>E-mail</Label>
         <Input
@@ -51,14 +55,27 @@ export const ContactFields = ({
         />
       </div>
       <div>
-        <Label htmlFor="instagram" className={labelClasses}>Instagram</Label>
+        <Label htmlFor="instagram_prefeitura" className={labelClasses}>Instagram Prefeitura</Label>
         <div className="relative">
           <Instagram className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
           <Input
-            id="instagram"
-            value={instagram}
-            onChange={(e) => onInstagramChange(e.target.value)}
-            placeholder="@usuario"
+            id="instagram_prefeitura"
+            value={instagram_prefeitura}
+            onChange={(e) => onInstagramPrefeituraChange(e.target.value)}
+            placeholder="@prefeitura"
+            className={`pl-10 ${inputClasses}`}
+          />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="instagram_prefeito" className={labelClasses}>Instagram Prefeito</Label>
+        <div className="relative">
+          <Instagram className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+          <Input
+            id="instagram_prefeito"
+            value={instagram_prefeito}
+            onChange={(e) => onInstagramPrefeitoChange(e.target.value)}
+            placeholder="@prefeito"
             className={`pl-10 ${inputClasses}`}
           />
         </div>

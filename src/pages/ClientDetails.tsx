@@ -61,13 +61,13 @@ const ClientDetails = () => {
   }, [clientId]); // Removido fetchDocumentos das dependências para evitar loops
 
   useEffect(() => {
-    if (client?.instagram) {
-      fetchRelatoriosInstagram(client.instagram);
-      fetchRelatoriosPrefeito(client.instagram);
-      fetchRelatoriosWeb(client.instagram);
-      fetchRelatoriosQualitativo(client.instagram);
+    if (client?.instagram_prefeitura) {
+      fetchRelatoriosInstagram(client.instagram_prefeitura);
+      fetchRelatoriosPrefeito(client.instagram_prefeitura);
+      fetchRelatoriosWeb(client.instagram_prefeitura);
+      fetchRelatoriosQualitativo(client.instagram_prefeitura);
     }
-  }, [client?.instagram]); // Buscar todos os relatórios quando o Instagram estiver disponível
+  }, [client?.instagram_prefeitura]); // Buscar todos os relatórios quando o Instagram da prefeitura estiver disponível
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -196,7 +196,7 @@ const ClientDetails = () => {
             <CardTitle className="text-slate-200">Informações do Cliente</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div className="flex items-center space-x-3">
                 <User className="w-5 h-5 text-slate-400" />
                 <div>
@@ -228,8 +228,16 @@ const ClientDetails = () => {
               <div className="flex items-center space-x-3">
                 <Instagram className="w-5 h-5 text-slate-400" />
                 <div>
-                  <p className="text-sm text-slate-400">Instagram</p>
-                  <p className="font-medium text-slate-200">{client.instagram || '-'}</p>
+                  <p className="text-sm text-slate-400">Instagram Prefeitura</p>
+                  <p className="font-medium text-slate-200">{client.instagram_prefeitura || '-'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Instagram className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">Instagram Prefeito</p>
+                  <p className="font-medium text-slate-200">{client.instagram_prefeito || '-'}</p>
                 </div>
               </div>
             </div>
@@ -413,7 +421,7 @@ const ClientDetails = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {!client?.instagram ? (
+            {!client?.instagram_prefeitura ? (
               <div className="text-center py-8">
                 <Instagram className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                 <p className="text-slate-400 mb-2">Instagram não cadastrado</p>

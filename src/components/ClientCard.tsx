@@ -15,7 +15,7 @@ interface ClientCardProps {
 }
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
-  const { metrics } = useClientMetrics(client.instagram || undefined);
+  const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
   const navigate = useNavigate();
 
   const handleGerarAnalise = () => {

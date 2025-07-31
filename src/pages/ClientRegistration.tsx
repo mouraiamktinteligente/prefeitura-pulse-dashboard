@@ -24,7 +24,8 @@ const ClientRegistration = () => {
     const matchesSearch = client.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.cpf_cnpj.includes(searchTerm) ||
-                         client.instagram?.toLowerCase().includes(searchTerm.toLowerCase());
+                         client.instagram_prefeitura?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         client.instagram_prefeito?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesSearch;
   });
@@ -115,7 +116,8 @@ const ClientRegistration = () => {
                       <TableHead className="text-blue-100">Documento</TableHead>
                       <TableHead className="text-blue-100">E-mail</TableHead>
                       <TableHead className="text-blue-100">WhatsApp</TableHead>
-                      <TableHead className="text-blue-100">Instagram</TableHead>
+                      <TableHead className="text-blue-100">Instagram Prefeitura</TableHead>
+                      <TableHead className="text-blue-100">Instagram Prefeito</TableHead>
                       <TableHead className="text-blue-100">Status</TableHead>
                       <TableHead className="text-blue-100">Ações</TableHead>
                     </TableRow>
@@ -144,17 +146,25 @@ const ClientRegistration = () => {
                           {formatDocument(client.cpf_cnpj, client.tipo_pessoa)}
                         </TableCell>
                         <TableCell className="text-blue-200">{client.email || '-'}</TableCell>
-                        <TableCell className="text-blue-200">
-                          {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
-                        </TableCell>
-                        <TableCell className="text-blue-200">
-                          {client.instagram ? (
-                            <div className="flex items-center gap-1">
-                              <Instagram className="w-4 h-4" />
-                              <span>{client.instagram}</span>
-                            </div>
-                          ) : '-'}
-                        </TableCell>
+                         <TableCell className="text-blue-200">
+                           {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
+                         </TableCell>
+                         <TableCell className="text-blue-200">
+                           {client.instagram_prefeitura ? (
+                             <div className="flex items-center gap-1">
+                               <Instagram className="w-4 h-4" />
+                               <span>{client.instagram_prefeitura}</span>
+                             </div>
+                           ) : '-'}
+                         </TableCell>
+                         <TableCell className="text-blue-200">
+                           {client.instagram_prefeito ? (
+                             <div className="flex items-center gap-1">
+                               <Instagram className="w-4 h-4" />
+                               <span>{client.instagram_prefeito}</span>
+                             </div>
+                           ) : '-'}
+                         </TableCell>
                         <TableCell>
                           <Badge variant={client.ativo ? 'default' : 'destructive'}>
                             {client.ativo ? 'Ativo' : 'Inativo'}
