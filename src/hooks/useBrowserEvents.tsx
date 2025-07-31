@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
+const SUPABASE_URL = "https://oztosavtfiifjaahpagf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dG9zYXZ0ZmlpZmphYWhwYWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNDQ3MzcsImV4cCI6MjA2NTkyMDczN30.xA7EL74ACsIXCkKRoHESvKHldFjV_kjBCH6onsODHMs";
+
 interface UseBrowserEventsProps {
   userEmail: string | null;
   onLogout: (reason?: string) => Promise<void>;
@@ -27,7 +30,7 @@ export const useBrowserEvents = ({ userEmail, onLogout }: UseBrowserEventsProps)
       const beaconSupported = 'sendBeacon' in navigator;
       if (beaconSupported) {
         const success = navigator.sendBeacon(
-          `${supabase.supabaseUrl}/rest/v1/rpc/force_logout_user`,
+          `${SUPABASE_URL}/rest/v1/rpc/force_logout_user`,
           JSON.stringify(logoutData)
         );
         console.log('Beacon logout enviado:', success);
@@ -35,12 +38,12 @@ export const useBrowserEvents = ({ userEmail, onLogout }: UseBrowserEventsProps)
 
       // Fallback com fetch keepalive
       if (!beaconSupported) {
-        await fetch(`${supabase.supabaseUrl}/rest/v1/rpc/force_logout_user`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/rpc/force_logout_user`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': supabase.supabaseKey,
-            'Authorization': `Bearer ${supabase.supabaseKey}`
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify(logoutData),
           keepalive: true
