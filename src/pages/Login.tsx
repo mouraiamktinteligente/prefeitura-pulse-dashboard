@@ -24,8 +24,8 @@ const Login = () => {
     try {
       // Usar a função RPC para forçar logout
       await supabase.rpc('force_logout_user', {
-        user_email: userEmail,
-        motivo: 'force_disconnect_login'
+        p_user_email: userEmail,
+        p_motivo: 'force_disconnect_login'
       });
 
       // Limpar dados locais também
