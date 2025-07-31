@@ -28,6 +28,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
     cpf_cnpj: client?.cpf_cnpj || '',
     email: client?.email || '',
     whatsapp: client?.whatsapp || '',
+    nome_completo_prefeito: client?.nome_completo_prefeito || '',
     instagram_prefeitura: client?.instagram_prefeitura || '',
     instagram_prefeito: client?.instagram_prefeito || '',
     endereco_cep: client?.endereco_cep || '',
@@ -74,6 +75,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
         nome_responsavel: formData.nome_responsavel || null,
         email: formData.email || null,
         whatsapp: formData.whatsapp || null,
+        nome_completo_prefeito: formData.nome_completo_prefeito || null,
         instagram_prefeitura: formData.instagram_prefeitura || null,
         instagram_prefeito: formData.instagram_prefeito || null,
         endereco_cep: formData.endereco_cep || null,
@@ -154,10 +156,12 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
           <ContactFields
             email={formData.email}
             whatsapp={formData.whatsapp}
+            nome_completo_prefeito={formData.nome_completo_prefeito}
             instagram_prefeitura={formData.instagram_prefeitura}
             instagram_prefeito={formData.instagram_prefeito}
             onEmailChange={(value) => setFormData(prev => ({ ...prev, email: value }))}
             onWhatsappChange={(value) => setFormData(prev => ({ ...prev, whatsapp: value }))}
+            onNomeCompletoPrefeitoChange={(value) => setFormData(prev => ({ ...prev, nome_completo_prefeito: value }))}
             onInstagramPrefeituraChange={(value) => setFormData(prev => ({ ...prev, instagram_prefeitura: value }))}
             onInstagramPrefeitoChange={(value) => setFormData(prev => ({ ...prev, instagram_prefeito: value }))}
             variant="dark"

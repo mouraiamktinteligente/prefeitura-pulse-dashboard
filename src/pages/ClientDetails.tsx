@@ -196,7 +196,7 @@ const ClientDetails = () => {
             <CardTitle className="text-slate-200">Informações do Cliente</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="flex items-center space-x-3">
                 <User className="w-5 h-5 text-slate-400" />
                 <div>
@@ -222,6 +222,14 @@ const ClientDetails = () => {
                   <p className="font-medium text-slate-200">
                     {client.whatsapp ? formatPhone(client.whatsapp) : '-'}
                   </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-slate-400" />
+                <div>
+                  <p className="text-sm text-slate-400">Nome Completo Prefeito</p>
+                  <p className="font-medium text-slate-200">{client.nome_completo_prefeito || '-'}</p>
                 </div>
               </div>
               

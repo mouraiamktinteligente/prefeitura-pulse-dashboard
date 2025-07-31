@@ -101,6 +101,7 @@ export type Database = {
           instagram_prefeito: string | null
           instagram_prefeitura: string | null
           nome_completo: string
+          nome_completo_prefeito: string | null
           nome_responsavel: string | null
           razao_social: string | null
           tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"]
@@ -124,6 +125,7 @@ export type Database = {
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
           nome_completo: string
+          nome_completo_prefeito?: string | null
           nome_responsavel?: string | null
           razao_social?: string | null
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"]
@@ -147,6 +149,7 @@ export type Database = {
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
           nome_completo?: string
+          nome_completo_prefeito?: string | null
           nome_responsavel?: string | null
           razao_social?: string | null
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"]
