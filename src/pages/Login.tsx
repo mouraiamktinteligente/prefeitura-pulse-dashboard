@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, Mail, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import logoIA from "@/assets/logo-ia.png";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -161,7 +160,7 @@ const Login = () => {
       <Card className="w-full max-w-md shadow-xl bg-slate-100/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-8">
           <div className="mx-auto w-24 h-24 flex items-center justify-center mb-6">
-            <img src={logoIA} alt="IA Logo" className="w-full h-full object-contain" />
+            <img src="/lovable-uploads/996768b8-c992-42f9-8d2e-fc4388f0fa53.png" alt="IA Logo" className="w-full h-full object-contain" />
           </div>
           <p className="text-slate-600 text-lg">Faça login em sua conta</p>
         </CardHeader>
