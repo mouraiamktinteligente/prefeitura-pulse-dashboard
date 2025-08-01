@@ -96,14 +96,12 @@ export function TopNavigation() {
     <header className="bg-blue-800/90 backdrop-blur-sm border-b border-blue-700/50 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Logo - Agora clicável */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-white font-bold text-lg hover:text-blue-200 transition-colors">Dashboard</h1>
-            <p className="text-blue-300 text-xs">MourIA Marketing Inteligente</p>
-          </div>
+        <div className="flex items-center cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <img 
+            src="/lovable-uploads/22b7d1a7-2484-4be4-ad97-58b9760ac566.png" 
+            alt="IA Logo" 
+            className="w-12 h-12 object-contain hover:opacity-80 transition-opacity" 
+          />
         </div>
 
         {/* Navigation Menu */}
