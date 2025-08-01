@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, Mail, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import logoIA from "@/assets/logo-ia.png";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -159,12 +160,9 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl bg-slate-100/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
-            <Lock className="w-10 h-10 text-white" />
+          <div className="mx-auto w-24 h-24 flex items-center justify-center mb-6">
+            <img src={logoIA} alt="IA Logo" className="w-full h-full object-contain" />
           </div>
-          <CardTitle className="text-3xl font-bold text-slate-800 mb-2">
-            MourIA Marketing
-          </CardTitle>
           <p className="text-slate-600 text-lg">Faça login em sua conta</p>
         </CardHeader>
         <CardContent className="px-8 pb-8">
