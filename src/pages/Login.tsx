@@ -159,7 +159,7 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl bg-slate-100/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-24 h-24 flex items-center justify-center mb-6">
+          <div className="mx-auto w-60 h-60 flex items-center justify-center mb-6">
             <img src="/lovable-uploads/996768b8-c992-42f9-8d2e-fc4388f0fa53.png" alt="IA Logo" className="w-full h-full object-contain" />
           </div>
           <p className="text-slate-600 text-lg">Faça login em sua conta</p>
