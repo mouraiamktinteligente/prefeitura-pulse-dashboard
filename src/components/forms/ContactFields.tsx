@@ -75,7 +75,10 @@ export const ContactFields = ({
           />
         </div>
         <div>
-          <Label htmlFor="instagram_prefeitura" className={labelClasses}>Instagram Prefeitura</Label>
+          <div className={`flex items-center gap-2 ${labelClasses}`}>
+            <Instagram className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`} />
+            <Label htmlFor="instagram_prefeitura" className={isDark ? '' : ''}>Instagram Prefeitura</Label>
+          </div>
           <div className="relative">
             <Instagram className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
             <Input
@@ -88,7 +91,10 @@ export const ContactFields = ({
           </div>
         </div>
         <div>
-          <Label htmlFor="instagram_prefeito" className={labelClasses}>Instagram Prefeito</Label>
+          <div className={`flex items-center gap-2 ${labelClasses}`}>
+            <Instagram className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`} />
+            <Label htmlFor="instagram_prefeito" className={isDark ? '' : ''}>Instagram Prefeito</Label>
+          </div>
           <div className="relative">
             <Instagram className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
             <Input
