@@ -96,25 +96,12 @@ export function TopNavigation() {
     <header className="bg-blue-800/90 backdrop-blur-sm border-b border-blue-700/50 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Logo - Agora clicável */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-12 h-12 flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/22b7d1a7-2484-4be4-ad97-58b9760ac566.png" 
-              alt="IA Logo" 
-              className="w-10 h-10 object-contain hover:opacity-80 transition-opacity" 
-              onError={(e) => {
-                console.log('Erro ao carregar imagem:', e);
-                // Fallback para o ícone original se a imagem não carregar
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.parentElement!.innerHTML = '<div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>';
-              }}
-            />
-          </div>
-          <div>
-            <h1 className="text-white font-bold text-lg hover:text-blue-200 transition-colors">Dashboard</h1>
-            <p className="text-blue-300 text-xs">MourIA Marketing Inteligente</p>
-          </div>
+        <div className="flex items-center cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <img 
+            src="/lovable-uploads/22b7d1a7-2484-4be4-ad97-58b9760ac566.png" 
+            alt="IA Logo" 
+            className="h-16 w-auto object-contain hover:opacity-80 transition-opacity" 
+          />
         </div>
 
         {/* Navigation Menu */}
