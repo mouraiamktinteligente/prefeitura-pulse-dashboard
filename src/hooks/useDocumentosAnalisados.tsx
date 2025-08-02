@@ -13,7 +13,7 @@ export const useDocumentosAnalisados = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  const { deleteDocument: deleteDoc, downloadAnalise } = useDocumentOperations();
+  const { deleteDocument: deleteDoc, downloadAnalise, downloadPlano } = useDocumentOperations();
 
   // Real-time listener para atualizações de documentos
   useEffect(() => {
@@ -124,6 +124,7 @@ export const useDocumentosAnalisados = () => {
     loading,
     fetchDocumentos,
     deleteDocument,
-    downloadAnalise
+    downloadAnalise,
+    downloadPlano
   };
 };

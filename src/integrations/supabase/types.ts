@@ -174,6 +174,7 @@ export type Database = {
           updated_at: string
           url_analise: string | null
           url_original: string
+          url_plano: string | null
         }
         Insert: {
           cliente_id: string
@@ -190,6 +191,7 @@ export type Database = {
           updated_at?: string
           url_analise?: string | null
           url_original: string
+          url_plano?: string | null
         }
         Update: {
           cliente_id?: string
@@ -206,6 +208,7 @@ export type Database = {
           updated_at?: string
           url_analise?: string | null
           url_original?: string
+          url_plano?: string | null
         }
         Relationships: [
           {

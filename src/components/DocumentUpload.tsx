@@ -16,7 +16,7 @@ export const DocumentUpload = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { clients, loading: clientsLoading } = useClients();
-  const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise } = useDocumentosAnalisados();
+  const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise, downloadPlano } = useDocumentosAnalisados();
   const { uploading, uploadDocument } = useDocumentUpload();
   const { toast } = useToast();
 
@@ -239,6 +239,19 @@ export const DocumentUpload = () => {
                       {getStatusBadge(documento.status)}
                       
                       
+                      {/* Botão Baixar Plano */}
+                      {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_plano && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadPlano(documento)}
+                          className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Baixar Plano</span>
+                        </Button>
+                      )}
+
                       {/* Botão Baixar Análise */}
                       {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_analise && (
                         <Button

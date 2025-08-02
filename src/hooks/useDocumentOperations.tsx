@@ -181,8 +181,31 @@ export const useDocumentOperations = () => {
     }
   };
 
+  const downloadPlano = async (documento: DocumentoAnalisado) => {
+    if (!documento.url_plano) {
+      toast({
+        title: "Plano não disponível",
+        description: "O plano ainda não foi finalizado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      window.open(documento.url_plano, '_blank');
+    } catch (error) {
+      console.error('Erro ao baixar plano:', error);
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o plano",
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     deleteDocument,
-    downloadAnalise
+    downloadAnalise,
+    downloadPlano
   };
 };
