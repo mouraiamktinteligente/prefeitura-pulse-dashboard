@@ -17,7 +17,7 @@ const Marketing = () => {
         <div className="mb-8">
           <div className="mb-4">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Marketing Digital
+              <span className="text-red-500">(Em construção)</span> Marketing Digital
             </h1>
             <p className="text-muted-foreground">
               Crie campanhas e gerencie conteúdo visual automatizado
