@@ -16,8 +16,15 @@ export const MarketingCampanhaForm = () => {
   const [tipoPostagem, setTipoPostagem] = useState<'feed' | 'story' | 'ambos'>('feed');
 
   const { clients: clientes } = useClients();
-  const { documentos } = useDocumentosAnalisados();
+  const { documentos, fetchDocumentos } = useDocumentosAnalisados();
   const { criarCampanha, isCreating } = useMarketingCampanhas();
+
+  // Buscar documentos quando cliente for selecionado e tipo for análise
+  React.useEffect(() => {
+    if (clienteId && tipoSolicitacao === 'analise') {
+      fetchDocumentos(clienteId);
+    }
+  }, [clienteId, tipoSolicitacao, fetchDocumentos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,16 +97,27 @@ export const MarketingCampanhaForm = () => {
               <Label htmlFor="documento">Documento Analisado</Label>
               <Select value={documentoAnaliseId} onValueChange={setDocumentoAnaliseId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um documento" />
+                  <SelectValue placeholder={
+                    !clienteId 
+                      ? "Selecione um cliente primeiro"
+                      : documentos?.length === 0 
+                        ? "Nenhum documento encontrado"
+                        : "Selecione um documento"
+                  } />
                 </SelectTrigger>
                 <SelectContent>
-                  {documentos?.filter(doc => doc.cliente_id === clienteId).map((doc) => (
+                  {documentos?.filter(doc => doc.status === 'concluído').map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
                       {doc.nome_arquivo}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {clienteId && documentos?.filter(doc => doc.status === 'concluído').length === 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Este cliente não possui análises concluídas.
+                </p>
+              )}
             </div>
           )}
 
@@ -146,7 +164,12 @@ export const MarketingCampanhaForm = () => {
 
           <Button
             type="submit"
-            disabled={!clienteId || isCreating || (tipoSolicitacao === 'analise' && !documentoAnaliseId) || (tipoSolicitacao === 'descricao_personalizada' && !descricaoPersonalizada)}
+            disabled={
+              !clienteId || 
+              isCreating || 
+              (tipoSolicitacao === 'analise' && !documentoAnaliseId) || 
+              (tipoSolicitacao === 'descricao_personalizada' && !descricaoPersonalizada)
+            }
             className="w-full"
           >
             {isCreating ? 'Criando Campanha...' : 'Criar Campanha'}
