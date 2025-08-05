@@ -26,7 +26,7 @@ const menuItems = [
   {
     title: "Marketing",
     icon: Megaphone,
-    url: "#",
+    url: "/marketing",
   },
   {
     title: "Gestão de tarefas",

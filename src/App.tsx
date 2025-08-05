@@ -18,6 +18,7 @@ import PlatformUsers from "./pages/PlatformUsers";
 import ClientRegistration from "./pages/ClientRegistration";
 import ClientDetails from "./pages/ClientDetails";
 import AnalisePesquisa from "./pages/AnalisePesquisa";
+import Marketing from "./pages/Marketing";
 import RegistroMovimentacoes from "./pages/RegistroMovimentacoes";
 import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 
@@ -92,6 +93,15 @@ const AppRoutes = () => {
           <TopNavigation />
           <main className="flex-1">
             <AnalisePesquisa />
+          </main>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/marketing" element={
+        <ProtectedRoute>
+          <TopNavigation />
+          <main className="flex-1">
+            <Marketing />
           </main>
         </ProtectedRoute>
       } />

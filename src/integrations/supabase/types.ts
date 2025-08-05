@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerta_crise: {
+        Row: {
+          assunto: string | null
+          created_at: string
+          id: number
+          profile_prefeito: string | null
+          profile_prefeitura: string | null
+          status: string | null
+        }
+        Insert: {
+          assunto?: string | null
+          created_at?: string
+          id?: number
+          profile_prefeito?: string | null
+          profile_prefeitura?: string | null
+          status?: string | null
+        }
+        Update: {
+          assunto?: string | null
+          created_at?: string
+          id?: number
+          profile_prefeito?: string | null
+          profile_prefeitura?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       analisados: {
         Row: {
           analisado_em: string
@@ -259,6 +286,113 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_campanhas: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          descricao_personalizada: string | null
+          documento_analise_id: string | null
+          id: string
+          status_campanha: string
+          tipo_postagem: string
+          tipo_solicitacao: string
+          updated_at: string
+          usuario_solicitante: string
+          webhook_enviado_em: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          descricao_personalizada?: string | null
+          documento_analise_id?: string | null
+          id?: string
+          status_campanha?: string
+          tipo_postagem: string
+          tipo_solicitacao: string
+          updated_at?: string
+          usuario_solicitante: string
+          webhook_enviado_em?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          descricao_personalizada?: string | null
+          documento_analise_id?: string | null
+          id?: string
+          status_campanha?: string
+          tipo_postagem?: string
+          tipo_solicitacao?: string
+          updated_at?: string
+          usuario_solicitante?: string
+          webhook_enviado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campanhas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cadastro_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_campanhas_documento_analise_id_fkey"
+            columns: ["documento_analise_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_analisados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_imagens: {
+        Row: {
+          aprovado_por: string | null
+          campanha_id: string
+          created_at: string
+          data_aprovacao: string | null
+          id: string
+          metadata_adicional: Json | null
+          observacoes_rejeicao: string | null
+          status_aprovacao: string
+          tipo_imagem: string
+          url_imagem: string
+          versao: number
+        }
+        Insert: {
+          aprovado_por?: string | null
+          campanha_id: string
+          created_at?: string
+          data_aprovacao?: string | null
+          id?: string
+          metadata_adicional?: Json | null
+          observacoes_rejeicao?: string | null
+          status_aprovacao?: string
+          tipo_imagem: string
+          url_imagem: string
+          versao?: number
+        }
+        Update: {
+          aprovado_por?: string | null
+          campanha_id?: string
+          created_at?: string
+          data_aprovacao?: string | null
+          id?: string
+          metadata_adicional?: Json | null
+          observacoes_rejeicao?: string | null
+          status_aprovacao?: string
+          tipo_imagem?: string
+          url_imagem?: string
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_imagens_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monitoria_relatorios: {
         Row: {
           created_at: string
@@ -434,7 +568,9 @@ export type Database = {
           estado: string | null
           id: string
           nome: string | null
-          profile: string
+          nome_prefeito: string | null
+          profile_prefeito: string | null
+          profile_prefeitura: string
           quantidade_posts: number | null
           updated_at: string | null
         }
@@ -444,7 +580,9 @@ export type Database = {
           estado?: string | null
           id?: string
           nome?: string | null
-          profile: string
+          nome_prefeito?: string | null
+          profile_prefeito?: string | null
+          profile_prefeitura: string
           quantidade_posts?: number | null
           updated_at?: string | null
         }
@@ -454,7 +592,9 @@ export type Database = {
           estado?: string | null
           id?: string
           nome?: string | null
-          profile?: string
+          nome_prefeito?: string | null
+          profile_prefeito?: string | null
+          profile_prefeitura?: string
           quantidade_posts?: number | null
           updated_at?: string | null
         }
@@ -587,26 +727,41 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          id_analise: string | null
+          id_relatorio: string | null
+          link_analise: string | null
           link_relatorio: string | null
           nome: string | null
-          nome_documento: string | null
+          nome_analise: string | null
+          nome_relatorio: string | null
           profile: string | null
+          UUID: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          id_analise?: string | null
+          id_relatorio?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
-          nome_documento?: string | null
+          nome_analise?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
+          UUID?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          id_analise?: string | null
+          id_relatorio?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
-          nome_documento?: string | null
+          nome_analise?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
+          UUID?: string | null
         }
         Relationships: []
       }
@@ -641,24 +796,30 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          id_analise: string | null
           link_relatorio: string | null
           nome: string | null
+          nome_analise: string | null
           nome_documento: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          id_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
+          nome_analise?: string | null
           nome_documento?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          id_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
+          nome_analise?: string | null
           nome_documento?: string | null
           profile?: string | null
         }
