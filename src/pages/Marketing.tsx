@@ -15,18 +15,13 @@ const Marketing = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl">🎨</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Marketing Digital
-              </h1>
-              <p className="text-muted-foreground">
-                Crie campanhas e gerencie conteúdo visual automatizado
-              </p>
-            </div>
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Marketing Digital
+            </h1>
+            <p className="text-muted-foreground">
+              Crie campanhas e gerencie conteúdo visual automatizado
+            </p>
           </div>
         </div>
 
