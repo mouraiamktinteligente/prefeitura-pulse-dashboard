@@ -194,25 +194,44 @@ export const useMovimentacoes = () => {
 
   // Real-time listener para novas movimentações
   useEffect(() => {
-    const channel = supabase
-      .channel('movimentacoes-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'registro_movimentacoes'
-        },
-        (payload) => {
-          console.log('📋 Nova movimentação registrada:', payload);
-          // Recarregar a lista
-          buscarMovimentacoes();
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('movimentacoes-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'registro_movimentacoes'
+            },
+            (payload) => {
+              console.log('📋 Nova movimentação registrada:', payload);
+              // Recarregar a lista
+              buscarMovimentacoes();
+            }
+          );
+
+        await channel.subscribe();
+        console.log('Listener de movimentações configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de movimentações:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de movimentações:', error);
+        }
+      }
     };
   }, [buscarMovimentacoes]);
 
