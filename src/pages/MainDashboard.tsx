@@ -18,21 +18,40 @@ const MainDashboard = () => {
 
   // useEffect para configurar listener realtime de clientes
   React.useEffect(() => {
-    const channel = supabase
-      .channel('clients-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'cadastro_clientes'
-      }, (payload) => {
-        console.log('Clients realtime event:', payload);
-        // O hook useClients já deve ter seu próprio listener, 
-        // mas garantimos que o componente reaja a mudanças
-      })
-      .subscribe();
+    let channel: any = null;
+
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('clients-realtime')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'cadastro_clientes'
+          }, (payload) => {
+            console.log('Clients realtime event:', payload);
+            // O hook useClients já deve ter seu próprio listener, 
+            // mas garantimos que o componente reaja a mudanças
+          });
+
+        await channel.subscribe();
+        console.log('Listener realtime de clientes no MainDashboard configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener realtime no MainDashboard:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal realtime no MainDashboard:', error);
+        }
+      }
     };
   }, []);
 
