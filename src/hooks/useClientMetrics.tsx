@@ -76,35 +76,54 @@ export const useClientMetrics = (clientInstagram?: string) => {
   useEffect(() => {
     if (!clientInstagram) return;
 
-    const channel = supabase
-      .channel('metrics-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'analysis-comments',
-          filter: `profile=eq.${clientInstagram}`
-        },
-        (payload) => {
-          console.log('📡 Comentário atualizado em tempo real para perfil:', clientInstagram, payload);
-          
-          // Re-buscar métricas quando houver mudanças
-          fetchMetrics();
-          
-          // Mostrar toast quando dados forem atualizados
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Novo comentário analisado!",
-              description: `Novas métricas disponíveis para ${clientInstagram}`,
-            });
-          }
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('metrics-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'analysis-comments',
+              filter: `profile=eq.${clientInstagram}`
+            },
+            (payload) => {
+              console.log('📡 Comentário atualizado em tempo real para perfil:', clientInstagram, payload);
+              
+              // Re-buscar métricas quando houver mudanças
+              fetchMetrics();
+              
+              // Mostrar toast quando dados forem atualizados
+              if (payload.eventType === 'INSERT') {
+                toast({
+                  title: "Novo comentário analisado!",
+                  description: `Novas métricas disponíveis para ${clientInstagram}`,
+                });
+              }
+            }
+          );
+
+        await channel.subscribe();
+        console.log(`Listener de métricas configurado para ${clientInstagram}`);
+      } catch (error) {
+        console.warn('Erro ao configurar listener de métricas:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de métricas:', error);
+        }
+      }
     };
   }, [clientInstagram, toast, fetchMetrics]);
 

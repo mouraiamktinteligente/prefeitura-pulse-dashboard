@@ -82,34 +82,53 @@ export const useAggregatedMetrics = () => {
 
   // Real-time listener para atualizações agregadas
   useEffect(() => {
-    const channel = supabase
-      .channel('aggregated-metrics-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'analysis-comments'
-        },
-        (payload) => {
-          console.log('📡 Comentário atualizado em tempo real (agregado):', payload);
-          
-          // Re-buscar métricas agregadas quando houver mudanças
-          fetchAggregatedMetrics();
-          
-          // Mostrar toast quando dados forem atualizados
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Novas análises disponíveis!",
-              description: "Dashboard atualizado com novos dados",
-            });
-          }
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('aggregated-metrics-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'analysis-comments'
+            },
+            (payload) => {
+              console.log('📡 Comentário atualizado em tempo real (agregado):', payload);
+              
+              // Re-buscar métricas agregadas quando houver mudanças
+              fetchAggregatedMetrics();
+              
+              // Mostrar toast quando dados forem atualizados
+              if (payload.eventType === 'INSERT') {
+                toast({
+                  title: "Novas análises disponíveis!",
+                  description: "Dashboard atualizado com novos dados",
+                });
+              }
+            }
+          );
+
+        await channel.subscribe();
+        console.log('Listener de métricas agregadas configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de métricas agregadas:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de métricas agregadas:', error);
+        }
+      }
     };
   }, [toast, fetchAggregatedMetrics]);
 

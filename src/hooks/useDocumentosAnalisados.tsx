@@ -19,49 +19,56 @@ export const useDocumentosAnalisados = () => {
   useEffect(() => {
     let channel: any = null;
 
-    const setupRealtime = () => {
-      channel = supabase
-        .channel('documentos-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'documentos_analisados'
-          },
-          (payload) => {
-            if (payload.eventType === 'UPDATE') {
-              const updatedDoc = payload.new as DocumentoAnalisado;
-              setDocumentos(prev => {
-                const exists = prev.find(doc => doc.id === updatedDoc.id);
-                if (!exists) return prev;
-                
-                return prev.map(doc => 
-                  doc.id === updatedDoc.id ? updatedDoc : doc
-                );
-              });
-
-              // Mostrar toast quando status mudou para concluído
-              if (updatedDoc.status === 'concluído') {
-                toast({
-                  title: "Análise concluída!",
-                  description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+    const setupRealtime = async () => {
+      try {
+        channel = supabase
+          .channel('documentos-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'documentos_analisados'
+            },
+            (payload) => {
+              if (payload.eventType === 'UPDATE') {
+                const updatedDoc = payload.new as DocumentoAnalisado;
+                setDocumentos(prev => {
+                  const exists = prev.find(doc => doc.id === updatedDoc.id);
+                  if (!exists) return prev;
+                  
+                  return prev.map(doc => 
+                    doc.id === updatedDoc.id ? updatedDoc : doc
+                  );
                 });
+
+                // Mostrar toast quando status mudou para concluído
+                if (updatedDoc.status === 'concluído') {
+                  toast({
+                    title: "Análise concluída!",
+                    description: `O documento "${updatedDoc.nome_arquivo}" foi analisado com sucesso.`,
+                  });
+                }
+              } else if (payload.eventType === 'INSERT') {
+                const newDoc = payload.new as DocumentoAnalisado;
+                setDocumentos(prev => {
+                  const exists = prev.find(doc => doc.id === newDoc.id);
+                  if (exists) return prev;
+                  return [newDoc, ...prev];
+                });
+              } else if (payload.eventType === 'DELETE') {
+                const deletedDoc = payload.old as DocumentoAnalisado;
+                setDocumentos(prev => prev.filter(doc => doc.id !== deletedDoc.id));
               }
-            } else if (payload.eventType === 'INSERT') {
-              const newDoc = payload.new as DocumentoAnalisado;
-              setDocumentos(prev => {
-                const exists = prev.find(doc => doc.id === newDoc.id);
-                if (exists) return prev;
-                return [newDoc, ...prev];
-              });
-            } else if (payload.eventType === 'DELETE') {
-              const deletedDoc = payload.old as DocumentoAnalisado;
-              setDocumentos(prev => prev.filter(doc => doc.id !== deletedDoc.id));
             }
-          }
-        )
-        .subscribe();
+          );
+
+        await channel.subscribe();
+        console.log('Listener de documentos configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de documentos:', error);
+        // Continue without realtime - the app should work without it
+      }
     };
 
     setupRealtime();

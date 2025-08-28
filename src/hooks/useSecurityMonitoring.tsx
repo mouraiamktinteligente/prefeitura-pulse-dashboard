@@ -199,21 +199,40 @@ export const useSecurityMonitoring = () => {
 
   // Listener para mudanças em tempo real
   useEffect(() => {
-    const channel = supabase
-      .channel('security-monitoring')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'sessoes_ativas'
-      }, () => {
-        if (isMonitoring) {
-          fetchActiveSessions();
-        }
-      })
-      .subscribe();
+    let channel: any = null;
+
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('security-monitoring')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'sessoes_ativas'
+          }, () => {
+            if (isMonitoring) {
+              fetchActiveSessions();
+            }
+          });
+
+        await channel.subscribe();
+        console.log('Listener de segurança configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de segurança:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de segurança:', error);
+        }
+      }
     };
   }, [isMonitoring, fetchActiveSessions]);
 

@@ -189,101 +189,120 @@ export const useUsers = () => {
     let isProcessing = false;
 
     // Setup realtime listener para usuarios_sistema
-    const channel = supabase
-      .channel('usuarios-sistema-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // escutar INSERT, UPDATE, DELETE
-          schema: 'public',
-          table: 'usuarios_sistema'
-        },
-        (payload) => {
-          console.log('Usuarios realtime event:', payload);
-          
-          // Evitar processamento concorrente
-          if (isProcessing) {
-            console.log('Já processando atualização, ignorando...');
-            return;
-          }
+    let channel: any = null;
 
-          // Filtrar atualizações automáticas que não são relevantes
-          if (payload.eventType === 'UPDATE' && payload.old && payload.new) {
-            const oldData = payload.old as any;
-            const newData = payload.new as any;
-            
-            // Lista de campos que, se apenas eles mudaram, devemos ignorar
-            const ignoredFields = ['status_conexao', 'updated_at'];
-            
-            const changedFields = Object.keys(newData).filter(key => 
-              oldData[key] !== newData[key]
-            );
-            
-            const relevantChanges = changedFields.filter(field => 
-              !ignoredFields.includes(field)
-            );
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('usuarios-sistema-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*', // escutar INSERT, UPDATE, DELETE
+              schema: 'public',
+              table: 'usuarios_sistema'
+            },
+            (payload) => {
+              console.log('Usuarios realtime event:', payload);
+              
+              // Evitar processamento concorrente
+              if (isProcessing) {
+                console.log('Já processando atualização, ignorando...');
+                return;
+              }
 
-            // Se apenas campos ignorados mudaram, não processar
-            if (relevantChanges.length === 0) {
-              console.log('Ignorando atualização automática de campos:', changedFields);
-              return;
-            }
+              // Filtrar atualizações automáticas que não são relevantes
+              if (payload.eventType === 'UPDATE' && payload.old && payload.new) {
+                const oldData = payload.old as any;
+                const newData = payload.new as any;
+                
+                // Lista de campos que, se apenas eles mudaram, devemos ignorar
+                const ignoredFields = ['status_conexao', 'updated_at'];
+                
+                const changedFields = Object.keys(newData).filter(key => 
+                  oldData[key] !== newData[key]
+                );
+                
+                const relevantChanges = changedFields.filter(field => 
+                  !ignoredFields.includes(field)
+                );
 
-            // Se é atualização do próprio usuário que está fazendo a operação, não mostrar toast
-            if (user?.email === newData.email) {
-              console.log('Ignorando atualização do próprio usuário');
-              // Ainda recarregar a lista sem toast
+                // Se apenas campos ignorados mudaram, não processar
+                if (relevantChanges.length === 0) {
+                  console.log('Ignorando atualização automática de campos:', changedFields);
+                  return;
+                }
+
+                // Se é atualização do próprio usuário que está fazendo a operação, não mostrar toast
+                if (user?.email === newData.email) {
+                  console.log('Ignorando atualização do próprio usuário');
+                  // Ainda recarregar a lista sem toast
+                  clearTimeout(debounceTimeout);
+                  debounceTimeout = setTimeout(() => {
+                    if (!isProcessing) {
+                      isProcessing = true;
+                      fetchUsers().finally(() => {
+                        isProcessing = false;
+                      });
+                    }
+                  }, 1000);
+                  return;
+                }
+              }
+              
+              // Debounce para evitar múltiplas atualizações seguidas
               clearTimeout(debounceTimeout);
               debounceTimeout = setTimeout(() => {
-                if (!isProcessing) {
-                  isProcessing = true;
-                  fetchUsers().finally(() => {
-                    isProcessing = false;
+                if (isProcessing) return;
+                
+                isProcessing = true;
+
+                // Mostrar toast apenas para mudanças relevantes de outros usuários
+                if (payload.eventType === 'INSERT') {
+                  toast({
+                    title: "Novo usuário",
+                    description: `Usuário "${payload.new.nome_completo}" foi criado por outro usuário`,
+                  });
+                } else if (payload.eventType === 'UPDATE') {
+                  toast({
+                    title: "Usuário atualizado", 
+                    description: `Usuário "${payload.new.nome_completo}" foi atualizado por outro usuário`,
+                  });
+                } else if (payload.eventType === 'DELETE') {
+                  toast({
+                    title: "Usuário removido",
+                    description: "Um usuário foi removido por outro usuário",
+                    variant: "destructive"
                   });
                 }
+                
+                // Recarregar lista para refletir mudanças
+                fetchUsers().finally(() => {
+                  isProcessing = false;
+                });
               }, 1000);
-              return;
             }
-          }
-          
-          // Debounce para evitar múltiplas atualizações seguidas
-          clearTimeout(debounceTimeout);
-          debounceTimeout = setTimeout(() => {
-            if (isProcessing) return;
-            
-            isProcessing = true;
+          );
 
-            // Mostrar toast apenas para mudanças relevantes de outros usuários
-            if (payload.eventType === 'INSERT') {
-              toast({
-                title: "Novo usuário",
-                description: `Usuário "${payload.new.nome_completo}" foi criado por outro usuário`,
-              });
-            } else if (payload.eventType === 'UPDATE') {
-              toast({
-                title: "Usuário atualizado", 
-                description: `Usuário "${payload.new.nome_completo}" foi atualizado por outro usuário`,
-              });
-            } else if (payload.eventType === 'DELETE') {
-              toast({
-                title: "Usuário removido",
-                description: "Um usuário foi removido por outro usuário",
-                variant: "destructive"
-              });
-            }
-            
-            // Recarregar lista para refletir mudanças
-            fetchUsers().finally(() => {
-              isProcessing = false;
-            });
-          }, 1000);
-        }
-      )
-      .subscribe();
+        await channel.subscribe();
+        console.log('Listener de usuários configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de usuários:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
       clearTimeout(debounceTimeout);
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de usuários:', error);
+        }
+      }
     };
   }, [user?.email]);
 
