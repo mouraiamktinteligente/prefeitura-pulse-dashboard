@@ -8,4 +8,27 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Detect if we're in a secure context and configure accordingly
+const isSecureContext = typeof window !== 'undefined' && window.location.protocol === 'https:';
+
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+    ...(isSecureContext && {
+      // Force secure WebSocket connections in HTTPS environments
+      websocket: {
+        url: SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket',
+      },
+    }),
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web',
+    },
+  },
+  auth: {
+    persistSession: true,
+  },
+});
