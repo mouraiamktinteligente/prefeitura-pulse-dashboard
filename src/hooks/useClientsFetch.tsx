@@ -59,76 +59,98 @@ export const useClientsFetch = () => {
   useEffect(() => {
     if (!user || !initialized) return;
 
-    console.log('Configurando subscription realtime para clientes...');
+    let channel: any = null;
 
-    const channel = supabase
-      .channel('cadastro_clientes_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'cadastro_clientes'
-        },
-        (payload) => {
-          console.log('Cliente inserido:', payload.new);
-          const newClient = payload.new as Cliente;
-          setClients(prev => [newClient, ...prev]);
-          
-          toast({
-            title: "Novo cliente cadastrado",
-            description: `${newClient.nome_completo} foi adicionado`,
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'cadastro_clientes'
-        },
-        (payload) => {
-          console.log('Cliente atualizado:', payload.new);
-          const updatedClient = payload.new as Cliente;
-          setClients(prev => 
-            prev.map(client => 
-              client.id === updatedClient.id ? updatedClient : client
-            )
-          );
-          
-          toast({
-            title: "Cliente atualizado",
-            description: `${updatedClient.nome_completo} foi modificado`,
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'cadastro_clientes'
-        },
-        (payload) => {
-          console.log('Cliente excluído:', payload.old);
-          const deletedClient = payload.old as Cliente;
-          setClients(prev => 
-            prev.filter(client => client.id !== deletedClient.id)
-          );
-          // Toast removido para evitar duplicação - o useClientOperations já mostra
-        }
-      )
-      .subscribe();
+    const setupRealtimeSubscription = async () => {
+      try {
+        console.log('Configurando subscription realtime para clientes...');
 
-    console.log('Subscription realtime configurada com sucesso');
+        channel = supabase
+          .channel('cadastro_clientes_changes')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'cadastro_clientes'
+            },
+            (payload) => {
+              console.log('Cliente inserido:', payload.new);
+              const newClient = payload.new as Cliente;
+              setClients(prev => [newClient, ...prev]);
+              
+              toast({
+                title: "Novo cliente cadastrado",
+                description: `${newClient.nome_completo} foi adicionado`,
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'cadastro_clientes'
+            },
+            (payload) => {
+              console.log('Cliente atualizado:', payload.new);
+              const updatedClient = payload.new as Cliente;
+              setClients(prev => 
+                prev.map(client => 
+                  client.id === updatedClient.id ? updatedClient : client
+                )
+              );
+              
+              toast({
+                title: "Cliente atualizado",
+                description: `${updatedClient.nome_completo} foi modificado`,
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: 'DELETE',
+              schema: 'public',
+              table: 'cadastro_clientes'
+            },
+            (payload) => {
+              console.log('Cliente excluído:', payload.old);
+              const deletedClient = payload.old as Cliente;
+              setClients(prev => 
+                prev.filter(client => client.id !== deletedClient.id)
+              );
+              // Toast removido para evitar duplicação - o useClientOperations já mostra
+            }
+          );
+
+        const subscriptionResult = await channel.subscribe();
+        
+        if (subscriptionResult === 'SUBSCRIBED') {
+          console.log('Subscription realtime configurada com sucesso');
+        } else {
+          console.warn('Falha na configuração do realtime:', subscriptionResult);
+        }
+      } catch (error) {
+        console.warn('Erro ao configurar realtime para clientes:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupRealtimeSubscription();
 
     // Cleanup subscription on unmount
     return () => {
-      console.log('Removendo subscription realtime...');
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          console.log('Removendo subscription realtime...');
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal realtime:', error);
+        }
+      }
     };
-  }, [user, initialized]); // Removido toast das dependências
+  }, [user, initialized]);
 
   return {
     clients,

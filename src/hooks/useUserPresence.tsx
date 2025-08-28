@@ -73,8 +73,15 @@ export const useUserPresence = (userEmail?: string) => {
         }
       })
       .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await updatePresence();
+        try {
+          if (status === 'SUBSCRIBED') {
+            await updatePresence();
+            console.log('Presença configurada com sucesso');
+          } else {
+            console.warn('Falha na configuração de presença:', status);
+          }
+        } catch (error) {
+          console.warn('Erro ao configurar presença:', error);
         }
       });
 
@@ -97,28 +104,48 @@ export const useUserPresence = (userEmail?: string) => {
   useEffect(() => {
     if (!userEmail) return;
 
-    const channel = setupPresenceListener();
+    let channel: any = null;
+    let interval: NodeJS.Timeout;
+    let cleanup: (() => void) | null = null;
+    
+    const setupPresenceListeners = async () => {
+      try {
+        channel = setupPresenceListener();
 
-    // Atualizar presença a cada 30 segundos
-    const interval = setInterval(() => {
-      updatePresence();
-    }, 30000);
+        // Atualizar presença a cada 30 segundos
+        interval = setInterval(() => {
+          updatePresence();
+        }, 30000);
 
-    // Atualizar presença quando a página muda
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        updatePresence();
+        // Atualizar presença quando a página muda
+        const handleVisibilityChange = () => {
+          if (!document.hidden) {
+            updatePresence();
+          }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        cleanup = () => {
+          clearInterval(interval);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          if (channel) {
+            try {
+              supabase.removeChannel(channel);
+            } catch (error) {
+              console.warn('Erro ao remover canal de presença:', error);
+            }
+          }
+        };
+      } catch (error) {
+        console.warn('Erro ao configurar presença do usuário:', error);
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    setupPresenceListeners();
 
     return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      if (cleanup) cleanup();
     };
   }, [userEmail, setupPresenceListener, updatePresence]);
 

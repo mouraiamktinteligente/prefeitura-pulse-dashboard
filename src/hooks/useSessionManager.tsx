@@ -522,21 +522,45 @@ export const useSessionManager = () => {
 
   // Setup realtime listener para sessões ativas
   useEffect(() => {
-    const channel = supabase
-      .channel('sessoes-ativas-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'sessoes_ativas'
-      }, (payload) => {
-        console.log('Sessões ativas realtime event:', payload);
-        // Atualizar dados automaticamente quando há mudanças nas sessões
-        // Não fazemos fetch automático para evitar loops, deixamos os componentes decidir
-      })
-      .subscribe();
+    let channel: any = null;
+    
+    const setupRealtimeListener = async () => {
+      try {
+        channel = supabase
+          .channel('sessoes-ativas-changes')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'sessoes_ativas'
+          }, (payload) => {
+            console.log('Sessões ativas realtime event:', payload);
+            // Atualizar dados automaticamente quando há mudanças nas sessões
+            // Não fazemos fetch automático para evitar loops, deixamos os componentes decidir
+          });
+
+        const subscriptionResult = await channel.subscribe();
+        
+        if (subscriptionResult === 'SUBSCRIBED') {
+          console.log('Realtime listener para sessões ativas configurado com sucesso');
+        } else {
+          console.warn('Falha na configuração do realtime listener:', subscriptionResult);
+        }
+      } catch (error) {
+        console.warn('Erro ao configurar realtime listener para sessões ativas:', error);
+        // Silently fail - the app should continue working without realtime updates
+      }
+    };
+
+    setupRealtimeListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal realtime:', error);
+        }
+      }
     };
   }, []);
 
