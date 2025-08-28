@@ -236,31 +236,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user?.email) return;
 
-    // Múltiplos canais para garantir que a mensagem chegue
-    const channels = [
-      'admin-disconnect',
-      `user-${user.email}`,
-      `force-logout-${user.email}`,
-      'global-security',
-      'session-killer'
-    ];
+    let subscriptions: any[] = [];
 
-    const subscriptions = channels.map((channelName) => {
-      return supabase
-        .channel(channelName)
-        .on('broadcast', { event: 'force_logout' }, (payload) => {
-          if (payload.targetEmail === user.email || payload.critical) {
-            console.log(`Logout forçado recebido via canal ${channelName}:`, payload);
-            logout('Você foi desconectado por um administrador');
+    const setupForceLogoutListeners = async () => {
+      try {
+        // Múltiplos canais para garantir que a mensagem chegue
+        const channels = [
+          'admin-disconnect',
+          `user-${user.email}`,
+          `force-logout-${user.email}`,
+          'global-security',
+          'session-killer'
+        ];
+
+        const subscriptionPromises = channels.map(async (channelName) => {
+          try {
+            const channel = supabase
+              .channel(channelName)
+              .on('broadcast', { event: 'force_logout' }, (payload) => {
+                if (payload.targetEmail === user.email || payload.critical) {
+                  console.log(`Logout forçado recebido via canal ${channelName}:`, payload);
+                  logout('Você foi desconectado por um administrador');
+                }
+              });
+
+            await channel.subscribe();
+            console.log(`Canal ${channelName} configurado com sucesso`);
+            return channel;
+          } catch (error) {
+            console.warn(`Erro ao configurar canal ${channelName}:`, error);
+            return null;
           }
-        })
-        .subscribe();
-    });
+        });
+
+        const results = await Promise.all(subscriptionPromises);
+        subscriptions = results.filter(channel => channel !== null);
+        
+        console.log(`Configurados ${subscriptions.length} canais para logout forçado`);
+      } catch (error) {
+        console.warn('Erro ao configurar listeners de logout forçado:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupForceLogoutListeners();
 
     return () => {
-      subscriptions.forEach(channel => {
-        supabase.removeChannel(channel);
-      });
+      try {
+        subscriptions.forEach(channel => {
+          if (channel) {
+            supabase.removeChannel(channel);
+          }
+        });
+      } catch (error) {
+        console.warn('Erro ao remover canais de logout forçado:', error);
+      }
     };
   }, [user?.email]);
 
@@ -268,28 +298,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user?.email) return;
 
-    const channel = supabase
-      .channel('user-status-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'usuarios_sistema',
-          filter: `email=eq.${user.email}`
-        },
-        (payload) => {
-          const newRecord = payload.new as any;
-          if (newRecord && newRecord.status_conexao === 'desconectado') {
-            console.log('Usuário marcado como desconectado - forçando logout');
-            logout('Você foi desconectado por um administrador');
-          }
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+
+    const setupUserStatusListener = async () => {
+      try {
+        channel = supabase
+          .channel('user-status-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'usuarios_sistema',
+              filter: `email=eq.${user.email}`
+            },
+            (payload) => {
+              const newRecord = payload.new as any;
+              if (newRecord && newRecord.status_conexao === 'desconectado') {
+                console.log('Usuário marcado como desconectado - forçando logout');
+                logout('Você foi desconectado por um administrador');
+              }
+            }
+          );
+
+        await channel.subscribe();
+        console.log('Listener de status do usuário configurado com sucesso');
+      } catch (error) {
+        console.warn('Erro ao configurar listener de status do usuário:', error);
+        // Continue without realtime - the app should work without it
+      }
+    };
+
+    setupUserStatusListener();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Erro ao remover canal de status do usuário:', error);
+        }
+      }
     };
   }, [user?.email]);
 
