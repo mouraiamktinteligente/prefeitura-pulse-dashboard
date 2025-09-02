@@ -28,15 +28,6 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
   };
 
   const username = profile?.replace('@', '') || 'perfil';
-  const userProfileImage = "https://picsum.photos/40/40?random=profile";
-  
-  const mockComments = [
-    { username: "marco.hoffer", text: "🔥🔥🔥😍😍😍", liked: true },
-    { username: "bruno.manzan", text: "Vlwww demais meu maestro! Sem você não sou nada! Pra cima! 🔥🙌", liked: true },
-    { username: "josi_gomess", text: "E eu te amo e te admiro demais ❤️", liked: true },
-    { username: "diegorodrigues.ia", text: "🔥🔥", liked: true },
-    { username: "elvismusicc", text: "Boaaaa Marquin 👏👏👏🔥🔥", liked: true }
-  ];
 
   if (loading) {
     return (
@@ -99,12 +90,8 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
         <div className="bg-black rounded-lg overflow-hidden h-full">
           {/* Post Header */}
           <div className="flex items-center justify-between p-2 bg-black">
-            <div className="flex items-center gap-2">
-              <img 
-                src={userProfileImage} 
-                alt="Profile" 
-                className="w-6 h-6 rounded-full"
-              />
+          <div className="flex items-center gap-2">
+              <Instagram className="w-4 h-4 text-pink-400" />
               <div>
                 <p className="text-white font-semibold text-xs">@{username}</p>
               </div>
@@ -144,18 +131,6 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
               </span>
             </div>
 
-            {/* Comments */}
-            <div className="space-y-1 mb-2">
-              {mockComments.slice(0, 2).map((comment, index) => (
-                <div key={index} className="flex items-start gap-1">
-                  <span className="text-white font-semibold text-xs">{comment.username}</span>
-                  <span className="text-white text-xs flex-1 truncate">{comment.text}</span>
-                  {comment.liked && (
-                    <Heart className="w-2 h-2 text-red-500 fill-current flex-shrink-0 mt-1" />
-                  )}
-                </div>
-              ))}
-            </div>
 
             {/* Time */}
             <p className="text-gray-400 text-xs">
