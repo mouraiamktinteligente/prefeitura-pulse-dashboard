@@ -214,53 +214,33 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
     return years;
   };
 
-  // Componente de gráfico individual
-  const ChartComponent = ({ data, title, color }: { data: any[], title: string, color: string }) => {
-    const processedData = data.map(item => ({
-      ...item,
-      fill: item.sentiment >= 7 ? '#22c55e' : item.sentiment >= 5 ? '#f59e0b' : '#ef4444'
-    }));
+  // Combinar dados do prefeito e prefeitura para o gráfico
+  const getCombinedData = () => {
+    if (!clientId) {
+      return getCurrentData('general');
+    }
 
-    return (
-      <div className="flex-1">
-        <h3 className="text-sm font-semibold text-white mb-2 text-center">{title}</h3>
-        <div className="h-32">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={processedData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="period" stroke="#93c5fd" fontSize={10} />
-              <YAxis 
-                stroke="#93c5fd" 
-                fontSize={10} 
-                domain={[0, 10]}
-                tickCount={4}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none', 
-                  borderRadius: '8px',
-                  color: 'white'
-                }}
-                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Score']}
-                labelFormatter={(label: string, payload: any[]) => {
-                  if (payload?.length > 0) {
-                    const data = payload[0].payload;
-                    return `${label} - ${data.totalComments || 0} comentários`;
-                  }
-                  return label;
-                }}
-              />
-              <Bar 
-                dataKey="sentiment" 
-                fill={color}
-                radius={[2, 2, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    );
+    const prefeitoData = getCurrentData('prefeito');
+    const prefeituraData = getCurrentData('prefeitura');
+    
+    // Criar array combinado com ambos os dados
+    const maxLength = Math.max(prefeitoData.length, prefeituraData.length);
+    const combinedData = [];
+    
+    for (let i = 0; i < maxLength; i++) {
+      const prefeitoItem = prefeitoData[i];
+      const prefeituraItem = prefeituraData[i];
+      
+      combinedData.push({
+        period: prefeitoItem?.period || prefeituraItem?.period || `P${i + 1}`,
+        prefeito: prefeitoItem?.sentiment || 0,
+        prefeitura: prefeituraItem?.sentiment || 0,
+        prefeitoComments: prefeitoItem?.totalComments || 0,
+        prefeituraComments: prefeituraItem?.totalComments || 0
+      });
+    }
+    
+    return combinedData;
   };
 
   return (
@@ -274,67 +254,76 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
         </p>
       </CardHeader>
       <CardContent className="pb-2">
-        <div className="mb-3">
+        <div className="h-40 mb-3">
           {isLoading() ? (
-            <div className="flex items-center justify-center h-40">
+            <div className="flex items-center justify-center h-full">
               <div className="text-blue-300">Carregando dados...</div>
             </div>
-          ) : clientId ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <ChartComponent 
-                  data={getCurrentData('prefeito')} 
-                  title="👤 Prefeito" 
-                  color="#60a5fa"
-                />
-                <ChartComponent 
-                  data={getCurrentData('prefeitura')} 
-                  title="🏛️ Prefeitura" 
-                  color="#34d399"
-                />
-              </div>
-            </div>
           ) : (
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={getCurrentData('general').map(item => ({
-                  ...item,
-                  fill: item.sentiment >= 7 ? '#22c55e' : item.sentiment >= 5 ? '#f59e0b' : '#ef4444'
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="period" stroke="#93c5fd" fontSize={12} />
-                  <YAxis 
-                    stroke="#93c5fd" 
-                    fontSize={12} 
-                    domain={[0, 10]}
-                    tickCount={6}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1e293b', 
-                      border: 'none', 
-                      borderRadius: '8px',
-                      color: 'white'
-                    }}
-                    formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Score de Sentimento']}
-                    labelFormatter={(label: string, payload: any[]) => {
-                      if (payload?.length > 0) {
-                        const data = payload[0].payload;
-                        return `${label} - ${data.totalComments || 0} comentários`;
-                      }
-                      return label;
-                    }}
-                  />
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getCombinedData()}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="period" stroke="#93c5fd" fontSize={12} />
+                <YAxis 
+                  stroke="#93c5fd" 
+                  fontSize={12} 
+                  domain={[0, 10]}
+                  tickCount={6}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: 'white'
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'prefeito') return [`${value.toFixed(1)}/10`, '👤 Prefeito'];
+                    if (name === 'prefeitura') return [`${value.toFixed(1)}/10`, '🏛️ Prefeitura'];
+                    return [`${value.toFixed(1)}/10`, 'Score de Sentimento'];
+                  }}
+                  labelFormatter={(label: string) => `Período: ${label}`}
+                />
+                {clientId ? (
+                  <>
+                    <Bar 
+                      dataKey="prefeito" 
+                      fill="#60a5fa"
+                      name="prefeito"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="prefeitura" 
+                      fill="#34d399"
+                      name="prefeitura"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </>
+                ) : (
                   <Bar 
-                    dataKey="sentiment" 
+                    dataKey="prefeito" 
                     fill="#60a5fa"
                     radius={[4, 4, 0, 0]}
                   />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+                )}
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
+
+        {/* Legenda para cliente específico */}
+        {clientId && (
+          <div className="flex justify-center gap-4 mb-3">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#60a5fa' }} />
+              <span className="text-xs text-blue-300">👤 Prefeito</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#34d399' }} />
+              <span className="text-xs text-blue-300">🏛️ Prefeitura</span>
+            </div>
+          </div>
+        )}
 
         {/* Seletor de Período */}
         <div className="bg-blue-600 border border-blue-500 rounded-lg p-3">
