@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -19,6 +19,7 @@ export type Database = {
           assunto: string | null
           created_at: string
           id: number
+          nivel: string | null
           profile_prefeito: string | null
           profile_prefeitura: string | null
           status: string | null
@@ -27,6 +28,7 @@ export type Database = {
           assunto?: string | null
           created_at?: string
           id?: number
+          nivel?: string | null
           profile_prefeito?: string | null
           profile_prefeitura?: string | null
           status?: string | null
@@ -35,9 +37,49 @@ export type Database = {
           assunto?: string | null
           created_at?: string
           id?: number
+          nivel?: string | null
           profile_prefeito?: string | null
           profile_prefeitura?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      alertas_comentarios: {
+        Row: {
+          created_at: string
+          id: string
+          negative_comment: string | null
+          negative_username: string | null
+          positive_comment: string | null
+          positive_username: string | null
+          profile: string | null
+          score_negative: string | null
+          score_positive: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          negative_comment?: string | null
+          negative_username?: string | null
+          positive_comment?: string | null
+          positive_username?: string | null
+          profile?: string | null
+          score_negative?: string | null
+          score_positive?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          negative_comment?: string | null
+          negative_username?: string | null
+          positive_comment?: string | null
+          positive_username?: string | null
+          profile?: string | null
+          score_negative?: string | null
+          score_positive?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -107,6 +149,27 @@ export type Database = {
           profile?: string | null
           sentiment?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      brand_lockfiles: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+          version: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+          version?: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+          version?: string
         }
         Relationships: []
       }
@@ -246,6 +309,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instagram_posts: {
+        Row: {
+          comments_count: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          instagram_post_id: string | null
+          likes_count: number | null
+          post_url: string | null
+          profile: string | null
+          updated_at: string
+        }
+        Insert: {
+          comments_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          instagram_post_id?: string | null
+          likes_count?: number | null
+          post_url?: string | null
+          profile?: string | null
+          updated_at?: string
+        }
+        Update: {
+          comments_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          instagram_post_id?: string | null
+          likes_count?: number | null
+          post_url?: string | null
+          profile?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       logs_acesso: {
         Row: {
@@ -796,7 +898,7 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          id_analise: string | null
+          link_analise: string | null
           link_relatorio: string | null
           nome: string | null
           nome_analise: string | null
@@ -806,7 +908,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: number
-          id_analise?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
           nome_analise?: string | null
@@ -816,7 +918,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: number
-          id_analise?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
           nome_analise?: string | null
@@ -1124,7 +1226,7 @@ export type Database = {
         Returns: string
       }
       force_logout_user: {
-        Args: { p_user_email: string; p_motivo?: string }
+        Args: { p_motivo?: string; p_user_email: string }
         Returns: undefined
       }
       limpar_sessoes_expiradas: {
@@ -1132,14 +1234,14 @@ export type Database = {
         Returns: undefined
       }
       renovar_sessao: {
-        Args: { p_user_email: string; p_session_token: string }
+        Args: { p_session_token: string; p_user_email: string }
         Returns: boolean
       }
       verificar_sessoes_multiplas_ip: {
         Args: { p_ip_address: string }
         Returns: {
-          user_email: string
           count_sessions: number
+          user_email: string
         }[]
       }
     }
