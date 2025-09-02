@@ -3,8 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users } from 'lucide-react';
-import { useAlertasComentarios, getSeverityFromScore, formatTimeAgo, AlertaComentario } from '@/hooks/useAlertasComentarios';
+import { Users, ExternalLink } from 'lucide-react';
+import { useAlertasComentarios, formatTimeAgo, AlertaComentario } from '@/hooks/useAlertasComentarios';
 
 interface MaliciousCommentsProps {
   profile?: string;
@@ -30,7 +30,8 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         id: `${alerta.id}-neg`,
         user: alerta.negative_username,
         comment: alerta.negative_comment,
-        severity: getSeverityFromScore(alerta.score_negative, undefined),
+        score: alerta.score_negative,
+        link: alerta.link_comentario_negativo,
         timestamp: formatTimeAgo(alerta.created_at),
         type: 'negative'
       });
@@ -42,7 +43,8 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         id: `${alerta.id}-pos`,
         user: alerta.positive_username,
         comment: alerta.positive_comment,
-        severity: getSeverityFromScore(undefined, alerta.score_positive),
+        score: alerta.score_positive,
+        link: alerta.link_comentario_positivo,
         timestamp: formatTimeAgo(alerta.created_at),
         type: 'positive'
       });
@@ -53,13 +55,10 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
 
   const allComments = alertas ? alertas.flatMap(formatCommentData) : [];
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'alta': return 'bg-red-100 text-red-800';
-      case 'média': return 'bg-yellow-100 text-yellow-800';
-      case 'baixa': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getSentimentIcon = (type: string, score: string | null) => {
+    const icon = type === 'positive' ? '👍' : '👎';
+    const scoreText = score ? ` ${score}` : '';
+    return `${icon}${scoreText}`;
   };
 
   if (error) {
@@ -101,14 +100,14 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
           <div className="space-y-4 max-h-[320px] overflow-y-auto">
             {allComments.map((comment) => (
               <div key={comment.id} className="border border-blue-600 bg-blue-600 rounded-lg p-3 space-y-3">
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium text-white">{comment.user}</span>
                     <span className="text-xs text-blue-300">Instagram</span>
                   </div>
-                  <Badge className={getSeverityColor(comment.severity)}>
-                    {comment.severity}
-                  </Badge>
+                  <div className="text-lg">
+                    {getSentimentIcon(comment.type, comment.score)}
+                  </div>
                 </div>
                 
                 <p className="text-sm text-blue-300 italic">"{comment.comment}"</p>
@@ -116,6 +115,17 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-blue-300">{comment.timestamp}</span>
                   <div className="flex space-x-2">
+                    {comment.link && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500"
+                        onClick={() => window.open(comment.link, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Ver comentário
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
                       <Users className="h-3 w-3 mr-1" />
                       Equipe

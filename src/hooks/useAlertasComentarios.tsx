@@ -9,6 +9,8 @@ export interface AlertaComentario {
   positive_comment?: string;
   positive_username?: string;
   score_positive?: string;
+  link_comentario_negativo?: string;
+  link_comentario_positivo?: string;
   created_at: string;
   profile?: string;
 }
