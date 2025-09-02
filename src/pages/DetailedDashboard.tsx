@@ -97,7 +97,7 @@ const DetailedDashboard = () => {
           
           {/* Right Column */}
           <div className="space-y-6">
-            <MaliciousComments />
+            <MaliciousComments profile={selectedClient?.instagram_prefeitura} />
             <CrisisTimeline />
           </div>
         </div>
