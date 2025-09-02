@@ -63,7 +63,7 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
 
   return (
     <Card 
-      className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 cursor-pointer w-80 h-[620px]"
+      className="bg-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer w-80 h-[620px]"
       onClick={onClick}
     >
       {/* Tarja de Status de Monitoramento */}
