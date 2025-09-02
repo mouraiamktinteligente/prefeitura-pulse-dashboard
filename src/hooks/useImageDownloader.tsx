@@ -18,13 +18,23 @@ const imageCache = new Map<string, CachedImage>();
 
 // Função para converter links do Google Drive para formato visualizável
 const convertGoogleDriveUrl = (url: string): string => {
+  console.log('🔍 Link original recebido:', url);
+  
   // Detectar se é um link do Google Drive no formato /file/d/{id}/view
   const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (driveMatch) {
     const fileId = driveMatch[1];
     // Converter para o formato correto com export=view para visualização direta
-    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    const convertedUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    console.log('✅ Link do Google Drive convertido:', {
+      original: url,
+      fileId: fileId,
+      converted: convertedUrl
+    });
+    return convertedUrl;
   }
+  
+  console.log('ℹ️ Link não é do Google Drive, mantendo original:', url);
   return url;
 };
 
@@ -38,6 +48,13 @@ export const useImageDownloader = (
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    console.log('🎯 useImageDownloader executado:', {
+      imageUrl,
+      postId,
+      hasImageUrl: !!imageUrl,
+      hasPostId: !!postId
+    });
+    
     // Limpar estados quando não há URL
     if (!imageUrl || !postId) {
       setLocalImageUrl(null);
