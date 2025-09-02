@@ -22,8 +22,8 @@ const convertGoogleDriveUrl = (url: string): string => {
   const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (driveMatch) {
     const fileId = driveMatch[1];
-    // Converter para o formato direto: https://drive.google.com/uc?id={id}
-    return `https://drive.google.com/uc?id=${fileId}`;
+    // Converter para o formato correto com export=view para visualização direta
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
   }
   return url;
 };
