@@ -205,7 +205,8 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </div>
         )}
         
-        {/* Legenda compacta apenas com números */}
+        {/* Legenda removida em modo compacto */}
+        {!compact && (
         <div className="flex items-center justify-center gap-4">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
@@ -226,6 +227,7 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
             </span>
           </div>
         </div>
+        )}
       </div>
     );
   }
