@@ -4,7 +4,7 @@ import { ClientCard } from '@/components/ClientCard';
 import { PhoneMockup } from '@/components/PhoneMockup';
 import { useClients } from '@/hooks/useClients';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Smartphone, Grid3x3 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeIndicator } from '@/components/RealtimeIndicator';
@@ -12,7 +12,6 @@ import { RealtimeIndicator } from '@/components/RealtimeIndicator';
 const MainDashboard = () => {
   const { clients, loading } = useClients();
   const navigate = useNavigate();
-  const [isMockupView, setIsMockupView] = React.useState(false);
 
   console.log('MainDashboard - Estado do loading:', loading);
   console.log('MainDashboard - Quantidade de clientes:', clients.length);
@@ -100,58 +99,26 @@ const MainDashboard = () => {
           </div>
         ) : (
           <>
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6">
               <h2 className="text-white text-xl font-semibold">
                 Clientes Monitorados ({clients.length})
               </h2>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={!isMockupView ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsMockupView(false)}
-                  className="text-white"
-                >
-                  <Grid3x3 className="w-4 h-4 mr-2" />
-                  Grade
-                </Button>
-                <Button
-                  variant={isMockupView ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsMockupView(true)}
-                  className="text-white"
-                >
-                  <Smartphone className="w-4 h-4 mr-2" />
-                  Mockup
-                </Button>
-              </div>
             </div>
 
-            {isMockupView ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
-                {clients.map((client) => (
-                  <PhoneMockup
-                    key={client.id}
-                    client={client}
-                    onClick={() => handleClientClick(client.id)}
-                  >
-                    <ClientCard
-                      client={client}
-                      onClick={() => handleClientClick(client.id)}
-                    />
-                  </PhoneMockup>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
-                {clients.map((client) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
+              {clients.map((client) => (
+                <PhoneMockup
+                  key={client.id}
+                  client={client}
+                  onClick={() => handleClientClick(client.id)}
+                >
                   <ClientCard
-                    key={client.id}
                     client={client}
                     onClick={() => handleClientClick(client.id)}
                   />
-                ))}
-              </div>
-            )}
+                </PhoneMockup>
+              ))}
+            </div>
           </>
         )}
       </main>
