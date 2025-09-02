@@ -57,12 +57,13 @@ export const useImageDownloader = (
       abortControllerRef.current = abortController;
 
       try {
-        console.log('📥 Iniciando download da imagem:', imageUrl);
+        console.log('📥 Iniciando download da imagem via proxy:', imageUrl);
 
-        const response = await fetch(imageUrl, {
+        // Use the Supabase Edge Function as proxy to bypass CORS
+        const proxyUrl = `https://oztosavtfiifjaahpagf.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+        
+        const response = await fetch(proxyUrl, {
           signal: abortController.signal,
-          mode: 'cors',
-          credentials: 'omit',
           headers: {
             'Accept': 'image/*'
           }
