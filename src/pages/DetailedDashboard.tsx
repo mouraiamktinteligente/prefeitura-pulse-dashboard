@@ -92,7 +92,7 @@ const DetailedDashboard = () => {
           {/* Center Column */}
           <div className="space-y-6">
             <EngagementChart profile={selectedClient?.instagram_prefeitura} />
-            <InstagramLatestPost clientName={selectedClient?.nome_completo} />
+            <InstagramLatestPost profile={selectedClient?.instagram_prefeitura} />
           </div>
           
           {/* Right Column */}
