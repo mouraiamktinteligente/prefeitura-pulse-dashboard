@@ -67,9 +67,9 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
 
     fetchLatestPost();
 
-    // Set up real-time subscription for new posts
+    // Set up real-time subscription for all post changes
     const channel = supabase
-      .channel('instagram-posts-changes')
+      .channel(`instagram-posts-${profile}`)
       .on(
         'postgres_changes',
         {
@@ -79,9 +79,69 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           filter: `profile=eq.${profile}`
         },
         (payload) => {
-          console.log('New Instagram post received:', payload);
+          console.log('New Instagram post inserted:', payload);
           if (payload.new && payload.new.profile === profile) {
-            fetchLatestPost(); // Refetch to get the latest post
+            // For INSERT: check if it's newer than current latest post
+            const newPost = payload.new as InstagramPost;
+            setLatestPost(current => {
+              if (!current || new Date(newPost.created_at) > new Date(current.created_at)) {
+                console.log('Updating to newer post:', newPost);
+                return newPost;
+              }
+              return current;
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'instagram_posts',
+          filter: `profile=eq.${profile}`
+        },
+        (payload) => {
+          console.log('Instagram post updated:', payload);
+          if (payload.new && payload.new.profile === profile) {
+            const updatedPost = payload.new as InstagramPost;
+            setLatestPost(current => {
+              // Update if it's the same post we're currently showing
+              if (current && current.id === updatedPost.id) {
+                console.log('Updating current post with new data:', updatedPost);
+                return updatedPost;
+              }
+              // If it's a newer post, update
+              if (!current || new Date(updatedPost.created_at) > new Date(current.created_at)) {
+                console.log('Updating to newer updated post:', updatedPost);
+                return updatedPost;
+              }
+              return current;
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'instagram_posts',
+          filter: `profile=eq.${profile}`
+        },
+        (payload) => {
+          console.log('Instagram post deleted:', payload);
+          if (payload.old && payload.old.profile === profile) {
+            const deletedPost = payload.old as InstagramPost;
+            setLatestPost(current => {
+              // If the deleted post is the one we're showing, refetch
+              if (current && current.id === deletedPost.id) {
+                console.log('Current post was deleted, refetching...');
+                fetchLatestPost();
+                return null; // Temporarily clear while refetching
+              }
+              return current;
+            });
           }
         }
       )
