@@ -108,16 +108,41 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
             ) : latestPost ? (
               <>
                 <img 
-                  src={latestPost.image_url || "https://picsum.photos/200/200?random=" + client.id} 
-                  alt="Post do Instagram" 
+                  src={latestPost.image_url || `/lovable-uploads/${client.id}-placeholder.jpg`} 
+                  alt={`Post do Instagram de ${client.nome_completo}`}
                   className="w-full h-32 object-cover rounded mb-2"
+                  loading="lazy"
+                  crossOrigin="anonymous"
                   onLoad={() => {
-                    console.log('✅ Image loaded successfully:', latestPost.image_url);
+                    console.log('✅ Imagem carregada com sucesso:', latestPost.image_url);
                   }}
                   onError={(e) => {
-                    console.log('❌ Image failed to load:', latestPost.image_url);
-                    console.log('🔄 Switching to fallback image');
-                    e.currentTarget.src = "https://picsum.photos/200/200?random=" + client.id;
+                    console.error('❌ Falha ao carregar imagem do Instagram:', latestPost.image_url);
+                    console.log('🔄 Tentando fallback local...');
+                    
+                    // Primeiro fallback: imagem local específica do cliente
+                    const fallbackLocal = `/lovable-uploads/${client.id}-placeholder.jpg`;
+                    if (e.currentTarget.src !== fallbackLocal) {
+                      e.currentTarget.src = fallbackLocal;
+                      return;
+                    }
+                    
+                    // Segundo fallback: imagem genérica
+                    const fallbackGeneric = "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=200&fit=crop&crop=center";
+                    if (e.currentTarget.src !== fallbackGeneric) {
+                      e.currentTarget.src = fallbackGeneric;
+                      return;
+                    }
+                    
+                    // Terceiro fallback: placeholder colorido
+                    e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`
+                      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="200" height="200" fill="#4F46E5"/>
+                        <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="14">
+                          Post do Instagram
+                        </text>
+                      </svg>
+                    `)}`;
                   }}
                 />
                 <p className="text-blue-200 text-xs mb-2 line-clamp-2">
