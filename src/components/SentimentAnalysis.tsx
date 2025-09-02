@@ -205,8 +205,8 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </div>
         )}
         
-        {/* Legenda compacta */}
-        <div className="space-y-1 text-xs">
+        {/* Legenda compacta com mais espaço */}
+        <div className="space-y-2 text-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />

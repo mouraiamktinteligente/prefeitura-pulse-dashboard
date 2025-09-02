@@ -56,15 +56,15 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
           <div 
             className="relative overflow-hidden"
             style={{
-              width: '270px', // Largura da tela ajustada
-              height: '485px', // Altura da tela ajustada
-              marginTop: '60px', // Ajuste vertical melhorado
-              borderRadius: '2.8rem', // Bordas arredondadas mais precisas
+              width: '300px', // Largura da tela aumentada para ocupar toda a tela real
+              height: '540px', // Altura da tela aumentada
+              marginTop: '35px', // Ajuste vertical para melhor alinhamento
+              borderRadius: '3rem', // Bordas arredondadas ajustadas
             }}
           >
             {/* Conteúdo da tela (ClientCard redimensionado) */}
-            <div className="w-full h-full flex items-start justify-center pt-4">
-              <div className="transform scale-[0.68] origin-top">
+            <div className="w-full h-full flex items-start justify-center pt-2">
+              <div className="transform scale-[0.85] origin-top">
                 {children}
               </div>
             </div>
@@ -73,13 +73,6 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
 
         {/* Overlay de hover */}
         <div className="absolute inset-0 z-30 rounded-[3rem] transition-all duration-300 group-hover:bg-black/10 group-hover:scale-105 pointer-events-none" />
-      </div>
-
-      {/* Label do cliente abaixo do mockup */}
-      <div className="text-center mt-4">
-        <h3 className="text-white font-semibold text-sm truncate px-2">
-          {client.nome_completo}
-        </h3>
       </div>
     </div>
   );
