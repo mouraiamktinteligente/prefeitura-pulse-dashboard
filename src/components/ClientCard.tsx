@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
+import { useInstagramPosts } from '@/hooks/useInstagramPosts';
 
 interface ClientCardProps {
   client: Cliente;
@@ -16,18 +17,11 @@ interface ClientCardProps {
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
+  const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
   const navigate = useNavigate();
 
   const handleGerarAnalise = () => {
     navigate(`/gestao-clientes/${client.id}`);
-  };
-  
-  // Post simulado do Instagram
-  const mockPost = {
-    image: "https://picsum.photos/200/200?random=" + client.id,
-    caption: "Confira as últimas novidades e projetos em andamento...",
-    likes: Math.floor(Math.random() * 500) + 50,
-    comments: Math.floor(Math.random() * 100) + 10
   };
 
   const formatLastActivity = (lastActivity: string | null) => {
@@ -80,18 +74,42 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           </div>
           
           <div className="bg-blue-700 rounded-lg p-2">
-            <img 
-              src={mockPost.image} 
-              alt="Post" 
-              className="w-full h-32 object-cover rounded mb-2"
-            />
-            <p className="text-blue-200 text-xs mb-2 line-clamp-2">
-              {mockPost.caption}
-            </p>
-            <div className="flex justify-between text-xs text-blue-300">
-              <span>❤️ {mockPost.likes}</span>
-              <span>💬 {mockPost.comments}</span>
-            </div>
+            {postLoading ? (
+              <div className="space-y-2">
+                <div className="w-full h-32 bg-blue-600 rounded animate-pulse"></div>
+                <div className="h-4 bg-blue-600 rounded animate-pulse"></div>
+                <div className="flex justify-between">
+                  <div className="h-3 w-12 bg-blue-600 rounded animate-pulse"></div>
+                  <div className="h-3 w-12 bg-blue-600 rounded animate-pulse"></div>
+                </div>
+              </div>
+            ) : postError ? (
+              <div className="text-center py-4">
+                <p className="text-blue-300 text-xs">Erro ao carregar postagem</p>
+              </div>
+            ) : latestPost ? (
+              <>
+                <img 
+                  src={latestPost.image_url || "https://picsum.photos/200/200?random=" + client.id} 
+                  alt="Post" 
+                  className="w-full h-32 object-cover rounded mb-2"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://picsum.photos/200/200?random=" + client.id;
+                  }}
+                />
+                <p className="text-blue-200 text-xs mb-2 line-clamp-2">
+                  {latestPost.description || "Sem descrição disponível"}
+                </p>
+                <div className="flex justify-between text-xs text-blue-300">
+                  <span>❤️ {latestPost.likes_count || 0}</span>
+                  <span>💬 {latestPost.comments_count || 0}</span>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-blue-300 text-xs">Nenhuma postagem encontrada</p>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
