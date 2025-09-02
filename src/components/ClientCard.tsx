@@ -9,6 +9,7 @@ import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useInstagramPosts } from '@/hooks/useInstagramPosts';
+import { useImageDownloader } from '@/hooks/useImageDownloader';
 
 interface ClientCardProps {
   client: Cliente;
@@ -18,6 +19,10 @@ interface ClientCardProps {
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
   const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
+  const { localImageUrl, isDownloading, downloadError } = useImageDownloader(
+    latestPost?.image_url,
+    latestPost?.id
+  );
   const navigate = useNavigate();
 
   // Debug logs for ClientCard
@@ -28,6 +33,11 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
     hasLatestPost: !!latestPost,
     postLoading,
     postError,
+    downloadState: {
+      localImageUrl: !!localImageUrl,
+      isDownloading,
+      downloadError
+    },
     postData: latestPost ? {
       id: latestPost.id,
       hasImage: !!latestPost.image_url,
@@ -107,44 +117,48 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
               </div>
             ) : latestPost ? (
               <>
-                <img 
-                  src={latestPost.image_url || `/lovable-uploads/${client.id}-placeholder.jpg`} 
-                  alt={`Post do Instagram de ${client.nome_completo}`}
-                  className="w-full h-32 object-cover rounded mb-2"
-                  loading="lazy"
-                  crossOrigin="anonymous"
-                  onLoad={() => {
-                    console.log('✅ Imagem carregada com sucesso:', latestPost.image_url);
-                  }}
-                  onError={(e) => {
-                    console.error('❌ Falha ao carregar imagem do Instagram:', latestPost.image_url);
-                    console.log('🔄 Tentando fallback local...');
-                    
-                    // Primeiro fallback: imagem local específica do cliente
-                    const fallbackLocal = `/lovable-uploads/${client.id}-placeholder.jpg`;
-                    if (e.currentTarget.src !== fallbackLocal) {
-                      e.currentTarget.src = fallbackLocal;
-                      return;
-                    }
-                    
-                    // Segundo fallback: imagem genérica
-                    const fallbackGeneric = "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=200&fit=crop&crop=center";
-                    if (e.currentTarget.src !== fallbackGeneric) {
-                      e.currentTarget.src = fallbackGeneric;
-                      return;
-                    }
-                    
-                    // Terceiro fallback: placeholder colorido
-                    e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`
-                      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="200" height="200" fill="#4F46E5"/>
-                        <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="14">
-                          Post do Instagram
-                        </text>
-                      </svg>
-                    `)}`;
-                  }}
-                />
+                {/* Imagem com download automático */}
+                {isDownloading ? (
+                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-1"></div>
+                      <p className="text-blue-200 text-xs">Baixando imagem...</p>
+                    </div>
+                  </div>
+                ) : localImageUrl ? (
+                  <img 
+                    src={localImageUrl}
+                    alt={`Post do Instagram de ${client.nome_completo}`}
+                    className="w-full h-32 object-cover rounded mb-2"
+                    onLoad={() => {
+                      console.log('✅ Imagem local carregada com sucesso');
+                    }}
+                    onError={() => {
+                      console.error('❌ Erro ao carregar imagem local baixada');
+                    }}
+                  />
+                ) : downloadError ? (
+                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
+                    <div className="text-center p-2">
+                      <p className="text-red-300 text-xs mb-1">Erro no download</p>
+                      <p className="text-blue-200 text-xs">{downloadError}</p>
+                    </div>
+                  </div>
+                ) : latestPost?.image_url ? (
+                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
+                    <div className="text-center p-2">
+                      <p className="text-blue-200 text-xs">Preparando download...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-32 bg-gradient-to-br from-blue-600 to-blue-700 rounded mb-2 flex items-center justify-center">
+                    <div className="text-center">
+                      <Instagram className="w-8 h-8 text-blue-300 mx-auto mb-1" />
+                      <p className="text-blue-200 text-xs">Sem imagem disponível</p>
+                    </div>
+                  </div>
+                )}
+                
                 <p className="text-blue-200 text-xs mb-2 line-clamp-2">
                   {latestPost.description || "Sem descrição disponível"}
                 </p>
@@ -152,10 +166,15 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                   <span>❤️ {latestPost.likes_count || 0}</span>
                   <span>💬 {latestPost.comments_count || 0}</span>
                 </div>
-                {/* Debug info - remover em produção */}
-                <div className="mt-1 text-xs text-blue-400 opacity-50">
-                  ID: {latestPost.id.substring(0, 8)}... | 
-                  IMG: {latestPost.image_url ? '✅' : '❌'}
+                
+                {/* Debug info - melhorado */}
+                <div className="mt-1 text-xs text-blue-400 opacity-50 space-y-1">
+                  <div>ID: {latestPost.id.substring(0, 8)}...</div>
+                  <div className="flex justify-between">
+                    <span>IMG: {latestPost.image_url ? '✅' : '❌'}</span>
+                    <span>Local: {localImageUrl ? '✅' : '❌'}</span>
+                    <span>DL: {isDownloading ? '🔄' : downloadError ? '❌' : '✅'}</span>
+                  </div>
                 </div>
               </>
             ) : (
