@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useParams } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
-import { useClientMetrics } from '@/hooks/useClientMetrics';
+import { useDualMetrics } from '@/hooks/useDualMetrics';
 import { useAggregatedMetrics } from '@/hooks/useAggregatedMetrics';
 import { Download } from 'lucide-react';
 
@@ -25,14 +25,19 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
   const effectiveClientId = propClientId || paramClientId;
   const selectedClient = clients.find(client => client.id === effectiveClientId);
   
-  const { metrics: clientMetrics, loading: clientLoading } = useClientMetrics(selectedClient?.instagram_prefeitura || undefined);
+  // Para cliente específico, usar métricas duplas
+  const { metrics: dualMetrics, loading: dualLoading } = useDualMetrics(
+    selectedClient?.instagram_prefeito,
+    selectedClient?.instagram_prefeitura
+  );
+  
+  // Para dados agregados, manter o hook existente
   const { metrics: aggregatedMetrics, loading: aggregatedLoading } = useAggregatedMetrics();
   
-  const metrics = effectiveClientId ? clientMetrics : aggregatedMetrics;
-  const loading = effectiveClientId ? clientLoading : aggregatedLoading;
+  const loading = effectiveClientId ? dualLoading : aggregatedLoading;
 
-  // Memoriza os dados do gráfico para evitar recálculos desnecessários
-  const data = useMemo(() => {
+  // Função para processar dados de um perfil específico
+  const processProfileData = (metrics: any) => {
     const { totalComments, positiveComments, negativeComments, neutralComments } = metrics;
     
     if (totalComments === 0) {
@@ -51,8 +56,19 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
       { name: 'Positivo', value: positivePercentage, color: '#3B82F6', label: `${positivePercentage}%` },
       { name: 'Neutro', value: neutralPercentage, color: '#10B981', label: `${neutralPercentage}%` },
       { name: 'Negativo', value: negativePercentage, color: '#EF4444', label: `${negativePercentage}%` }
-    ]; // Mantém todas as fatias para garantir legenda completa
-  }, [metrics]);
+    ];
+  };
+
+  // Dados do prefeito e prefeitura
+  const prefeitoData = useMemo(() => {
+    if (!effectiveClientId) return processProfileData(aggregatedMetrics);
+    return processProfileData(dualMetrics.prefeito);
+  }, [effectiveClientId, dualMetrics.prefeito, aggregatedMetrics]);
+
+  const prefeituraData = useMemo(() => {
+    if (!effectiveClientId) return processProfileData(aggregatedMetrics);
+    return processProfileData(dualMetrics.prefeitura);
+  }, [effectiveClientId, dualMetrics.prefeitura, aggregatedMetrics]);
 
   // Renderiza percentuais dentro das fatias com fonte visível
   const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
@@ -102,62 +118,123 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
     );
   }
 
+  // Componente para renderizar um gráfico individual
+  const PieChartComponent = ({ data, title, totalComments }: { data: any[], title: string, totalComments: number }) => (
+    <div className="flex-1">
+      <h3 className="text-sm font-medium text-muted-foreground mb-2 text-center">{title}</h3>
+      <div className="h-32 flex items-center justify-center">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={0}
+              outerRadius={45}
+              dataKey="value"
+              startAngle={90}
+              endAngle={450}
+              labelLine={false}
+              label={renderLabel}
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.color}
+                  stroke="none"
+                />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="text-xs text-center text-muted-foreground mt-1">
+        {totalComments} comentários
+      </div>
+    </div>
+  );
+
   // Versão compacta para ClientCard
   if (compact) {
+    const prefeitoMetrics = effectiveClientId ? dualMetrics.prefeito : aggregatedMetrics;
+    const prefeituraMetrics = effectiveClientId ? dualMetrics.prefeitura : aggregatedMetrics;
+
     return (
-      <div className="h-full flex flex-col items-center justify-between">
-        <div className="w-20 h-20">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={0}
-                outerRadius={40}
-                dataKey="value"
-                startAngle={90}
-                endAngle={450}
-                labelLine={false}
-                label={renderLabel}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.color}
-                    stroke="none"
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="h-full flex flex-col space-y-3">
+        {effectiveClientId ? (
+          <div className="grid grid-cols-2 gap-3 flex-1">
+            <PieChartComponent 
+              data={prefeitoData} 
+              title="Prefeito" 
+              totalComments={prefeitoMetrics.totalComments}
+            />
+            <PieChartComponent 
+              data={prefeituraData} 
+              title="Prefeitura" 
+              totalComments={prefeituraMetrics.totalComments}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="w-20 h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={prefeitoData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={0}
+                    outerRadius={40}
+                    dataKey="value"
+                    startAngle={90}
+                    endAngle={450}
+                    labelLine={false}
+                    label={renderLabel}
+                  >
+                    {prefeitoData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color}
+                        stroke="none"
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
         
-        {/* Legenda mais compacta */}
-        <div className="space-y-1 text-xs w-full">
+        {/* Legenda compacta */}
+        <div className="space-y-1 text-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
               <span className="text-white">Positivo</span>
             </div>
-            <span className="text-white font-semibold">{data.find(d => d.name === 'Positivo')?.value || 0}%</span>
+            <span className="text-white font-semibold">
+              {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Positivo')?.value || 0}%
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
               <span className="text-white">Neutro</span>
             </div>
-            <span className="text-white font-semibold">{data.find(d => d.name === 'Neutro')?.value || 0}%</span>
+            <span className="text-white font-semibold">
+              {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Neutro')?.value || 0}%
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
               <span className="text-white">Negativo</span>
             </div>
-            <span className="text-white font-semibold">{data.find(d => d.name === 'Negativo')?.value || 0}%</span>
+            <span className="text-white font-semibold">
+              {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Negativo')?.value || 0}%
+            </span>
           </div>
         </div>
-
       </div>
     );
   }
@@ -170,52 +247,143 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           📊 Análise de Sentimento
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Distribuição dos sentimentos nos comentários
+          {effectiveClientId ? 'Comparação entre perfis do prefeito e prefeitura' : 'Distribuição dos sentimentos nos comentários'}
         </p>
       </CardHeader>
       <CardContent className="pt-4">
-        <div className="h-48 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={0}
-                outerRadius={85}
-                dataKey="value"
-                startAngle={90}
-                endAngle={450}
-                labelLine={false}
-                label={renderLabel}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.color}
-                    stroke="none"
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        
-        {/* Legenda completa sempre visível */}
-        <div className="flex justify-center gap-4 mt-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
-            <span className="text-xs font-medium">Positivo: {data.find(d => d.name === 'Positivo')?.value || 0}%</span>
+        {effectiveClientId ? (
+          <div className="space-y-4">
+            {/* Dois gráficos lado a lado */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <h3 className="text-sm font-semibold mb-2">👤 Prefeito</h3>
+                <div className="h-36">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={prefeitoData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={0}
+                        outerRadius={60}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={450}
+                        labelLine={false}
+                        label={renderLabel}
+                      >
+                        {prefeitoData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-prefeito-${index}`} 
+                            fill={entry.color}
+                            stroke="none"
+                          />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {dualMetrics.prefeito.totalComments} comentários
+                </p>
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-sm font-semibold mb-2">🏛️ Prefeitura</h3>
+                <div className="h-36">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={prefeituraData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={0}
+                        outerRadius={60}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={450}
+                        labelLine={false}
+                        label={renderLabel}
+                      >
+                        {prefeituraData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-prefeitura-${index}`} 
+                            fill={entry.color}
+                            stroke="none"
+                          />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {dualMetrics.prefeitura.totalComments} comentários
+                </p>
+              </div>
+            </div>
+
+            {/* Legenda compartilhada */}
+            <div className="flex justify-center gap-4">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+                <span className="text-xs font-medium">Positivo</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+                <span className="text-xs font-medium">Neutro</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                <span className="text-xs font-medium">Negativo</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
-            <span className="text-xs font-medium">Neutro: {data.find(d => d.name === 'Neutro')?.value || 0}%</span>
+        ) : (
+          <div>
+            <div className="h-48 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={prefeitoData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={0}
+                    outerRadius={85}
+                    dataKey="value"
+                    startAngle={90}
+                    endAngle={450}
+                    labelLine={false}
+                    label={renderLabel}
+                  >
+                    {prefeitoData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.color}
+                        stroke="none"
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Legenda para dados agregados */}
+            <div className="flex justify-center gap-4 mt-2">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+                <span className="text-xs font-medium">Positivo: {prefeitoData.find(d => d.name === 'Positivo')?.value || 0}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+                <span className="text-xs font-medium">Neutro: {prefeitoData.find(d => d.name === 'Neutro')?.value || 0}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                <span className="text-xs font-medium">Negativo: {prefeitoData.find(d => d.name === 'Negativo')?.value || 0}%</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
-            <span className="text-xs font-medium">Negativo: {data.find(d => d.name === 'Negativo')?.value || 0}%</span>
-          </div>
-        </div>
+        )}
         
         {/* Botão Gerar Análise */}
         {onGerarAnalise && (
