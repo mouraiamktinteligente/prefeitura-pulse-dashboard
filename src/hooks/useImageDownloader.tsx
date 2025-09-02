@@ -16,6 +16,18 @@ interface CachedImage {
 // Cache global para reutilizar imagens entre componentes
 const imageCache = new Map<string, CachedImage>();
 
+// Função para converter links do Google Drive para formato visualizável
+const convertGoogleDriveUrl = (url: string): string => {
+  // Detectar se é um link do Google Drive no formato /file/d/{id}/view
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    const fileId = driveMatch[1];
+    // Converter para o formato direto: https://drive.google.com/uc?id={id}
+    return `https://drive.google.com/uc?id=${fileId}`;
+  }
+  return url;
+};
+
 export const useImageDownloader = (
   imageUrl: string | null | undefined,
   postId: string | null | undefined
@@ -57,10 +69,12 @@ export const useImageDownloader = (
       abortControllerRef.current = abortController;
 
       try {
-        console.log('📥 Iniciando download da imagem via proxy:', imageUrl);
+        // Converter URL do Google Drive se necessário
+        const convertedUrl = convertGoogleDriveUrl(imageUrl);
+        console.log('📥 Iniciando download da imagem via proxy:', convertedUrl);
 
         // Use the Supabase Edge Function as proxy to bypass CORS
-        const proxyUrl = `https://oztosavtfiifjaahpagf.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+        const proxyUrl = `https://oztosavtfiifjaahpagf.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(convertedUrl)}`;
         
         const response = await fetch(proxyUrl, {
           signal: abortController.signal,
