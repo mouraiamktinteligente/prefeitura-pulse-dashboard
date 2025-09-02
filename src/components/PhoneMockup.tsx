@@ -54,17 +54,17 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
         <div className="absolute inset-0 z-20 flex items-center justify-center">
           {/* Posicionamento preciso da tela do iPhone */}
           <div 
-            className="relative overflow-hidden bg-black/5 backdrop-blur-sm"
+            className="relative overflow-hidden"
             style={{
-              width: '260px', // Largura da tela
-              height: '460px', // Altura da tela
-              marginTop: '70px', // Ajuste vertical para alinhar com a tela do iPhone
-              borderRadius: '2.5rem', // Bordas arredondadas da tela
+              width: '270px', // Largura da tela ajustada
+              height: '485px', // Altura da tela ajustada
+              marginTop: '60px', // Ajuste vertical melhorado
+              borderRadius: '2.8rem', // Bordas arredondadas mais precisas
             }}
           >
             {/* Conteúdo da tela (ClientCard redimensionado) */}
-            <div className="w-full h-full flex items-center justify-center p-2">
-              <div className="transform scale-75 origin-center">
+            <div className="w-full h-full flex items-start justify-center pt-4">
+              <div className="transform scale-[0.68] origin-top">
                 {children}
               </div>
             </div>
