@@ -14,34 +14,63 @@ export interface AlertaComentario {
 }
 
 export const useAlertasComentarios = (profile?: string) => {
+  console.log('🚀 Hook useAlertasComentarios inicializado com profile:', profile);
+  
   return useQuery({
     queryKey: ['alertas-comentarios', profile],
     queryFn: async () => {
-      console.log('🔍 Buscando alertas de comentários para profile:', profile);
+      console.log('🔍 Executando query para alertas de comentários...');
+      console.log('📋 Profile usado na busca:', profile);
       
-      let query = supabase
-        .from('alertas_comentarios')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        // Primeiro, testar uma query simples sem filtros
+        console.log('🧪 Testando query sem filtros...');
+        const testQuery = await supabase
+          .from('alertas_comentarios')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log('📊 Total de registros na tabela:', testQuery.count || 0);
+        
+        // Agora executar a query principal
+        let query = supabase
+          .from('alertas_comentarios')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      // Filtrar por profile se fornecido
-      if (profile) {
-        query = query.eq('profile', profile);
-      }
+        // Filtrar por profile se fornecido
+        if (profile) {
+          console.log('🎯 Aplicando filtro por profile:', profile);
+          query = query.eq('profile', profile);
+        } else {
+          console.log('⚠️ Nenhum profile fornecido, buscando todos os registros');
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (error) {
-        console.error('❌ Erro ao buscar alertas de comentários:', error);
+        if (error) {
+          console.error('❌ Erro na query:', error);
+          console.error('❌ Detalhes do erro:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          throw error;
+        }
+
+        console.log('✅ Query executada com sucesso!');
+        console.log('📦 Dados retornados:', data?.length || 0, 'registros');
+        console.log('🔍 Primeiros registros:', data?.slice(0, 2));
+        
+        return data as AlertaComentario[];
+      } catch (error) {
+        console.error('💥 Erro inesperado na query:', error);
         throw error;
       }
-
-      console.log('✅ Alertas encontrados:', data?.length || 0);
-      return data as AlertaComentario[];
     },
     enabled: true,
     staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: 2,
+    retry: 2
   });
 };
 

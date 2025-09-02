@@ -11,7 +11,15 @@ interface MaliciousCommentsProps {
 }
 
 export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
+  console.log('🎯 MaliciousComments renderizado com profile:', profile);
+  
   const { data: alertas, isLoading, error } = useAlertasComentarios(profile);
+  
+  console.log('📊 Estado do hook:', { 
+    alertas: alertas?.length || 0, 
+    isLoading, 
+    error: error?.message 
+  });
 
   const formatCommentData = (alerta: AlertaComentario) => {
     const items = [];
