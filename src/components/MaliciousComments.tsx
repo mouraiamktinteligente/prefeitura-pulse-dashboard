@@ -82,7 +82,7 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         </CardTitle>
         <p className="text-sm text-blue-300">
           {isLoading ? 'Carregando alertas...' : 
-           allComments.length > 0 ? 'Comentários que exigem atenção' : 'Nenhum alerta encontrado'}
+           allComments.length === 0 ? 'Nenhum alerta encontrado' : ''}
         </p>
       </CardHeader>
       <CardContent>
