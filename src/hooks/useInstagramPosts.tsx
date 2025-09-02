@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface InstagramPost {
   id: string;
@@ -33,25 +34,25 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
         setLoading(true);
         setError(null);
         
-        const SUPABASE_URL = "https://oztosavtfiifjaahpagf.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96dG9zYXZ0ZmlpZmphYWhwYWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNDQ3MzcsImV4cCI6MjA2NTkyMDczN30.xA7EL74ACsIXCkKRoHESvKHldFjV_kjBCH6onsODHMs";
+        console.log('Fetching Instagram posts for profile:', profile);
         
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/instagram_posts?profile=eq.${encodeURIComponent(profile)}&order=created_at.desc&limit=1`, {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        // Use rpc or direct query with type assertion
+        const { data, error: supabaseError } = await supabase
+          .from('instagram_posts' as any)
+          .select('*')
+          .eq('profile', profile)
+          .order('created_at', { ascending: false })
+          .limit(1) as any;
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (supabaseError) {
+          console.error('Supabase error:', supabaseError);
+          throw supabaseError;
         }
 
-        const data = await response.json();
+        console.log('Instagram posts data:', data);
         
         if (data && data.length > 0) {
-          setLatestPost(data[0]);
+          setLatestPost(data[0] as InstagramPost);
         } else {
           setLatestPost(null);
         }
@@ -65,6 +66,30 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
     };
 
     fetchLatestPost();
+
+    // Set up real-time subscription for new posts
+    const channel = supabase
+      .channel('instagram-posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'instagram_posts',
+          filter: `profile=eq.${profile}`
+        },
+        (payload) => {
+          console.log('New Instagram post received:', payload);
+          if (payload.new && payload.new.profile === profile) {
+            fetchLatestPost(); // Refetch to get the latest post
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profile]);
 
   return { latestPost, loading, error };
