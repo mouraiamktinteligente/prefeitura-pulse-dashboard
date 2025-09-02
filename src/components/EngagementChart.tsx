@@ -50,7 +50,7 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
     
     if (type === 'daily') {
       return data.slice(-7).map(item => ({
-        period: item.data_brasileira ? format(new Date(item.data_analise!), 'dd/MM', { locale: ptBR }) : 'N/A',
+        period: item.data_brasileira ? item.data_brasileira.substring(0, 5) : 'N/A',
         sentiment: calculateSentimentScore(
           item.comentarios_positivos || 0,
           item.comentarios_neutros || 0,
