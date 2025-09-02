@@ -20,6 +20,24 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
   const navigate = useNavigate();
 
+  // Debug logs for ClientCard
+  console.log('🎯 ClientCard render:', {
+    clientId: client.id,
+    clientName: client.nome_completo,
+    instagramProfile: client.instagram_prefeitura,
+    hasLatestPost: !!latestPost,
+    postLoading,
+    postError,
+    postData: latestPost ? {
+      id: latestPost.id,
+      hasImage: !!latestPost.image_url,
+      imageUrl: latestPost.image_url,
+      description: latestPost.description?.substring(0, 30) + '...',
+      likes: latestPost.likes_count,
+      comments: latestPost.comments_count
+    } : null
+  });
+
   const handleGerarAnalise = () => {
     navigate(`/gestao-clientes/${client.id}`);
   };
@@ -91,9 +109,14 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
               <>
                 <img 
                   src={latestPost.image_url || "https://picsum.photos/200/200?random=" + client.id} 
-                  alt="Post" 
+                  alt="Post do Instagram" 
                   className="w-full h-32 object-cover rounded mb-2"
+                  onLoad={() => {
+                    console.log('✅ Image loaded successfully:', latestPost.image_url);
+                  }}
                   onError={(e) => {
+                    console.log('❌ Image failed to load:', latestPost.image_url);
+                    console.log('🔄 Switching to fallback image');
                     e.currentTarget.src = "https://picsum.photos/200/200?random=" + client.id;
                   }}
                 />
@@ -103,6 +126,11 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                 <div className="flex justify-between text-xs text-blue-300">
                   <span>❤️ {latestPost.likes_count || 0}</span>
                   <span>💬 {latestPost.comments_count || 0}</span>
+                </div>
+                {/* Debug info - remover em produção */}
+                <div className="mt-1 text-xs text-blue-400 opacity-50">
+                  ID: {latestPost.id.substring(0, 8)}... | 
+                  IMG: {latestPost.image_url ? '✅' : '❌'}
                 </div>
               </>
             ) : (
