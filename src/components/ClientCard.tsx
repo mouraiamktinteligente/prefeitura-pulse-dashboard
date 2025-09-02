@@ -100,11 +100,21 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           <div className="flex items-center space-x-2 mb-2">
             <Instagram className="w-4 h-4 text-pink-400" />
             <h4 className="text-white text-sm font-semibold">
-              Última Postagem
+              Última Postagem no Instagram
             </h4>
           </div>
           
           <div className="bg-blue-700 rounded-lg p-2">
+            {/* Nome do perfil com ícone do Instagram */}
+            <div className="flex items-center space-x-2 mb-2">
+              <Instagram className="w-5 h-5 text-pink-400" />
+              <span className="text-white text-sm font-medium">@prefeiturademorrinhos</span>
+            </div>
+            
+            <div className="bg-black rounded-lg p-2 mb-2">
+              <span className="text-white text-xs">Post</span>
+            </div>
+            
             {postLoading ? (
               <div className="space-y-2">
                 <div className="w-full h-32 bg-blue-600 rounded animate-pulse"></div>
@@ -165,9 +175,29 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                 <p className="text-blue-200 text-xs mb-2 line-clamp-2">
                   {latestPost.description || "Sem descrição disponível"}
                 </p>
-                <div className="flex justify-between text-xs text-blue-300">
-                  <span>❤️ {latestPost.likes_count || 0}</span>
-                  <span>💬 {latestPost.comments_count || 0}</span>
+                
+                {/* Ícones de interação */}
+                <div className="flex items-center space-x-4 mb-2">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 border border-white rounded-sm flex items-center justify-center">
+                      <div className="w-2 h-2 border border-white transform rotate-45"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 border border-white rounded-full"></div>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 border border-white transform rotate-45"></div>
+                  </div>
+                </div>
+                
+                <div className="text-white text-xs mb-1">
+                  <span className="font-semibold">{latestPost.likes_count || 0} curtidas</span>
+                </div>
+                
+                <div className="text-white text-xs">
+                  <span className="font-semibold">@prefeiturademorrinhos</span>
+                  <span className="ml-1">{latestPost.description ? `${latestPost.description.substring(0, 50)}...` : "não é apenas uma obra. É resultado de planejamento, cuidado e compromisso..."}</span>
                 </div>
               </>
             ) : (
