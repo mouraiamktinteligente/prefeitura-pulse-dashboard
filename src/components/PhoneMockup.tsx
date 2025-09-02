@@ -58,13 +58,13 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
             style={{
               width: '300px', // Largura da tela aumentada para ocupar toda a tela real
               height: '540px', // Altura da tela aumentada
-              marginTop: '35px', // Ajuste vertical para melhor alinhamento
-              borderRadius: '3rem', // Bordas arredondadas ajustadas
+              marginTop: '30px', // Ajuste vertical otimizado
+              borderRadius: '2.5rem', // Bordas arredondadas mais realistas para iPhone
             }}
           >
             {/* Conteúdo da tela (ClientCard redimensionado) */}
-            <div className="w-full h-full flex items-start justify-center pt-2">
-              <div className="transform scale-[0.85] origin-top">
+            <div className="w-full h-full flex items-start justify-center pt-0 overflow-y-auto">
+              <div className="transform scale-[0.87] origin-top">
                 {children}
               </div>
             </div>
@@ -72,7 +72,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
         </div>
 
         {/* Overlay de hover */}
-        <div className="absolute inset-0 z-30 rounded-[3rem] transition-all duration-300 group-hover:bg-black/10 group-hover:scale-105 pointer-events-none" />
+        <div className="absolute inset-0 z-30 rounded-[2.5rem] transition-all duration-300 group-hover:bg-black/10 pointer-events-none" />
       </div>
     </div>
   );

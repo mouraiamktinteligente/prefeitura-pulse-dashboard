@@ -205,32 +205,23 @@ export const SentimentAnalysis: React.FC<SentimentAnalysisProps> = ({
           </div>
         )}
         
-        {/* Legenda compacta com mais espaço */}
-        <div className="space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
-              <span className="text-white">Positivo</span>
-            </div>
-            <span className="text-white font-semibold">
+        {/* Legenda compacta apenas com números */}
+        <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }} />
+            <span className="text-white font-semibold text-sm">
               {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Positivo')?.value || 0}%
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
-              <span className="text-white">Neutro</span>
-            </div>
-            <span className="text-white font-semibold">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+            <span className="text-white font-semibold text-sm">
               {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Neutro')?.value || 0}%
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
-              <span className="text-white">Negativo</span>
-            </div>
-            <span className="text-white font-semibold">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+            <span className="text-white font-semibold text-sm">
               {(effectiveClientId ? prefeitoData : prefeitoData).find(d => d.name === 'Negativo')?.value || 0}%
             </span>
           </div>

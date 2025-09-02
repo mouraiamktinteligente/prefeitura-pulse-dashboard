@@ -63,7 +63,7 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
 
   return (
     <Card 
-      className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-105 w-80 h-[650px]"
+      className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 cursor-pointer w-80 h-[620px]"
       onClick={onClick}
     >
       {/* Tarja de Status de Monitoramento */}
@@ -83,13 +83,13 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4 h-full pb-4 flex flex-col">
+      <CardContent className="space-y-3 h-full pb-4 flex flex-col overflow-y-auto">
         {/* Gráfico de Análise de Sentimento com dados reais */}
-        <div className="bg-blue-600 rounded-lg p-3 h-60">
+        <div className="bg-blue-600 rounded-lg p-3 h-56">
           <h4 className="text-white text-sm font-semibold mb-2 text-center">
             Análise de Sentimento
           </h4>
-          <div className="h-48">
+          <div className="h-44">
       <SentimentAnalysis 
         clientId={client.id}
         compact={true}
