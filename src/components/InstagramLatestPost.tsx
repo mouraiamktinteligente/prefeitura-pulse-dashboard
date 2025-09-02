@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Instagram, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useInstagramPosts } from '@/hooks/useInstagramPosts';
+import { useImageDownloader } from '@/hooks/useImageDownloader';
 
 interface InstagramLatestPostProps {
   profile?: string;
@@ -11,6 +12,10 @@ interface InstagramLatestPostProps {
 
 export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profile }) => {
   const { latestPost, loading, error } = useInstagramPosts(profile);
+  const { localImageUrl, isDownloading, downloadError } = useImageDownloader(
+    latestPost?.image_url,
+    latestPost?.id
+  );
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -100,11 +105,20 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
           {/* Post Image */}
           <div className="relative">
-            <img 
-              src={latestPost.image_url || "https://picsum.photos/600/600?random=post"} 
-              alt="Post" 
-              className="w-full h-48 object-cover"
-            />
+            {isDownloading ? (
+              <Skeleton className="w-full h-48" />
+            ) : (
+              <img 
+                src={localImageUrl || latestPost.image_url || "https://picsum.photos/600/600?random=post"} 
+                alt="Post" 
+                className="w-full h-48 object-cover"
+                onError={(e) => {
+                  if (!downloadError) {
+                    e.currentTarget.src = "https://picsum.photos/600/600?random=post";
+                  }
+                }}
+              />
+            )}
           </div>
 
           {/* Post Actions */}
