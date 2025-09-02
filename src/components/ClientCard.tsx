@@ -169,16 +169,6 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                   <span>❤️ {latestPost.likes_count || 0}</span>
                   <span>💬 {latestPost.comments_count || 0}</span>
                 </div>
-                
-                {/* Debug info - melhorado */}
-                <div className="mt-1 text-xs text-blue-400 opacity-50 space-y-1">
-                  <div>ID: {latestPost.id.substring(0, 8)}...</div>
-                  <div className="flex justify-between">
-                    <span>IMG: {latestPost.image_url ? '✅' : '❌'}</span>
-                    <span>Local: {localImageUrl ? '✅' : '❌'}</span>
-                    <span>DL: {isDownloading ? '🔄' : downloadError ? '❌' : '✅'}</span>
-                  </div>
-                </div>
               </>
             ) : (
               <div className="text-center py-8">
