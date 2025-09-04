@@ -24,27 +24,27 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
   const formatCommentData = (alerta: AlertaComentario) => {
     const items = [];
     
-    // Adicionar comentário negativo se existir
-    if (alerta.negative_comment && alerta.negative_username) {
+    // Adicionar comentário negativo _1 se existir (apenas _1 para MaliciousComments)
+    if (alerta.negative_comment_1 && alerta.negative_username_1) {
       items.push({
         id: `${alerta.id}-neg`,
-        user: alerta.negative_username,
-        comment: alerta.negative_comment,
-        score: alerta.score_negative,
-        link: alerta.link_comentario_negativo,
+        user: alerta.negative_username_1,
+        comment: alerta.negative_comment_1,
+        score: alerta.score_negative_1,
+        link: alerta.link_comentario_negativo_1,
         timestamp: formatTimeAgo(alerta.created_at),
         type: 'negative'
       });
     }
 
-    // Adicionar comentário positivo se existir
-    if (alerta.positive_comment && alerta.positive_username) {
+    // Adicionar comentário positivo _1 se existir (apenas _1 para MaliciousComments)
+    if (alerta.positive_comment_1 && alerta.positive_username_1) {
       items.push({
         id: `${alerta.id}-pos`,
-        user: alerta.positive_username,
-        comment: alerta.positive_comment,
-        score: alerta.score_positive,
-        link: alerta.link_comentario_positivo,
+        user: alerta.positive_username_1,
+        comment: alerta.positive_comment_1,
+        score: alerta.score_positive_1,
+        link: alerta.link_comentario_positivo_1,
         timestamp: formatTimeAgo(alerta.created_at),
         type: 'positive'
       });

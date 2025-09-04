@@ -103,7 +103,7 @@ const DetailedDashboard = () => {
         </div>
         
         {/* Comments Ranking - Full Width */}
-        <CommentsRanking />
+        <CommentsRanking profile={selectedClient?.instagram_prefeitura} />
       </main>
     </div>
   );

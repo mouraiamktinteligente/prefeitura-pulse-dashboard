@@ -3,16 +3,36 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface AlertaComentario {
   id: string;
-  negative_comment?: string;
-  negative_username?: string;
-  score_negative?: string;
-  positive_comment?: string;
-  positive_username?: string;
-  score_positive?: string;
-  link_comentario_negativo?: string;
-  link_comentario_positivo?: string;
-  created_at: string;
   profile?: string;
+  created_at: string;
+  // Comentários negativos _1 (para MaliciousComments)
+  negative_comment_1?: string;
+  negative_username_1?: string;
+  score_negative_1?: string;
+  link_comentario_negativo_1?: string;
+  // Comentários positivos _1 (para MaliciousComments)
+  positive_comment_1?: string;
+  positive_username_1?: string;
+  score_positive_1?: string;
+  link_comentario_positivo_1?: string;
+  // Comentários negativos _2 e _3 (para CommentsRanking)
+  negative_comment_2?: string;
+  negative_username_2?: string;
+  score_negative_2?: string;
+  link_comentario_negativo_2?: string;
+  negative_comment_3?: string;
+  negative_username_3?: string;
+  score_negative_3?: string;
+  link_comentario_negativo_3?: string;
+  // Comentários positivos _2 e _3 (para CommentsRanking)
+  positive_comment_2?: string;
+  positive_username_2?: string;
+  score_positive_2?: string;
+  link_comentario_positivo_2?: string;
+  positive_comment_3?: string;
+  positive_username_3?: string;
+  score_positive_3?: string;
+  link_comentario_positivo_3?: string;
 }
 
 export const useAlertasComentarios = (profile?: string) => {
