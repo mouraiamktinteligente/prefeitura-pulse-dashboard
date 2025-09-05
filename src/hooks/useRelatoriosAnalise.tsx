@@ -7,6 +7,7 @@ interface RelatorioAnaliseInstagram {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  link_analise: string | null;
   nome?: string;
   nome_documento?: string;
 }
@@ -192,6 +193,7 @@ export const useRelatoriosAnalise = () => {
         .from('relatorio_analise_instagram')
         .select('*')
         .in('profile', validProfiles)
+        .or('link_relatorio.not.is.null,link_analise.not.is.null')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -318,6 +320,7 @@ export const useRelatoriosAnalise = () => {
         .from('relatorio_analise_prefeito')
         .select('*')
         .eq('profile', instagramProfile)
+        .not('link_relatorio', 'is', null)
         .order('created_at', { ascending: false });
 
       console.log('DEBUG: Resultado da query prefeito:', { data, error });
@@ -417,6 +420,7 @@ export const useRelatoriosAnalise = () => {
         .from('relatorio_analise_web')
         .select('*')
         .in('profile', validProfiles)
+        .not('link_relatorio', 'is', null)
         .order('created_at', { ascending: false });
 
       console.log('DEBUG: Resultado da query web:', { data, error });
