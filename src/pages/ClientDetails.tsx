@@ -61,13 +61,17 @@ const ClientDetails = () => {
   }, [clientId]); // Removido fetchDocumentos das dependências para evitar loops
 
   useEffect(() => {
-    if (client?.instagram_prefeitura) {
-      fetchRelatoriosInstagram(client.instagram_prefeitura);
-      fetchRelatoriosPrefeito(client.instagram_prefeitura);
-      fetchRelatoriosWeb(client.instagram_prefeitura);
-      fetchRelatoriosQualitativo(client.instagram_prefeitura);
+    if (client?.instagram_prefeitura || client?.instagram_prefeito) {
+      const profiles = [client.instagram_prefeitura, client.instagram_prefeito].filter(Boolean);
+      
+      if (profiles.length > 0) {
+        fetchRelatoriosInstagram(profiles);
+        fetchRelatoriosPrefeito(profiles[0]); // Prefeito reports use first available profile
+        fetchRelatoriosWeb(profiles);
+        fetchRelatoriosQualitativo(profiles[0]); // Qualitative reports use first available profile
+      }
     }
-  }, [client?.instagram_prefeitura]); // Buscar todos os relatórios quando o Instagram da prefeitura estiver disponível
+  }, [client?.instagram_prefeitura, client?.instagram_prefeito]); // Buscar todos os relatórios quando qualquer Instagram estiver disponível
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -442,12 +446,12 @@ const ClientDetails = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {!client?.instagram_prefeitura ? (
+            {!client?.instagram_prefeitura && !client?.instagram_prefeito ? (
               <div className="text-center py-8">
                 <Instagram className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                 <p className="text-slate-400 mb-2">Instagram não cadastrado</p>
                 <p className="text-slate-500 text-sm">
-                  Cadastre o Instagram do cliente para visualizar os relatórios
+                  Cadastre pelo menos um Instagram (prefeito ou prefeitura) para visualizar os relatórios
                 </p>
               </div>
             ) : relatoriosLoading ? (

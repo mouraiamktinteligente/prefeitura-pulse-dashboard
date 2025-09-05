@@ -178,15 +178,20 @@ export const useRelatoriosAnalise = () => {
     };
   }, [toast]);
 
-  const fetchRelatoriosInstagram = async (instagramProfile?: string) => {
+  const fetchRelatoriosInstagram = async (instagramProfile?: string | string[]) => {
     if (!instagramProfile) return;
+    
+    const profiles = Array.isArray(instagramProfile) ? instagramProfile : [instagramProfile];
+    const validProfiles = profiles.filter(p => p && p.trim() !== '');
+    
+    if (validProfiles.length === 0) return;
     
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('relatorio_analise_instagram')
         .select('*')
-        .eq('profile', instagramProfile)
+        .in('profile', validProfiles)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -393,12 +398,17 @@ export const useRelatoriosAnalise = () => {
   };
 
   // Funções para Relatório de Análise Web
-  const fetchRelatoriosWeb = async (instagramProfile?: string) => {
+  const fetchRelatoriosWeb = async (instagramProfile?: string | string[]) => {
     console.log('DEBUG: fetchRelatoriosWeb chamado com profile:', instagramProfile);
     if (!instagramProfile) {
       console.log('DEBUG: profile não fornecido, saindo...');
       return;
     }
+    
+    const profiles = Array.isArray(instagramProfile) ? instagramProfile : [instagramProfile];
+    const validProfiles = profiles.filter(p => p && p.trim() !== '');
+    
+    if (validProfiles.length === 0) return;
     
     setLoading(true);
     try {
@@ -406,7 +416,7 @@ export const useRelatoriosAnalise = () => {
       const { data, error } = await supabase
         .from('relatorio_analise_web')
         .select('*')
-        .eq('profile', instagramProfile)
+        .in('profile', validProfiles)
         .order('created_at', { ascending: false });
 
       console.log('DEBUG: Resultado da query web:', { data, error });
