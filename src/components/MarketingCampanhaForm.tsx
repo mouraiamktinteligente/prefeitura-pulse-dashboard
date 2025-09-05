@@ -89,17 +89,17 @@ export const MarketingCampanhaForm = () => {
               </Button>
               <Button
                 type="button"
-                variant={tipoSolicitacao === 'descricao_personalizada' ? 'default' : 'outline'}
-                onClick={() => setTipoSolicitacao('descricao_personalizada')}
-              >
-                ✍️ Descrição Personalizada
-              </Button>
-              <Button
-                type="button"
                 variant={tipoSolicitacao === 'calendario_eventos' ? 'default' : 'outline'}
                 onClick={() => setTipoSolicitacao('calendario_eventos')}
               >
                 📅 Calendário de Eventos
+              </Button>
+              <Button
+                type="button"
+                variant={tipoSolicitacao === 'descricao_personalizada' ? 'default' : 'outline'}
+                onClick={() => setTipoSolicitacao('descricao_personalizada')}
+              >
+                ✍️ Descrição Personalizada
               </Button>
             </div>
           </div>
