@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users, ExternalLink, Instagram, Info, AlertTriangle } from 'lucide-react';
+import { ExternalLink, Instagram, Info, AlertTriangle } from 'lucide-react';
 import { useAlertasComentarios, formatTimeAgo, AlertaComentario } from '@/hooks/useAlertasComentarios';
 
 interface MaliciousCommentsProps {
@@ -229,11 +229,6 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
                   <div className="flex items-center space-x-2">
                     <Instagram className="h-4 w-4 text-blue-300" />
                     <span className="font-medium text-white">@{comment.user}</span>
-                    {config.badge && (
-                      <Badge className={`text-xs px-2 py-0.5 ${config.badgeClassName}`}>
-                        {config.icon} {config.badge}
-                      </Badge>
-                    )}
                   </div>
                   <div className="text-lg">
                     {getSentimentIcon(comment.type, comment.score)}
@@ -244,22 +239,22 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
                 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-blue-300">{comment.timestamp}</span>
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
+                    {config.badge && (
+                      <Badge className={`text-xs px-2 py-0.5 ${config.badgeClassName}`}>
+                        {config.icon} {config.badge}
+                      </Badge>
+                    )}
                     {comment.link && (
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500"
+                        className="h-7 w-7 p-0 border-blue-500 text-blue-300 hover:bg-blue-500"
                         onClick={() => window.open(comment.link, '_blank', 'noopener,noreferrer')}
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Ver comentário
+                        <ExternalLink className="h-3 w-3" />
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500">
-                      <Users className="h-3 w-3 mr-1" />
-                      Equipe
-                    </Button>
                   </div>
                 </div>
               </div>
