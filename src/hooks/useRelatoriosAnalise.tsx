@@ -592,7 +592,7 @@ export const useRelatoriosAnalise = () => {
     }
 
     try {
-      window.open(relatorio.link_relatorio, '_blank');
+      window.open(relatorio.link_relatorio, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Erro ao abrir relatório:', error);
       toast({

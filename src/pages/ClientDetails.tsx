@@ -356,7 +356,7 @@ const ClientDetails = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(documento.google_drive_url!, '_blank')}
+                          onClick={() => window.open(documento.google_drive_url!, '_blank', 'noopener,noreferrer')}
                           className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
                         >
                           <ExternalLink className="w-4 h-4" />

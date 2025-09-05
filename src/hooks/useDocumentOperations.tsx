@@ -170,7 +170,7 @@ export const useDocumentOperations = () => {
     }
 
     try {
-      window.open(documento.url_analise, '_blank');
+      window.open(documento.url_analise, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Erro ao baixar análise:', error);
       toast({
@@ -192,7 +192,7 @@ export const useDocumentOperations = () => {
     }
 
     try {
-      window.open(documento.url_plano, '_blank');
+      window.open(documento.url_plano, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Erro ao baixar plano:', error);
       toast({

@@ -162,7 +162,7 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
                         size="sm" 
                         variant="outline" 
                         className="h-7 px-2 border-blue-500 text-blue-300 hover:bg-blue-500"
-                        onClick={() => window.open(comment.link, '_blank')}
+                        onClick={() => window.open(comment.link, '_blank', 'noopener,noreferrer')}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Ver comentário
