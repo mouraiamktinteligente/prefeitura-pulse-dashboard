@@ -128,16 +128,16 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                       <p className="text-blue-200 text-xs">Baixando imagem...</p>
                     </div>
                   </div>
-                ) : localImageUrl ? (
+                ) : (localImageUrl || latestPost?.image_url) ? (
                   <img 
-                    src={localImageUrl}
+                    src={localImageUrl || latestPost.image_url}
                     alt={`Post do Instagram de ${client.nome_completo}`}
                     className="w-full h-32 object-cover rounded mb-2"
                     onLoad={() => {
-                      console.log('✅ Imagem local carregada com sucesso');
+                      console.log('✅ Imagem carregada com sucesso');
                     }}
                     onError={() => {
-                      console.error('❌ Erro ao carregar imagem local baixada');
+                      console.error('❌ Erro ao carregar imagem');
                     }}
                   />
                 ) : downloadError ? (
