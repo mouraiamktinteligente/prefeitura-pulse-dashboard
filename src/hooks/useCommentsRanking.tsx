@@ -24,7 +24,9 @@ export const useCommentsRanking = (profile?: string) => {
         query = query.eq('profile', profile);
       }
       
-      const { data, error } = await query;
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .limit(1);
       
       if (error) {
         console.error('Erro ao buscar ranking de comentários:', error);
