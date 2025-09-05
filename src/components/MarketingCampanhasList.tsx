@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useMarketingCampanhas } from '@/hooks/useMarketingCampanhas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useMarketingCampanhas } from '@/hooks/useMarketingCampanhas';
-import { formatDistanceToNow } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Trash2, Eye } from 'lucide-react';
+import { MarketingCampanhaDetail } from './MarketingCampanhaDetail';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -49,67 +52,102 @@ const getTipoPostagemIcon = (tipo: string) => {
 };
 
 export const MarketingCampanhasList = () => {
-  const { campanhas, isLoading } = useMarketingCampanhas();
+  const { campanhas, isLoading, excluirCampanha, isDeleting } = useMarketingCampanhas();
+  const [selectedCampanha, setSelectedCampanha] = useState<any>(null);
+
+  const handleDelete = (campanhaId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (window.confirm('Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.')) {
+      excluirCampanha(campanhaId);
+    }
+  };
+
+  const handleViewDetails = (campanha: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedCampanha(campanha);
+  };
 
   if (isLoading) {
     return <div>Carregando campanhas...</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Campanhas Recentes</h3>
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Campanhas de Marketing</h2>
       
-      {!campanhas || campanhas.length === 0 ? (
-        <p className="text-muted-foreground">Nenhuma campanha criada ainda.</p>
-      ) : (
-        campanhas.map((campanha) => (
-          <Card key={campanha.id}>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-base">
-                    {campanha.cadastro_clientes?.nome_completo}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {campanha.cadastro_clientes?.endereco_cidade}
-                  </p>
+      {campanhas && campanhas.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {campanhas.map((campanha) => (
+            <Card key={campanha.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle 
+                      className="text-lg cursor-pointer hover:text-primary transition-colors"
+                      onClick={(e) => handleViewDetails(campanha, e)}
+                    >
+                      {campanha.cadastro_clientes?.nome_completo || 'Cliente não encontrado'}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground">
+                      {campanha.cadastro_clientes?.endereco_cidade}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleViewDetails(campanha, e)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleDelete(campanha.id, e)}
+                      disabled={isDeleting}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
                   <Badge className={getStatusColor(campanha.status_campanha)}>
                     {getStatusText(campanha.status_campanha)}
                   </Badge>
-                  <Badge variant="outline">
-                    {getTipoPostagemIcon(campanha.tipo_postagem)} {campanha.tipo_postagem}
-                  </Badge>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm">
-                  <strong>Tipo:</strong> {campanha.tipo_solicitacao === 'analise' ? '📊 Análise' : '✍️ Descrição Personalizada'}
-                </p>
                 
-                {campanha.tipo_solicitacao === 'analise' && campanha.documentos_analisados && (
-                  <p className="text-sm">
-                    <strong>Documento:</strong> {campanha.documentos_analisados.nome_arquivo}
-                  </p>
-                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <span>{getTipoPostagemIcon(campanha.tipo_postagem)}</span>
+                  <span>{campanha.tipo_postagem}</span>
+                </div>
                 
-                {campanha.tipo_solicitacao === 'descricao_personalizada' && (
-                  <p className="text-sm">
-                    <strong>Descrição:</strong> {campanha.descricao_personalizada?.substring(0, 100)}...
-                  </p>
-                )}
+                <div className="text-sm text-muted-foreground">
+                  <strong>Tipo:</strong> {campanha.tipo_solicitacao}
+                </div>
                 
-                <p className="text-xs text-muted-foreground">
-                  Criada {formatDistanceToNow(new Date(campanha.created_at), { addSuffix: true, locale: ptBR })}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))
+                <div className="text-xs text-muted-foreground">
+                  Criado em: {format(new Date(campanha.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhuma campanha encontrada.
+        </div>
       )}
+
+      {/* Modal de Detalhes */}
+      <MarketingCampanhaDetail
+        campanha={selectedCampanha}
+        isOpen={!!selectedCampanha}
+        onClose={() => setSelectedCampanha(null)}
+      />
     </div>
   );
 };

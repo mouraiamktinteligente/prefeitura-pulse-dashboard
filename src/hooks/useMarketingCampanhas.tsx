@@ -82,11 +82,48 @@ export const useMarketingCampanhas = () => {
     },
   });
 
+  const excluirCampanhaMutation = useMutation({
+    mutationFn: async (campanhaId: string) => {
+      // Primeiro, excluir as imagens relacionadas
+      const { error: imagensError } = await supabase
+        .from('marketing_imagens')
+        .delete()
+        .eq('campanha_id', campanhaId);
+
+      if (imagensError) throw imagensError;
+
+      // Depois, excluir a campanha
+      const { error: campanhaError } = await supabase
+        .from('marketing_campanhas')
+        .delete()
+        .eq('id', campanhaId);
+
+      if (campanhaError) throw campanhaError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing-campanhas'] });
+      queryClient.invalidateQueries({ queryKey: ['marketing-imagens'] });
+      toast({
+        title: "Campanha excluída",
+        description: "A campanha foi excluída com sucesso",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao excluir campanha",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     campanhas,
     isLoading,
     criarCampanha: criarCampanhaMutation.mutate,
     isCreating: criarCampanhaMutation.isPending,
     atualizarStatus: atualizarStatusMutation.mutate,
+    excluirCampanha: excluirCampanhaMutation.mutate,
+    isDeleting: excluirCampanhaMutation.isPending,
   };
 };
