@@ -263,46 +263,6 @@ const ClientDetails = () => {
           </CardContent>
         </Card>
 
-        {/* Estatísticas de Documentos */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-900/50 border-slate-700/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Total de Documentos</p>
-                  <p className="text-2xl font-bold text-slate-200">{getDocumentStats.total}</p>
-                </div>
-                <BarChart3 className="w-8 h-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-900/50 border-slate-700/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Pendentes</p>
-                  <p className="text-2xl font-bold text-yellow-400">{getDocumentStats.pendentes}</p>
-                </div>
-                <Clock className="w-8 h-8 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-900/50 border-slate-700/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Concluídos</p>
-                  <p className="text-2xl font-bold text-green-400">{getDocumentStats.concluidos}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-
         {/* Lista de Documentos */}
         <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
