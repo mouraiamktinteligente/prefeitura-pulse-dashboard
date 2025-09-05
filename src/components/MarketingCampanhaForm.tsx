@@ -79,7 +79,7 @@ export const MarketingCampanhaForm = () => {
           {/* Tipo de Solicitação */}
           <div>
             <Label>Tipo de Solicitação</Label>
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-2">
               <Button
                 type="button"
                 variant={tipoSolicitacao === 'analise' ? 'default' : 'outline'}
