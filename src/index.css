@@ -168,4 +168,79 @@
   .iphone-scroll::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.8);
   }
+
+  /* Alert Severity Styles */
+  @keyframes alert-pulse {
+    0%, 100% {
+      border-color: rgb(239, 68, 68);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+      border-color: rgb(248, 113, 113);
+      box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+  }
+
+  @keyframes alert-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(251, 146, 60, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(251, 146, 60, 0.8);
+    }
+  }
+
+  @keyframes shake-in {
+    0% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-2px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(2px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  .alert-critical {
+    border: 2px solid rgb(239, 68, 68) !important;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.05)) !important;
+    animation: alert-pulse 2s infinite, shake-in 0.6s ease-out;
+  }
+
+  .alert-high {
+    border: 2px solid rgb(251, 146, 60) !important;
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(254, 215, 170, 0.05)) !important;
+    animation: alert-glow 3s infinite;
+  }
+
+  .alert-medium {
+    border: 2px solid rgb(251, 191, 36) !important;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(254, 240, 138, 0.05)) !important;
+  }
+
+  .alert-badge-critical {
+    background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38)) !important;
+    color: white !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  }
+
+  .alert-badge-high {
+    background: linear-gradient(135deg, rgb(251, 146, 60), rgb(234, 88, 12)) !important;
+    color: white !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .alert-badge-medium {
+    background: linear-gradient(135deg, rgb(251, 191, 36), rgb(217, 119, 6)) !important;
+    color: white !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
 }

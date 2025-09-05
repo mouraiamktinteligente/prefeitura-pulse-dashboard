@@ -4,12 +4,68 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users, ExternalLink, Instagram, Info } from 'lucide-react';
+import { Users, ExternalLink, Instagram, Info, AlertTriangle } from 'lucide-react';
 import { useAlertasComentarios, formatTimeAgo, AlertaComentario } from '@/hooks/useAlertasComentarios';
 
 interface MaliciousCommentsProps {
   profile?: string;
 }
+
+interface CommentData {
+  id: string;
+  user: string;
+  comment: string;
+  score: string | null;
+  link: string | null;
+  timestamp: string;
+  type: 'negative' | 'positive';
+}
+
+type SeverityLevel = 'critical' | 'high' | 'medium' | 'low';
+
+const getSeverityLevel = (score: string | null, type: 'negative' | 'positive'): SeverityLevel => {
+  if (!score || type !== 'negative') return 'low';
+  
+  const numScore = parseInt(score);
+  if (numScore >= 0 && numScore <= 15) return 'critical';
+  if (numScore >= 16 && numScore <= 35) return 'high';
+  if (numScore >= 36 && numScore <= 49) return 'medium';
+  return 'low';
+};
+
+const getSeverityConfig = (severity: SeverityLevel) => {
+  const configs = {
+    critical: {
+      badge: 'CRÍTICO',
+      icon: '🚨',
+      className: 'alert-critical',
+      badgeClassName: 'alert-badge-critical',
+      priority: 1
+    },
+    high: {
+      badge: 'ALTO RISCO',
+      icon: '⚠️',
+      className: 'alert-high',
+      badgeClassName: 'alert-badge-high',
+      priority: 2
+    },
+    medium: {
+      badge: 'ATENÇÃO',
+      icon: '⚡',
+      className: 'alert-medium',
+      badgeClassName: 'alert-badge-medium',
+      priority: 3
+    },
+    low: {
+      badge: '',
+      icon: '',
+      className: '',
+      badgeClassName: '',
+      priority: 4
+    }
+  };
+  return configs[severity];
+};
 
 export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
   console.log('🎯 MaliciousComments renderizado com profile:', profile);
@@ -55,6 +111,20 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
   };
 
   const allComments = alertas ? alertas.flatMap(formatCommentData) : [];
+  
+  // Sort comments by severity (most critical first)
+  const sortedComments = allComments.sort((a, b) => {
+    const severityA = getSeverityLevel(a.score, a.type);
+    const severityB = getSeverityLevel(b.score, b.type);
+    const configA = getSeverityConfig(severityA);
+    const configB = getSeverityConfig(severityB);
+    return configA.priority - configB.priority;
+  });
+
+  // Count critical alerts for header
+  const criticalCount = allComments.filter(comment => 
+    getSeverityLevel(comment.score, comment.type) === 'critical'
+  ).length;
 
   const getSentimentIcon = (type: string, score: string | null) => {
     const icon = type === 'positive' ? '👍' : '👎';
@@ -102,6 +172,11 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
             ⚠️ Alertas de comentários sensíveis
+            {criticalCount > 0 && (
+              <Badge className="alert-badge-critical text-xs px-2 py-0.5">
+                {criticalCount} CRÍTICO{criticalCount > 1 ? 'S' : ''}
+              </Badge>
+            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-4 w-4 text-blue-300 cursor-help hover:text-white transition-colors" />
@@ -124,7 +199,8 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
           </CardTitle>
           <p className="text-sm text-blue-300">
             {isLoading ? 'Carregando alertas...' : 
-             allComments.length === 0 ? 'Nenhum alerta encontrado' : ''}
+             allComments.length === 0 ? 'Nenhum alerta encontrado' : 
+             `${allComments.length} alerta${allComments.length !== 1 ? 's' : ''} detectado${allComments.length !== 1 ? 's' : ''}`}
           </p>
         </CardHeader>
       <CardContent>
@@ -140,12 +216,24 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
           </div>
         ) : allComments.length > 0 ? (
           <div className="space-y-4 max-h-[320px] overflow-y-auto">
-            {allComments.map((comment) => (
-              <div key={comment.id} className="border border-blue-600 bg-blue-600 rounded-lg p-3 space-y-3">
+            {sortedComments.map((comment) => {
+              const severity = getSeverityLevel(comment.score, comment.type);
+              const config = getSeverityConfig(severity);
+              
+              return (
+              <div 
+                key={comment.id} 
+                className={`border border-blue-600 bg-blue-600 rounded-lg p-3 space-y-3 ${config.className}`}
+              >
                   <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Instagram className="h-4 w-4 text-blue-300" />
                     <span className="font-medium text-white">@{comment.user}</span>
+                    {config.badge && (
+                      <Badge className={`text-xs px-2 py-0.5 ${config.badgeClassName}`}>
+                        {config.icon} {config.badge}
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-lg">
                     {getSentimentIcon(comment.type, comment.score)}
@@ -175,7 +263,8 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         ) : (
           <div className="flex items-center justify-center h-[280px] text-blue-300">
