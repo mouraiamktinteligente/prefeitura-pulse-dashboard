@@ -13,6 +13,7 @@ export interface CalendarioEvento {
   publico_alvo?: string;
   hashtags?: string[];
   tipo?: string;
+  profile?: string;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,7 @@ interface CriarEventoData {
   publico_alvo?: string;
   hashtags?: string[];
   tipo?: string;
+  profile?: string;
 }
 
 export const useCalendarioEventos = (clienteId?: string) => {
@@ -55,9 +57,26 @@ export const useCalendarioEventos = (clienteId?: string) => {
 
   const criarEventoMutation = useMutation({
     mutationFn: async (data: CriarEventoData) => {
+      // Get client profile if not provided
+      let profileData = data.profile;
+      if (!profileData && data.cliente_id) {
+        const { data: cliente, error: clienteError } = await supabase
+          .from('cadastro_clientes')
+          .select('instagram_prefeitura')
+          .eq('id', data.cliente_id)
+          .single();
+        
+        if (!clienteError && cliente?.instagram_prefeitura) {
+          profileData = cliente.instagram_prefeitura;
+        }
+      }
+
       const { data: evento, error } = await supabase
         .from('calendario_de_eventos')
-        .insert(data)
+        .insert({
+          ...data,
+          profile: profileData
+        })
         .select()
         .single();
 

@@ -346,6 +346,7 @@ export type Database = {
           mensagem: string | null
           nome_evento: string
           objetivo: string | null
+          profile: string | null
           publico_alvo: string | null
           tipo: string | null
           updated_at: string
@@ -360,6 +361,7 @@ export type Database = {
           mensagem?: string | null
           nome_evento: string
           objetivo?: string | null
+          profile?: string | null
           publico_alvo?: string | null
           tipo?: string | null
           updated_at?: string
@@ -374,6 +376,7 @@ export type Database = {
           mensagem?: string | null
           nome_evento?: string
           objetivo?: string | null
+          profile?: string | null
           publico_alvo?: string | null
           tipo?: string | null
           updated_at?: string

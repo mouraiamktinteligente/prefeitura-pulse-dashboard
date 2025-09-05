@@ -149,7 +149,7 @@ export const MarketingCampanhaForm = () => {
 
           {/* Calendário de Eventos */}
           {tipoSolicitacao === 'calendario_eventos' && clienteId && (
-            <CalendarioEventos clienteId={clienteId} />
+            <CalendarioEventos clienteId={clienteId} embedded />
           )}
 
           {tipoSolicitacao === 'calendario_eventos' && !clienteId && (

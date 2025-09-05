@@ -11,11 +11,12 @@ import { ptBR } from 'date-fns/locale';
 
 interface CalendarioEventosProps {
   clienteId: string;
+  embedded?: boolean;
 }
 
 type VisualizationMode = 'anual' | 'mensal' | 'semanal';
 
-export const CalendarioEventos: React.FC<CalendarioEventosProps> = ({ clienteId }) => {
+export const CalendarioEventos: React.FC<CalendarioEventosProps> = ({ clienteId, embedded = false }) => {
   const [modo, setModo] = useState<VisualizationMode>('mensal');
   const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>();
   const [eventoDialogOpen, setEventoDialogOpen] = useState(false);
@@ -90,8 +91,8 @@ export const CalendarioEventos: React.FC<CalendarioEventosProps> = ({ clienteId 
               >
                 <CardContent className="p-2">
                   <div className="text-center">
-                    <div className="font-medium">{format(day, 'EEE', { locale: ptBR })}</div>
-                    <div className="text-2xl font-bold">{format(day, 'd')}</div>
+                    <div className="text-sm font-medium">{format(day, 'EEE', { locale: ptBR }).slice(0, 3)}</div>
+                    <div className="text-lg font-bold">{format(day, 'd')}</div>
                     <div className="mt-2 space-y-1">
                       {eventosData.slice(0, 2).map((evento) => (
                         <Badge 
@@ -163,6 +164,108 @@ export const CalendarioEventos: React.FC<CalendarioEventosProps> = ({ clienteId 
 
   if (isLoading) {
     return <div>Carregando eventos...</div>;
+  }
+
+  if (embedded) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
+            <span className="font-medium">Calendário de Eventos</span>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={modo === 'anual' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setModo('anual')}
+            >
+              Anual
+            </Button>
+            <Button
+              variant={modo === 'mensal' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setModo('mensal')}
+            >
+              Mensal
+            </Button>
+            <Button
+              variant={modo === 'semanal' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setModo('semanal')}
+            >
+              Semanal
+            </Button>
+          </div>
+        </div>
+        
+        <div>
+          {modo === 'anual' && renderCalendarioAnual()}
+          {modo === 'mensal' && renderCalendarioMensal()}
+          {modo === 'semanal' && renderCalendarioSemanal()}
+        </div>
+        
+        {/* Lista de eventos do dia selecionado */}
+        {dataSelecionada && (
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium mb-3">
+              Eventos para {format(dataSelecionada, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </h4>
+            <div className="space-y-3">
+              {getEventosParaData(dataSelecionada).length === 0 ? (
+                <p className="text-muted-foreground text-sm">Nenhum evento nesta data</p>
+              ) : (
+                getEventosParaData(dataSelecionada).map((evento) => (
+                  <div 
+                    key={evento.id}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors p-3 rounded border"
+                    onClick={() => handleEventoClick(evento)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-sm">{evento.nome_evento}</h5>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {evento.hora_evento}
+                          </div>
+                          {evento.publico_alvo && (
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              {evento.publico_alvo}
+                            </div>
+                          )}
+                        </div>
+                        {evento.hashtags && evento.hashtags.length > 0 && (
+                          <div className="flex gap-1 flex-wrap">
+                            {evento.hashtags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {evento.tipo && (
+                        <Badge variant="outline" className="text-xs">{evento.tipo}</Badge>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        <EventoDialog
+          open={eventoDialogOpen}
+          onOpenChange={setEventoDialogOpen}
+          clienteId={clienteId}
+          dataSelecionada={dataSelecionada}
+          evento={eventoSelecionado}
+        />
+      </div>
+    );
   }
 
   return (
