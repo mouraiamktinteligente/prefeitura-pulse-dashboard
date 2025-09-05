@@ -118,9 +118,17 @@ export const formatRankingComments = (alertas: AlertaComentario[]) => {
     }
   });
 
-  // Ordenar por engagement (maior primeiro) e pegar os top 3
+  // Ordenar por prioridade (_2 primeiro, depois _3, depois _4)
   const sortedTopComments = topComments
-    .sort((a, b) => b.engagement - a.engagement)
+    .sort((a, b) => {
+      const getPriority = (id: string) => {
+        if (id.includes('pos-2-')) return 1;
+        if (id.includes('pos-3-')) return 2;
+        if (id.includes('pos-4-')) return 3;
+        return 999;
+      };
+      return getPriority(a.id) - getPriority(b.id);
+    })
     .slice(0, 3);
   
   const sortedFlopComments = flopComments
