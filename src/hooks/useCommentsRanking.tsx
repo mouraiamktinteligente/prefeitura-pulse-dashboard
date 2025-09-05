@@ -43,7 +43,7 @@ export const formatRankingComments = (alertas: AlertaComentario[]) => {
   const flopComments: RankingComment[] = [];
 
   alertas.forEach((alerta) => {
-    // Processar comentários positivos _2 e _3 (Top Comments)
+    // Processar comentários positivos _2, _3 e _4 (Top Comments)
     if (alerta.positive_comment_2 && alerta.positive_username_2) {
       topComments.push({
         id: `pos-2-${alerta.id}`,
@@ -67,8 +67,20 @@ export const formatRankingComments = (alertas: AlertaComentario[]) => {
         link: alerta.link_comentario_positivo_3
       });
     }
+    
+    if (alerta.positive_comment_4 && alerta.positive_username_4) {
+      topComments.push({
+        id: `pos-4-${alerta.id}`,
+        user: alerta.positive_username_4,
+        platform: 'Instagram',
+        comment: alerta.positive_comment_4,
+        engagement: parseInt(alerta.score_positive_4 || '0'),
+        type: 'positive',
+        link: alerta.link_comentario_positivo_4
+      });
+    }
 
-    // Processar comentários negativos _2 e _3 (Flop Comments)
+    // Processar comentários negativos _2, _3 e _4 (Flop Comments)
     if (alerta.negative_comment_2 && alerta.negative_username_2) {
       flopComments.push({
         id: `neg-2-${alerta.id}`,
@@ -90,6 +102,18 @@ export const formatRankingComments = (alertas: AlertaComentario[]) => {
         engagement: parseInt(alerta.score_negative_3 || '0'),
         type: 'negative',
         link: alerta.link_comentario_negativo_3
+      });
+    }
+    
+    if (alerta.negative_comment_4 && alerta.negative_username_4) {
+      flopComments.push({
+        id: `neg-4-${alerta.id}`,
+        user: alerta.negative_username_4,
+        platform: 'Instagram',
+        comment: alerta.negative_comment_4,
+        engagement: parseInt(alerta.score_negative_4 || '0'),
+        type: 'negative',
+        link: alerta.link_comentario_negativo_4
       });
     }
   });

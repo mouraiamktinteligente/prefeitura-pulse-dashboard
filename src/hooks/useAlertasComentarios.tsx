@@ -15,7 +15,7 @@ export interface AlertaComentario {
   positive_username_1?: string;
   score_positive_1?: string;
   link_comentario_positivo_1?: string;
-  // Comentários negativos _2 e _3 (para CommentsRanking)
+  // Comentários negativos _2, _3 e _4 (para CommentsRanking)
   negative_comment_2?: string;
   negative_username_2?: string;
   score_negative_2?: string;
@@ -24,7 +24,11 @@ export interface AlertaComentario {
   negative_username_3?: string;
   score_negative_3?: string;
   link_comentario_negativo_3?: string;
-  // Comentários positivos _2 e _3 (para CommentsRanking)
+  negative_comment_4?: string;
+  negative_username_4?: string;
+  score_negative_4?: string;
+  link_comentario_negativo_4?: string;
+  // Comentários positivos _2, _3 e _4 (para CommentsRanking)
   positive_comment_2?: string;
   positive_username_2?: string;
   score_positive_2?: string;
@@ -33,6 +37,10 @@ export interface AlertaComentario {
   positive_username_3?: string;
   score_positive_3?: string;
   link_comentario_positivo_3?: string;
+  positive_comment_4?: string;
+  positive_username_4?: string;
+  score_positive_4?: string;
+  link_comentario_positivo_4?: string;
 }
 
 export const useAlertasComentarios = (profile?: string) => {
