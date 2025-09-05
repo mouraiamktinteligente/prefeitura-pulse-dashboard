@@ -7,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
 import { useMarketingCampanhas } from '@/hooks/useMarketingCampanhas';
+import { CalendarioEventos } from './CalendarioEventos';
 
 export const MarketingCampanhaForm = () => {
   const [clienteId, setClienteId] = useState('');
-  const [tipoSolicitacao, setTipoSolicitacao] = useState<'analise' | 'descricao_personalizada'>('analise');
+  const [tipoSolicitacao, setTipoSolicitacao] = useState<'analise' | 'descricao_personalizada' | 'calendario_eventos'>('analise');
   const [documentoAnaliseId, setDocumentoAnaliseId] = useState('');
   const [descricaoPersonalizada, setDescricaoPersonalizada] = useState('');
   const [tipoPostagem, setTipoPostagem] = useState<'feed' | 'story' | 'ambos'>('feed');
@@ -28,6 +29,11 @@ export const MarketingCampanhaForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Para calendário de eventos, não criar campanha
+    if (tipoSolicitacao === 'calendario_eventos') {
+      return;
+    }
     
     if (!clienteId) return;
 
@@ -88,6 +94,13 @@ export const MarketingCampanhaForm = () => {
               >
                 ✍️ Descrição Personalizada
               </Button>
+              <Button
+                type="button"
+                variant={tipoSolicitacao === 'calendario_eventos' ? 'default' : 'outline'}
+                onClick={() => setTipoSolicitacao('calendario_eventos')}
+              >
+                📅 Calendário de Eventos
+              </Button>
             </div>
           </div>
 
@@ -134,46 +147,62 @@ export const MarketingCampanhaForm = () => {
             </div>
           )}
 
-          {/* Tipo de Postagem */}
-          <div>
-            <Label>Tipo de Postagem</Label>
-            <div className="flex gap-2 mt-2">
-              <Button
-                type="button"
-                variant={tipoPostagem === 'feed' ? 'default' : 'outline'}
-                onClick={() => setTipoPostagem('feed')}
-              >
-                📱 Feed
-              </Button>
-              <Button
-                type="button"
-                variant={tipoPostagem === 'story' ? 'default' : 'outline'}
-                onClick={() => setTipoPostagem('story')}
-              >
-                📖 Story
-              </Button>
-              <Button
-                type="button"
-                variant={tipoPostagem === 'ambos' ? 'default' : 'outline'}
-                onClick={() => setTipoPostagem('ambos')}
-              >
-                📱📖 Ambos
-              </Button>
-            </div>
-          </div>
+          {/* Calendário de Eventos */}
+          {tipoSolicitacao === 'calendario_eventos' && clienteId && (
+            <CalendarioEventos clienteId={clienteId} />
+          )}
 
-          <Button
-            type="submit"
-            disabled={
-              !clienteId || 
-              isCreating || 
-              (tipoSolicitacao === 'analise' && !documentoAnaliseId) || 
-              (tipoSolicitacao === 'descricao_personalizada' && !descricaoPersonalizada)
-            }
-            className="w-full"
-          >
-            {isCreating ? 'Criando Campanha...' : 'Criar Campanha'}
-          </Button>
+          {tipoSolicitacao === 'calendario_eventos' && !clienteId && (
+            <div className="p-4 border border-dashed rounded-lg text-center text-muted-foreground">
+              Selecione um cliente para gerenciar eventos
+            </div>
+          )}
+
+          {/* Tipo de Postagem - só aparece para análise e descrição personalizada */}
+          {tipoSolicitacao !== 'calendario_eventos' && (
+            <div>
+              <Label>Tipo de Postagem</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant={tipoPostagem === 'feed' ? 'default' : 'outline'}
+                  onClick={() => setTipoPostagem('feed')}
+                >
+                  📱 Feed
+                </Button>
+                <Button
+                  type="button"
+                  variant={tipoPostagem === 'story' ? 'default' : 'outline'}
+                  onClick={() => setTipoPostagem('story')}
+                >
+                  📖 Story
+                </Button>
+                <Button
+                  type="button"
+                  variant={tipoPostagem === 'ambos' ? 'default' : 'outline'}
+                  onClick={() => setTipoPostagem('ambos')}
+                >
+                  📱📖 Ambos
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Botão de submit - só aparece para análise e descrição personalizada */}
+          {tipoSolicitacao !== 'calendario_eventos' && (
+            <Button
+              type="submit"
+              disabled={
+                !clienteId || 
+                isCreating || 
+                (tipoSolicitacao === 'analise' && !documentoAnaliseId) || 
+                (tipoSolicitacao === 'descricao_personalizada' && !descricaoPersonalizada)
+              }
+              className="w-full"
+            >
+              {isCreating ? 'Criando Campanha...' : 'Criar Campanha'}
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

@@ -48,37 +48,139 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          negative_comment: string | null
-          negative_username: string | null
-          positive_comment: string | null
-          positive_username: string | null
+          link_comentario_negativo_1: string | null
+          link_comentario_negativo_2: string | null
+          link_comentario_negativo_3: string | null
+          link_comentario_negativo_4: string | null
+          link_comentario_positivo_1: string | null
+          link_comentario_positivo_2: string | null
+          link_comentario_positivo_3: string | null
+          link_comentario_positivo_4: string | null
+          negative_comment_1: string | null
+          negative_comment_2: string | null
+          negative_comment_3: string | null
+          negative_comment_4: string | null
+          negative_username_1: string | null
+          negative_username_2: string | null
+          negative_username_3: string | null
+          negative_username_4: string | null
+          positive_comment_1: string | null
+          positive_comment_2: string | null
+          positive_comment_3: string | null
+          positive_comment_4: string | null
+          positive_username_1: string | null
+          positive_username_2: string | null
+          positive_username_3: string | null
+          positive_username_4: string | null
           profile: string | null
-          score_negative: string | null
-          score_positive: string | null
+          profile_negative_1: string | null
+          profile_negative_2: string | null
+          profile_negative_3: string | null
+          profile_negative_4: string | null
+          profile_positive_1: string | null
+          profile_positive_2: string | null
+          profile_positive_3: string | null
+          profile_positive_4: string | null
+          score_negative_1: string | null
+          score_negative_2: string | null
+          score_negative_3: string | null
+          score_negative_4: string | null
+          score_positive_1: string | null
+          score_positive_2: string | null
+          score_positive_3: string | null
+          score_positive_4: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
-          negative_comment?: string | null
-          negative_username?: string | null
-          positive_comment?: string | null
-          positive_username?: string | null
+          link_comentario_negativo_1?: string | null
+          link_comentario_negativo_2?: string | null
+          link_comentario_negativo_3?: string | null
+          link_comentario_negativo_4?: string | null
+          link_comentario_positivo_1?: string | null
+          link_comentario_positivo_2?: string | null
+          link_comentario_positivo_3?: string | null
+          link_comentario_positivo_4?: string | null
+          negative_comment_1?: string | null
+          negative_comment_2?: string | null
+          negative_comment_3?: string | null
+          negative_comment_4?: string | null
+          negative_username_1?: string | null
+          negative_username_2?: string | null
+          negative_username_3?: string | null
+          negative_username_4?: string | null
+          positive_comment_1?: string | null
+          positive_comment_2?: string | null
+          positive_comment_3?: string | null
+          positive_comment_4?: string | null
+          positive_username_1?: string | null
+          positive_username_2?: string | null
+          positive_username_3?: string | null
+          positive_username_4?: string | null
           profile?: string | null
-          score_negative?: string | null
-          score_positive?: string | null
+          profile_negative_1?: string | null
+          profile_negative_2?: string | null
+          profile_negative_3?: string | null
+          profile_negative_4?: string | null
+          profile_positive_1?: string | null
+          profile_positive_2?: string | null
+          profile_positive_3?: string | null
+          profile_positive_4?: string | null
+          score_negative_1?: string | null
+          score_negative_2?: string | null
+          score_negative_3?: string | null
+          score_negative_4?: string | null
+          score_positive_1?: string | null
+          score_positive_2?: string | null
+          score_positive_3?: string | null
+          score_positive_4?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
-          negative_comment?: string | null
-          negative_username?: string | null
-          positive_comment?: string | null
-          positive_username?: string | null
+          link_comentario_negativo_1?: string | null
+          link_comentario_negativo_2?: string | null
+          link_comentario_negativo_3?: string | null
+          link_comentario_negativo_4?: string | null
+          link_comentario_positivo_1?: string | null
+          link_comentario_positivo_2?: string | null
+          link_comentario_positivo_3?: string | null
+          link_comentario_positivo_4?: string | null
+          negative_comment_1?: string | null
+          negative_comment_2?: string | null
+          negative_comment_3?: string | null
+          negative_comment_4?: string | null
+          negative_username_1?: string | null
+          negative_username_2?: string | null
+          negative_username_3?: string | null
+          negative_username_4?: string | null
+          positive_comment_1?: string | null
+          positive_comment_2?: string | null
+          positive_comment_3?: string | null
+          positive_comment_4?: string | null
+          positive_username_1?: string | null
+          positive_username_2?: string | null
+          positive_username_3?: string | null
+          positive_username_4?: string | null
           profile?: string | null
-          score_negative?: string | null
-          score_positive?: string | null
+          profile_negative_1?: string | null
+          profile_negative_2?: string | null
+          profile_negative_3?: string | null
+          profile_negative_4?: string | null
+          profile_positive_1?: string | null
+          profile_positive_2?: string | null
+          profile_positive_3?: string | null
+          profile_positive_4?: string | null
+          score_negative_1?: string | null
+          score_negative_2?: string | null
+          score_negative_3?: string | null
+          score_negative_4?: string | null
+          score_positive_1?: string | null
+          score_positive_2?: string | null
+          score_positive_3?: string | null
+          score_positive_4?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -113,6 +215,7 @@ export type Database = {
       "analysis-comments": {
         Row: {
           comment: string | null
+          comment_hour: string | null
           comment_id: string | null
           comment_url: string | null
           created_at: string
@@ -126,6 +229,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          comment_hour?: string | null
           comment_id?: string | null
           comment_url?: string | null
           created_at?: string
@@ -139,6 +243,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          comment_hour?: string | null
           comment_id?: string | null
           comment_url?: string | null
           created_at?: string
@@ -149,27 +254,6 @@ export type Database = {
           profile?: string | null
           sentiment?: string | null
           username?: string | null
-        }
-        Relationships: []
-      }
-      brand_lockfiles: {
-        Row: {
-          key: string
-          updated_at: string
-          value: Json
-          version: string
-        }
-        Insert: {
-          key: string
-          updated_at?: string
-          value: Json
-          version?: string
-        }
-        Update: {
-          key?: string
-          updated_at?: string
-          value?: Json
-          version?: string
         }
         Relationships: []
       }
@@ -187,6 +271,7 @@ export type Database = {
           endereco_numero: string | null
           endereco_rua: string | null
           id: string
+          id_doc_referencia: string | null
           id_folder_drive: string | null
           instagram_prefeito: string | null
           instagram_prefeitura: string | null
@@ -211,6 +296,7 @@ export type Database = {
           endereco_numero?: string | null
           endereco_rua?: string | null
           id?: string
+          id_doc_referencia?: string | null
           id_folder_drive?: string | null
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
@@ -235,6 +321,7 @@ export type Database = {
           endereco_numero?: string | null
           endereco_rua?: string | null
           id?: string
+          id_doc_referencia?: string | null
           id_folder_drive?: string | null
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
@@ -248,6 +335,59 @@ export type Database = {
         }
         Relationships: []
       }
+      calendario_de_eventos: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_evento: string
+          hashtags: string[] | null
+          hora_evento: string
+          id: string
+          mensagem: string | null
+          nome_evento: string
+          objetivo: string | null
+          publico_alvo: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_evento: string
+          hashtags?: string[] | null
+          hora_evento: string
+          id?: string
+          mensagem?: string | null
+          nome_evento: string
+          objetivo?: string | null
+          publico_alvo?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_evento?: string
+          hashtags?: string[] | null
+          hora_evento?: string
+          id?: string
+          mensagem?: string | null
+          nome_evento?: string
+          objetivo?: string | null
+          publico_alvo?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_calendario_eventos_cliente"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cadastro_clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_analisados: {
         Row: {
           cliente_id: string
@@ -259,6 +399,7 @@ export type Database = {
           id: string
           nome_arquivo: string
           nome_cliente: string | null
+          satisfacao_popular: string | null
           status: string
           tipo_arquivo: string
           updated_at: string
@@ -276,6 +417,7 @@ export type Database = {
           id?: string
           nome_arquivo: string
           nome_cliente?: string | null
+          satisfacao_popular?: string | null
           status?: string
           tipo_arquivo: string
           updated_at?: string
@@ -293,6 +435,7 @@ export type Database = {
           id?: string
           nome_arquivo?: string
           nome_cliente?: string | null
+          satisfacao_popular?: string | null
           status?: string
           tipo_arquivo?: string
           updated_at?: string
