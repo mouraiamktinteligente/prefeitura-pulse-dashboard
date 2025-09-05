@@ -124,7 +124,7 @@ export const formatRankingComments = (alertas: AlertaComentario[]) => {
     .slice(0, 3);
   
   const sortedFlopComments = flopComments
-    .sort((a, b) => b.engagement - a.engagement)
+    .sort((a, b) => a.engagement - b.engagement)
     .slice(0, 3);
 
   return {

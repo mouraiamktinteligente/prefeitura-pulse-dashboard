@@ -64,7 +64,7 @@ export const CommentsRanking = ({ profile }: { profile?: string }) => {
       <p className="text-xs text-blue-300 mb-2 italic line-clamp-3">"{comment.comment}"</p>
       <div className="flex items-center justify-between">
         <span className={`text-xs ${isPositive ? 'text-green-400' : 'text-red-400'} font-medium`}>
-          {comment.engagement} interações
+          Score: {comment.engagement}
         </span>
         {isPositive ? 
           <ThumbsUp className="h-3 w-3 text-green-400" /> : 
