@@ -75,7 +75,7 @@ export const useAlertasComentarios = (profile?: string) => {
           console.log('⚠️ Nenhum profile fornecido, buscando todos os registros');
         }
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(1);
 
         if (error) {
           console.error('❌ Erro na query:', error);

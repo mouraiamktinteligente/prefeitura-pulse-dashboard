@@ -81,44 +81,43 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
   const formatCommentData = (alerta: AlertaComentario) => {
     const items = [];
     
-    // Processar todos os comentários negativos disponíveis
-    for (let i = 1; i <= 3; i++) {
-      const comment = alerta[`negative_comment_${i}` as keyof AlertaComentario] as string;
-      const username = alerta[`negative_username_${i}` as keyof AlertaComentario] as string;
-      const score = alerta[`score_negative_${i}` as keyof AlertaComentario] as string;
-      const link = alerta[`link_comentario_negativo_${i}` as keyof AlertaComentario] as string;
-      
-      if (comment && username) {
-        items.push({
-          id: `${alerta.id}-neg-${i}`,
-          user: username,
-          comment: comment,
-          score: score,
-          link: link,
-          timestamp: formatTimeAgo(alerta.created_at),
-          type: 'negative' as const
-        });
-      }
+    // Processar apenas os comentários _1 (mais recente)
+    const i = 1;
+    
+    // Comentário negativo _1
+    const negativeComment = alerta[`negative_comment_${i}` as keyof AlertaComentario] as string;
+    const negativeUsername = alerta[`negative_username_${i}` as keyof AlertaComentario] as string;
+    const negativeScore = alerta[`score_negative_${i}` as keyof AlertaComentario] as string;
+    const negativeLink = alerta[`link_comentario_negativo_${i}` as keyof AlertaComentario] as string;
+    
+    if (negativeComment && negativeUsername) {
+      items.push({
+        id: `${alerta.id}-neg-${i}`,
+        user: negativeUsername,
+        comment: negativeComment,
+        score: negativeScore,
+        link: negativeLink,
+        timestamp: formatTimeAgo(alerta.created_at),
+        type: 'negative' as const
+      });
     }
 
-    // Processar todos os comentários positivos disponíveis
-    for (let i = 1; i <= 3; i++) {
-      const comment = alerta[`positive_comment_${i}` as keyof AlertaComentario] as string;
-      const username = alerta[`positive_username_${i}` as keyof AlertaComentario] as string;
-      const score = alerta[`score_positive_${i}` as keyof AlertaComentario] as string;
-      const link = alerta[`link_comentario_positivo_${i}` as keyof AlertaComentario] as string;
-      
-      if (comment && username) {
-        items.push({
-          id: `${alerta.id}-pos-${i}`,
-          user: username,
-          comment: comment,
-          score: score,
-          link: link,
-          timestamp: formatTimeAgo(alerta.created_at),
-          type: 'positive' as const
-        });
-      }
+    // Comentário positivo _1
+    const positiveComment = alerta[`positive_comment_${i}` as keyof AlertaComentario] as string;
+    const positiveUsername = alerta[`positive_username_${i}` as keyof AlertaComentario] as string;
+    const positiveScore = alerta[`score_positive_${i}` as keyof AlertaComentario] as string;
+    const positiveLink = alerta[`link_comentario_positivo_${i}` as keyof AlertaComentario] as string;
+    
+    if (positiveComment && positiveUsername) {
+      items.push({
+        id: `${alerta.id}-pos-${i}`,
+        user: positiveUsername,
+        comment: positiveComment,
+        score: positiveScore,
+        link: positiveLink,
+        timestamp: formatTimeAgo(alerta.created_at),
+        type: 'positive' as const
+      });
     }
 
     return items;
