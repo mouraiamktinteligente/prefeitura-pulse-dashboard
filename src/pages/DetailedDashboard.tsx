@@ -86,7 +86,7 @@ const DetailedDashboard = () => {
           {/* Left Column */}
           <div className="space-y-6">
             <SentimentAnalysis onGerarAnalise={handleGerarAnalise} />
-            <SatisfactionThermometer />
+            <SatisfactionThermometer clienteId={clientId} />
           </div>
           
           {/* Center Column */}

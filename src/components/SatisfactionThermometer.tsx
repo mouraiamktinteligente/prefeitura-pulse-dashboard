@@ -1,19 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { useSatisfacaoPopular } from '@/hooks/useSatisfacaoPopular';
 
-export const SatisfactionThermometer = () => {
-  const satisfaction = 73; // Out of 100
-  const trend = +5; // Compared to yesterday
+interface SatisfactionThermometerProps {
+  clienteId?: string;
+}
 
-  // Calculate the rotation angle for the needle (0-180 degrees)
-  const angle = (satisfaction / 100) * 180;
+export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerProps) => {
+  const { data: satisfaction = 0, isLoading } = useSatisfacaoPopular(clienteId);
 
   return (
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
-          📊 Análise Pesquisa Qualitativa
+          📊 Índice de satisfação da população
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -55,19 +55,6 @@ export const SatisfactionThermometer = () => {
                   className="transition-all duration-1000"
                 />
                 
-                {/* Needle */}
-                <g transform={`translate(160, 156) rotate(${angle - 90})`}>
-                  <line
-                    x1="0"
-                    y1="0"
-                    x2="100"
-                    y2="0"
-                    stroke="#1f2937"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="0" cy="0" r="8" fill="#1f2937" />
-                </g>
               </svg>
             </div>
 
@@ -75,8 +62,13 @@ export const SatisfactionThermometer = () => {
             <div className="absolute inset-0 flex items-end justify-center pb-8">
               <div className="text-center">
                 <div className="text-6xl font-bold text-white">
-                  {satisfaction}
+                  {isLoading ? '...' : satisfaction}
                 </div>
+                {!isLoading && satisfaction === 0 && (
+                  <div className="text-sm text-blue-300 mt-2">
+                    Sem dados disponíveis
+                  </div>
+                )}
               </div>
             </div>
           </div>
