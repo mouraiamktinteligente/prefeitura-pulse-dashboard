@@ -81,30 +81,44 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
   const formatCommentData = (alerta: AlertaComentario) => {
     const items = [];
     
-    // Adicionar comentário negativo _1 se existir (apenas _1 para MaliciousComments)
-    if (alerta.negative_comment_1 && alerta.negative_username_1) {
-      items.push({
-        id: `${alerta.id}-neg`,
-        user: alerta.negative_username_1,
-        comment: alerta.negative_comment_1,
-        score: alerta.score_negative_1,
-        link: alerta.link_comentario_negativo_1,
-        timestamp: formatTimeAgo(alerta.created_at),
-        type: 'negative'
-      });
+    // Processar todos os comentários negativos disponíveis
+    for (let i = 1; i <= 3; i++) {
+      const comment = alerta[`negative_comment_${i}` as keyof AlertaComentario] as string;
+      const username = alerta[`negative_username_${i}` as keyof AlertaComentario] as string;
+      const score = alerta[`score_negative_${i}` as keyof AlertaComentario] as string;
+      const link = alerta[`link_comentario_negativo_${i}` as keyof AlertaComentario] as string;
+      
+      if (comment && username) {
+        items.push({
+          id: `${alerta.id}-neg-${i}`,
+          user: username,
+          comment: comment,
+          score: score,
+          link: link,
+          timestamp: formatTimeAgo(alerta.created_at),
+          type: 'negative' as const
+        });
+      }
     }
 
-    // Adicionar comentário positivo _1 se existir (apenas _1 para MaliciousComments)
-    if (alerta.positive_comment_1 && alerta.positive_username_1) {
-      items.push({
-        id: `${alerta.id}-pos`,
-        user: alerta.positive_username_1,
-        comment: alerta.positive_comment_1,
-        score: alerta.score_positive_1,
-        link: alerta.link_comentario_positivo_1,
-        timestamp: formatTimeAgo(alerta.created_at),
-        type: 'positive'
-      });
+    // Processar todos os comentários positivos disponíveis
+    for (let i = 1; i <= 3; i++) {
+      const comment = alerta[`positive_comment_${i}` as keyof AlertaComentario] as string;
+      const username = alerta[`positive_username_${i}` as keyof AlertaComentario] as string;
+      const score = alerta[`score_positive_${i}` as keyof AlertaComentario] as string;
+      const link = alerta[`link_comentario_positivo_${i}` as keyof AlertaComentario] as string;
+      
+      if (comment && username) {
+        items.push({
+          id: `${alerta.id}-pos-${i}`,
+          user: username,
+          comment: comment,
+          score: score,
+          link: link,
+          timestamp: formatTimeAgo(alerta.created_at),
+          type: 'positive' as const
+        });
+      }
     }
 
     return items;
@@ -112,19 +126,30 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
 
   const allComments = alertas ? alertas.flatMap(formatCommentData) : [];
   
-  // Sort comments by severity (most critical first)
-  const sortedComments = allComments.sort((a, b) => {
-    const severityA = getSeverityLevel(a.score, a.type);
-    const severityB = getSeverityLevel(b.score, b.type);
-    const configA = getSeverityConfig(severityA);
-    const configB = getSeverityConfig(severityB);
-    return configA.priority - configB.priority;
-  });
+  // Selecionar apenas o comentário mais crítico (negativo) e o melhor (positivo)
+  const negativeComments = allComments.filter(comment => comment.type === 'negative');
+  const positiveComments = allComments.filter(comment => comment.type === 'positive');
+  
+  // Encontrar o comentário negativo mais crítico (menor score)
+  const mostCriticalNegative = negativeComments.length > 0 
+    ? negativeComments.reduce((prev, current) => {
+        const prevScore = parseInt(prev.score || '100');
+        const currentScore = parseInt(current.score || '100');
+        return currentScore < prevScore ? current : prev;
+      })
+    : null;
 
-  // Count critical alerts for header
-  const criticalCount = allComments.filter(comment => 
-    getSeverityLevel(comment.score, comment.type) === 'critical'
-  ).length;
+  // Encontrar o comentário positivo melhor (maior score)
+  const bestPositive = positiveComments.length > 0
+    ? positiveComments.reduce((prev, current) => {
+        const prevScore = parseInt(prev.score || '0');
+        const currentScore = parseInt(current.score || '0');
+        return currentScore > prevScore ? current : prev;
+      })
+    : null;
+
+  // Criar array com apenas os 2 comentários mais relevantes
+  const relevantComments = [mostCriticalNegative, bestPositive].filter(Boolean) as CommentData[];
 
   const getSentimentIcon = (type: string, score: string | null) => {
     const icon = type === 'positive' ? '👍' : '👎';
@@ -169,11 +194,6 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
             ⚠️ Alertas de comentários sensíveis
-            {criticalCount > 0 && (
-              <Badge className="alert-badge-critical text-xs px-2 py-0.5">
-                {criticalCount} CRÍTICO{criticalCount > 1 ? 'S' : ''}
-              </Badge>
-            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-4 w-4 text-blue-300 cursor-help hover:text-white transition-colors" />
@@ -196,8 +216,8 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
           </CardTitle>
           <p className="text-sm text-blue-300">
             {isLoading ? 'Carregando alertas...' : 
-             allComments.length === 0 ? 'Nenhum alerta encontrado' : 
-             `${allComments.length} alerta${allComments.length !== 1 ? 's' : ''} detectado${allComments.length !== 1 ? 's' : ''}`}
+             relevantComments.length === 0 ? 'Nenhum alerta encontrado' : 
+             'Comentários mais relevantes detectados'}
           </p>
         </CardHeader>
       <CardContent>
@@ -211,9 +231,9 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
               </div>
             ))}
           </div>
-        ) : allComments.length > 0 ? (
+        ) : relevantComments.length > 0 ? (
           <div className="space-y-4 max-h-[320px] overflow-y-auto">
-            {sortedComments.map((comment) => {
+            {relevantComments.map((comment) => {
               const severity = getSeverityLevel(comment.score, comment.type);
               const config = getSeverityConfig(severity);
               
