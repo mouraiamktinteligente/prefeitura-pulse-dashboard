@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, ExternalLink, Instagram } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users, ExternalLink, Instagram, Info } from 'lucide-react';
 import { useAlertasComentarios, formatTimeAgo, AlertaComentario } from '@/hooks/useAlertasComentarios';
 
 interface MaliciousCommentsProps {
@@ -63,28 +64,69 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
 
   if (error) {
     return (
-      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 h-[480px]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            ⚠️ Alertas de comentários sensíveis
-          </CardTitle>
-          <p className="text-sm text-red-300">Erro ao carregar alertas</p>
-        </CardHeader>
-      </Card>
+      <TooltipProvider>
+        <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 h-[480px]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+              ⚠️ Alertas de comentários sensíveis
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-blue-300 cursor-help hover:text-white transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <div className="text-sm space-y-2">
+                    <div className="font-semibold">Diretrizes de referência:</div>
+                    <div className="space-y-1 text-xs">
+                      <div>• 0–15: insultos, ódio, desejo de dano</div>
+                      <div>• 16–35: reclamações fortes, frustração</div>
+                      <div>• 36–49: levemente negativo, cético</div>
+                      <div>• 50: neutro, pergunta objetiva</div>
+                      <div>• 51–64: levemente positivo, educado</div>
+                      <div>• 65–84: positivo claro, elogio</div>
+                      <div>• 85–100: eufórico, gratidão intensa</div>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </CardTitle>
+            <p className="text-sm text-red-300">Erro ao carregar alertas</p>
+          </CardHeader>
+        </Card>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          ⚠️ Alertas de comentários sensíveis
-        </CardTitle>
-        <p className="text-sm text-blue-300">
-          {isLoading ? 'Carregando alertas...' : 
-           allComments.length === 0 ? 'Nenhum alerta encontrado' : ''}
-        </p>
-      </CardHeader>
+    <TooltipProvider>
+      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+            ⚠️ Alertas de comentários sensíveis
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-blue-300 cursor-help hover:text-white transition-colors" />
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-xs">
+                <div className="text-sm space-y-2">
+                  <div className="font-semibold">Diretrizes de referência:</div>
+                  <div className="space-y-1 text-xs">
+                    <div>• 0–15: insultos, ódio, desejo de dano</div>
+                    <div>• 16–35: reclamações fortes, frustração</div>
+                    <div>• 36–49: levemente negativo, cético</div>
+                    <div>• 50: neutro, pergunta objetiva</div>
+                    <div>• 51–64: levemente positivo, educado</div>
+                    <div>• 65–84: positivo claro, elogio</div>
+                    <div>• 85–100: eufórico, gratidão intensa</div>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </CardTitle>
+          <p className="text-sm text-blue-300">
+            {isLoading ? 'Carregando alertas...' : 
+             allComments.length === 0 ? 'Nenhum alerta encontrado' : ''}
+          </p>
+        </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="space-y-4">
@@ -145,5 +187,6 @@ export const MaliciousComments = ({ profile }: MaliciousCommentsProps) => {
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 };
