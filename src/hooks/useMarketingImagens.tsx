@@ -87,75 +87,12 @@ export const useMarketingImagens = (campanhaId?: string) => {
     },
   });
 
-  const aprovarDescricaoMutation = useMutation({
-    mutationFn: async (imagemId: string) => {
-      const { error } = await supabase
-        .from('marketing_imagens')
-        .update({
-          status_aprovacao_descricao: 'aprovada',
-          aprovado_por: user?.email || 'usuario',
-          data_aprovacao: new Date().toISOString(),
-        })
-        .eq('id', imagemId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-imagens'] });
-      toast({
-        title: "Descrição aprovada",
-        description: "A descrição foi aprovada com sucesso",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro ao aprovar descrição",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const rejeitarDescricaoMutation = useMutation({
-    mutationFn: async ({ imagemId, observacoes }: { imagemId: string; observacoes?: string }) => {
-      const { error } = await supabase
-        .from('marketing_imagens')
-        .update({
-          status_aprovacao_descricao: 'rejeitada',
-          observacoes_rejeicao: observacoes,
-          aprovado_por: user?.email || 'usuario',
-          data_aprovacao: new Date().toISOString(),
-        })
-        .eq('id', imagemId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-imagens'] });
-      toast({
-        title: "Descrição rejeitada",
-        description: "A descrição foi rejeitada e será reprocessada",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro ao rejeitar descrição",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   return {
     imagens,
     isLoading,
     aprovarImagem: aprovarImagemMutation.mutate,
     rejeitarImagem: rejeitarImagemMutation.mutate,
-    aprovarDescricao: aprovarDescricaoMutation.mutate,
-    rejeitarDescricao: rejeitarDescricaoMutation.mutate,
     isApproving: aprovarImagemMutation.isPending,
     isRejecting: rejeitarImagemMutation.isPending,
-    isApprovingDescription: aprovarDescricaoMutation.isPending,
-    isRejectingDescription: rejeitarDescricaoMutation.isPending,
   };
 };
