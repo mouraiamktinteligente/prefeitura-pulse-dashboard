@@ -1,19 +1,23 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSatisfacaoPopular } from '@/hooks/useSatisfacaoPopular';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface SatisfactionThermometerProps {
   clienteId?: string;
 }
 
 export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerProps) => {
-  const { data: satisfaction = 0, isLoading } = useSatisfacaoPopular(clienteId);
+  const { data: satisfactionData = { valor: 0, dataRealizacao: null }, isLoading } = useSatisfacaoPopular(clienteId);
+  const satisfaction = satisfactionData?.valor || 0;
+  const dataRealizacao = satisfactionData?.dataRealizacao;
 
   return (
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
-          📊 Índice de satisfação da população
+          📊 Pesquisa Qualitativa
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -83,7 +87,12 @@ export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerPr
 
           {/* Satisfaction Label */}
           <div className="text-center">
-            <p className="text-base text-blue-300">Satisfação Popular</p>
+            <p className="text-base text-blue-300">Pesquisa Qualitativa</p>
+            {dataRealizacao && (
+              <p className="text-sm text-blue-400 mt-1">
+                Realizada em {format(dataRealizacao, 'dd/MM/yyyy', { locale: ptBR })}
+              </p>
+            )}
           </div>
 
         </div>
