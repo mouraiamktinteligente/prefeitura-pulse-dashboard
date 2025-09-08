@@ -108,16 +108,20 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             {isDownloading ? (
               <Skeleton className="w-full h-48" />
             ) : (
-              <img 
-                src={localImageUrl || latestPost.image_url || "https://picsum.photos/600/600?random=post"} 
-                alt="Post" 
-                className="w-full h-48 object-cover"
-                onError={(e) => {
-                  if (!downloadError) {
-                    e.currentTarget.src = "https://picsum.photos/600/600?random=post";
-                  }
-                }}
-              />
+              (localImageUrl || latestPost.image_url) ? (
+                <img 
+                  src={localImageUrl || latestPost.image_url} 
+                  alt="Post do Instagram" 
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
+                  <div className="text-center text-white/70">
+                    <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">Imagem não disponível</p>
+                  </div>
+                </div>
+              )
             )}
           </div>
 

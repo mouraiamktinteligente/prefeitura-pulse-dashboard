@@ -84,11 +84,18 @@ export const useImageDownloader = (
       
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
+      
+      let convertedUrl = '';
 
       try {
         // Converter URL do Google Drive se necessário
-        const convertedUrl = convertGoogleDriveUrl(imageUrl);
+        convertedUrl = convertGoogleDriveUrl(imageUrl);
         console.log('📥 Iniciando download da imagem via proxy:', convertedUrl);
+
+        // Add timeout for the proxy call
+        const timeoutId = setTimeout(() => {
+          abortController.abort();
+        }, 15000); // 15 second timeout
 
         // Use the Supabase Edge Function as proxy to bypass CORS
         const proxyUrl = `https://oztosavtfiifjaahpagf.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(convertedUrl)}`;
@@ -99,6 +106,8 @@ export const useImageDownloader = (
             'Accept': 'image/*'
           }
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -137,7 +146,9 @@ export const useImageDownloader = (
           return;
         }
 
-        console.error('❌ Erro ao baixar imagem:', error);
+        console.error('❌ Erro ao baixar imagem para post', postId, ':', error);
+        console.log('🔍 URL da imagem que falhou:', imageUrl);
+        console.log('🔍 URL convertida que falhou:', convertedUrl);
         setDownloadError(error instanceof Error ? error.message : 'Erro desconhecido');
         setIsDownloading(false);
         setLocalImageUrl(null);
