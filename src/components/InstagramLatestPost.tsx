@@ -45,14 +45,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
   if (loading) {
     return (
-      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
+      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[540px]">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
             <Instagram className="w-5 h-5 text-pink-400" />
             Última Postagem no Instagram
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-2 h-[400px] overflow-hidden">
+        <CardContent className="px-4 py-2 h-[460px] overflow-hidden">
           <div className="rounded-lg overflow-hidden h-full p-2 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <Skeleton className="w-6 h-6 rounded-full" />
@@ -72,14 +72,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
   if (error || !latestPost) {
     return (
-      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
+      <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[540px]">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
             <Instagram className="w-5 h-5 text-pink-400" />
             Última Postagem no Instagram
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-2 h-[400px] overflow-hidden flex items-center justify-center">
+        <CardContent className="px-4 py-2 h-[460px] overflow-hidden flex items-center justify-center">
           <div className="text-center text-white/70">
             <Instagram className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p className="text-sm">
@@ -92,14 +92,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
   }
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[480px]">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[540px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
           <Instagram className="w-5 h-5 text-pink-400" />
           Última Postagem no Instagram
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 py-2 h-[400px] overflow-hidden">
+      <CardContent className="px-4 py-2 h-[460px] overflow-hidden">
         <div className="rounded-lg overflow-hidden h-full flex flex-col">
           {/* Post Header */}
           <div className="flex items-center gap-2 mb-3">
@@ -108,7 +108,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
           </div>
 
           {/* Post Image */}
-          <div className="relative mb-3 flex-1">
+          <div className="relative mb-3 h-64">
             {(latestPost.link_publico_imagem || latestPost.image_url) && !imageError ? (
               <img 
                 src={latestPost.link_publico_imagem || latestPost.image_url}
