@@ -20,7 +20,21 @@ const DetailedDashboard = () => {
   const { clients } = useClients();
   const navigate = useNavigate();
   
+  console.log('🚨 DETAILED DASHBOARD:', { 
+    clientId, 
+    clients: clients.length, 
+    clientsData: clients.map(c => ({ id: c.id, nome: c.nome_completo, instagram: c.instagram_prefeitura }))
+  });
+  
   const selectedClient = clients.find(client => client.id === clientId);
+  
+  console.log('🎯 CLIENTE SELECIONADO:', { 
+    selectedClient: selectedClient ? {
+      id: selectedClient.id,
+      nome: selectedClient.nome_completo,
+      instagram_prefeitura: selectedClient.instagram_prefeitura
+    } : null
+  });
   const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram_prefeitura || undefined);
 
   // Simulate real-time data updates
@@ -92,7 +106,7 @@ const DetailedDashboard = () => {
           {/* Center Column */}
           <div className="space-y-6">
             <EngagementChart profile={selectedClient?.instagram_prefeitura} />
-            <InstagramLatestPost profile={selectedClient?.instagram_prefeitura} />
+            <InstagramLatestPost profile="prefeiturademorrinhos" />
           </div>
           
           {/* Right Column */}

@@ -11,6 +11,8 @@ interface InstagramLatestPostProps {
 }
 
 export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profile }) => {
+  console.log('🚨 COMPONENTE INSTAGRAM RENDERIZADO:', { profile });
+  
   const { latestPost, loading, error } = useInstagramPosts(profile);
   const { localImageUrl, isDownloading, downloadError } = useImageDownloader(
     latestPost?.image_url,
@@ -23,7 +25,12 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
     imageUrl: latestPost?.image_url,
     localImageUrl,
     isDownloading,
-    downloadError
+    downloadError,
+    latestPost: latestPost ? {
+      id: latestPost.id,
+      description: latestPost.description?.substring(0, 50) + '...',
+      created_at: latestPost.created_at
+    } : null
   });
 
   const formatTimeAgo = (dateString: string) => {
