@@ -116,46 +116,21 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
           {/* Post Image */}
           <div className="relative mb-3 flex-1">
-            {isDownloading ? (
-              <Skeleton className="w-full h-full rounded-lg" />
-            ) : (
-              latestPost.image_url ? (
-                downloadError ? (
-                  // Fallback: try to load image directly if proxy fails
-                  <img 
-                    src={latestPost.image_url} 
-                    alt="Post do Instagram" 
-                    className="w-full h-full object-cover rounded-lg"
-                    onLoad={() => console.log('✅ Imagem carregada diretamente (fallback)')}
-                    onError={(e) => {
-                      console.error('❌ Erro ao carregar imagem diretamente:', e);
-                      // Hide image if both proxy and direct fail
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <img 
-                    src={localImageUrl || latestPost.image_url} 
-                    alt="Post do Instagram" 
-                    className="w-full h-full object-cover rounded-lg"
-                    onLoad={() => console.log('✅ Imagem carregada:', localImageUrl ? 'via proxy' : 'diretamente')}
-                    onError={(e) => {
-                      console.error('❌ Erro ao carregar imagem:', e);
-                      if (localImageUrl && latestPost.image_url !== localImageUrl) {
-                        console.log('🔄 Tentando carregar imagem original...');
-                        (e.target as HTMLImageElement).src = latestPost.image_url;
-                      }
-                    }}
-                  />
-                )
-              ) : (
-                <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-white/70">
-                    <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-xs">Imagem não disponível</p>
-                  </div>
-                </div>
-              )
+            <div className="w-full h-full bg-red-500 text-white p-4 rounded-lg">
+              <p>🚨 TESTE IMAGEM:</p>
+              <p>URL: {latestPost.image_url}</p>
+              <p>Local: {localImageUrl}</p>
+              <p>Loading: {isDownloading ? 'SIM' : 'NÃO'}</p>
+              <p>Error: {downloadError}</p>
+            </div>
+            {latestPost.image_url && (
+              <img 
+                src="https://scontent-atl3-1.cdninstagram.com/v/t51.2885-15/542336078_18367860271151691_7621049316410088238_n.jpg?stp=dst-jpg_e15_fr_p1080x1080_tt6&_nc_ht=scontent-atl3-1.cdninstagram.com&_nc_cat=103&_nc_oc=Q6cZ2QElF7dU4q1_BSu4fZYpTrRgV5RJaet1FW32qNzy4LQ9-iWixjOtzFZxlTOk52Bs2AY&_nc_ohc=s7Sb3GTWdLAQ7kNvwEms4M7&_nc_gid=jonTKyO1TNSV5CD_iD3BJQ&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfYPUUVFfF53Ke0M2lCzE3ZLzM7UlwzlbH8viR_KpbHK2w&oe=68C4DC49&_nc_sid=10d13b"
+                alt="Teste Instagram" 
+                className="w-full h-32 object-cover rounded-lg mt-2"
+                onLoad={() => console.log('✅ IMAGEM TESTE CARREGADA')}
+                onError={(e) => console.error('❌ ERRO IMAGEM TESTE:', e)}
+              />
             )}
           </div>
 
