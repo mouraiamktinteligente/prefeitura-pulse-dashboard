@@ -44,7 +44,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
         
         console.log(`📡 Fetching Instagram posts for profile: ${profile} (attempt ${retryCount + 1})`);
         
-        // First try to get a post with both image and description
+        // Always prioritize posts with valid images - try complete posts first
         let { data, error: supabaseError } = await supabase
           .from('instagram_posts' as any)
           .select('*')
@@ -71,6 +71,19 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
             .limit(1) as any);
           
           console.log(`📊 Segunda busca (só imagem): ${data?.length || 0} posts encontrados`);
+        }
+
+        // Final fallback: if still no data, just get the latest post regardless
+        if (!data || data.length === 0) {
+          console.log('⚠️ Nenhum post com imagem encontrado, pegando último post disponível...');
+          ({ data, error: supabaseError } = await supabase
+            .from('instagram_posts' as any)
+            .select('*')
+            .eq('profile', profile)
+            .order('created_at', { ascending: false })
+            .limit(1) as any);
+          
+          console.log(`📊 Terceira busca (qualquer post): ${data?.length || 0} posts encontrados`);
         }
 
         if (supabaseError) {

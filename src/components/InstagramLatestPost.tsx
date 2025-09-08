@@ -117,7 +117,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             {isDownloading ? (
               <Skeleton className="w-full h-48" />
             ) : (
-              (localImageUrl || latestPost.image_url) ? (
+              latestPost.image_url ? (
                 downloadError ? (
                   // Fallback: try to load image directly if proxy fails
                   <img 
