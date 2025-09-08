@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { ClientCard } from '@/components/ClientCard';
-import { PhoneMockup } from '@/components/PhoneMockup';
+import { ClientMockupWrapper } from '@/components/ClientMockupWrapper';
 import { useClients } from '@/hooks/useClients';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
@@ -107,16 +106,11 @@ const MainDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
               {clients.map((client) => (
-                <PhoneMockup
+                <ClientMockupWrapper
                   key={client.id}
                   client={client}
                   onClick={() => handleClientClick(client.id)}
-                >
-                  <ClientCard
-                    client={client}
-                    onClick={() => handleClientClick(client.id)}
-                  />
-                </PhoneMockup>
+                />
               ))}
             </div>
           </>
