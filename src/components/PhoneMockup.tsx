@@ -65,7 +65,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
           >
             {/* Conteúdo da tela (ClientCard redimensionado) */}
             <div 
-              className="w-full h-full flex items-start justify-center pt-0 overflow-y-auto iphone-scroll"
+              className="w-full h-full flex items-start justify-center pt-0 overflow-hidden"
             >
               <div className="transform scale-[0.87] origin-top">
                 {children}
