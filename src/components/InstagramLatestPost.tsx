@@ -53,12 +53,12 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-2 h-[400px] overflow-hidden">
-          <div className="bg-black rounded-lg overflow-hidden h-full p-2">
+          <div className="rounded-lg overflow-hidden h-full p-2 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <Skeleton className="w-6 h-6 rounded-full" />
               <Skeleton className="w-20 h-3" />
             </div>
-            <Skeleton className="w-full h-48 mb-2" />
+            <Skeleton className="w-full flex-1 mb-2 rounded-lg" />
             <div className="space-y-2">
               <Skeleton className="w-24 h-3" />
               <Skeleton className="w-full h-3" />
@@ -100,22 +100,17 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 py-2 h-[400px] overflow-hidden">
-        {/* Instagram Post Layout - Compact version */}
-        <div className="bg-black rounded-lg overflow-hidden h-full">
+        <div className="rounded-lg overflow-hidden h-full flex flex-col">
           {/* Post Header */}
-          <div className="flex items-center justify-between p-2 bg-black">
-          <div className="flex items-center gap-2">
-              <Instagram className="w-4 h-4 text-pink-400" />
-              <div>
-                <p className="text-white font-semibold text-xs">@{username}</p>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Instagram className="w-4 h-4 text-pink-400" />
+            <p className="text-white font-semibold text-sm">@{username}</p>
           </div>
 
           {/* Post Image */}
-          <div className="relative">
+          <div className="relative mb-3 flex-1">
             {isDownloading ? (
-              <Skeleton className="w-full h-48" />
+              <Skeleton className="w-full h-full rounded-lg" />
             ) : (
               latestPost.image_url ? (
                 downloadError ? (
@@ -123,7 +118,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
                   <img 
                     src={latestPost.image_url} 
                     alt="Post do Instagram" 
-                    className="w-full h-48 object-cover"
+                    className="w-full h-full object-cover rounded-lg"
                     onLoad={() => console.log('✅ Imagem carregada diretamente (fallback)')}
                     onError={(e) => {
                       console.error('❌ Erro ao carregar imagem diretamente:', e);
@@ -135,7 +130,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
                   <img 
                     src={localImageUrl || latestPost.image_url} 
                     alt="Post do Instagram" 
-                    className="w-full h-48 object-cover"
+                    className="w-full h-full object-cover rounded-lg"
                     onLoad={() => console.log('✅ Imagem carregada:', localImageUrl ? 'via proxy' : 'diretamente')}
                     onError={(e) => {
                       console.error('❌ Erro ao carregar imagem:', e);
@@ -147,7 +142,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
                   />
                 )
               ) : (
-                <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
+                <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
                   <div className="text-center text-white/70">
                     <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-xs">Imagem não disponível</p>
@@ -157,9 +152,10 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             )}
           </div>
 
-          {/* Post Actions */}
-          <div className="p-2 bg-black">
-            <div className="flex items-center justify-between mb-2">
+          {/* Post Info */}
+          <div className="space-y-2">
+            {/* Actions */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Heart className="w-4 h-4 text-white hover:text-red-500 cursor-pointer" />
                 <MessageCircle className="w-4 h-4 text-white cursor-pointer" />
@@ -169,20 +165,19 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             </div>
 
             {/* Likes */}
-            <p className="text-white font-semibold text-xs mb-1">
+            <p className="text-white font-semibold text-sm">
               {(latestPost.likes_count || 0).toLocaleString()} curtidas
             </p>
 
             {/* Caption */}
             {latestPost.description && (
-              <div className="text-white text-xs mb-2">
+              <div className="text-white text-sm">
                 <span className="font-semibold">@{username}</span>
                 <span className="ml-1 line-clamp-2">
                   {latestPost.description}
                 </span>
               </div>
             )}
-
 
             {/* Time */}
             <p className="text-gray-400 text-xs">
