@@ -5,6 +5,7 @@ interface InstagramPost {
   id: string;
   profile: string;
   image_url?: string;
+  link_publico_imagem?: string;
   description?: string;
   likes_count?: number;
   comments_count?: number;
@@ -44,23 +45,21 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
         
         console.log(`📡 Fetching Instagram posts for profile: ${profile} (attempt ${retryCount + 1})`);
         
-        // Always prioritize posts with valid images - try complete posts first
+        // Prioritize posts with link_publico_imagem (Supabase Storage URLs work better)
         let { data, error: supabaseError } = await supabase
           .from('instagram_posts' as any)
           .select('*')
           .eq('profile', profile)
-          .not('image_url', 'is', null)
-          .not('description', 'is', null)
-          .neq('image_url', '')
-          .neq('description', '')
+          .not('link_publico_imagem', 'is', null)
+          .neq('link_publico_imagem', '')
           .order('created_at', { ascending: false })
           .limit(1) as any;
 
-        console.log(`📊 Primeira busca (completa): ${data?.length || 0} posts encontrados`);
+        console.log(`📊 Primeira busca (link_publico_imagem): ${data?.length || 0} posts encontrados`);
 
-        // If no complete post found, try to get any post with at least an image
+        // If no post with link_publico_imagem found, try image_url
         if (!data || data.length === 0) {
-          console.log('🔍 Nenhum post completo encontrado, buscando post com imagem...');
+          console.log('🔍 Nenhum post com link_publico_imagem encontrado, buscando com image_url...');
           ({ data, error: supabaseError } = await supabase
             .from('instagram_posts' as any)
             .select('*')
@@ -70,7 +69,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
             .order('created_at', { ascending: false })
             .limit(1) as any);
           
-          console.log(`📊 Segunda busca (só imagem): ${data?.length || 0} posts encontrados`);
+          console.log(`📊 Segunda busca (image_url): ${data?.length || 0} posts encontrados`);
         }
 
         // Final fallback: if still no data, just get the latest post regardless
@@ -98,7 +97,9 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           console.log('✅ Setting latest post:', {
             id: post.id,
             profile: post.profile,
+            hasPublicImage: !!post.link_publico_imagem,
             hasImage: !!post.image_url,
+            publicImageUrl: post.link_publico_imagem,
             imageUrl: post.image_url,
             description: post.description?.substring(0, 50) + '...',
             likes: post.likes_count,

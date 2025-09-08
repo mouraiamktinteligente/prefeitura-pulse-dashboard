@@ -16,6 +16,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
   console.log('🎨 InstagramLatestPost render:', {
     profile,
     hasPost: !!latestPost,
+    publicImageUrl: latestPost?.link_publico_imagem,
     imageUrl: latestPost?.image_url,
     imageError,
     latestPost: latestPost ? {
@@ -108,13 +109,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
           {/* Post Image */}
           <div className="relative mb-3 flex-1">
-            {latestPost.image_url && !imageError ? (
+            {(latestPost.link_publico_imagem || latestPost.image_url) && !imageError ? (
               <img 
-                src={latestPost.image_url}
+                src={latestPost.link_publico_imagem || latestPost.image_url}
                 alt="Post do Instagram" 
                 className="w-full h-full object-cover rounded-lg"
                 onLoad={() => {
-                  console.log('✅ Imagem do Instagram carregada diretamente');
+                  const usedUrl = latestPost.link_publico_imagem ? 'link_publico_imagem (Supabase Storage)' : 'image_url (Instagram direto)';
+                  console.log(`✅ Imagem carregada via ${usedUrl}`);
                   setImageError(false);
                 }}
                 onError={() => {
@@ -127,7 +129,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
                 <div className="text-center text-white/70">
                   <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-xs">
-                    {latestPost.image_url ? 'Imagem não pode ser carregada' : 'Imagem não disponível'}
+                    {(latestPost.link_publico_imagem || latestPost.image_url) ? 'Imagem não pode ser carregada' : 'Imagem não disponível'}
                   </p>
                 </div>
               </div>
