@@ -17,6 +17,15 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
     latestPost?.id
   );
 
+  console.log('🎨 InstagramLatestPost render:', {
+    profile,
+    hasPost: !!latestPost,
+    imageUrl: latestPost?.image_url,
+    localImageUrl,
+    isDownloading,
+    downloadError
+  });
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -109,11 +118,34 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
               <Skeleton className="w-full h-48" />
             ) : (
               (localImageUrl || latestPost.image_url) ? (
-                <img 
-                  src={localImageUrl || latestPost.image_url} 
-                  alt="Post do Instagram" 
-                  className="w-full h-48 object-cover"
-                />
+                downloadError ? (
+                  // Fallback: try to load image directly if proxy fails
+                  <img 
+                    src={latestPost.image_url} 
+                    alt="Post do Instagram" 
+                    className="w-full h-48 object-cover"
+                    onLoad={() => console.log('✅ Imagem carregada diretamente (fallback)')}
+                    onError={(e) => {
+                      console.error('❌ Erro ao carregar imagem diretamente:', e);
+                      // Hide image if both proxy and direct fail
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <img 
+                    src={localImageUrl || latestPost.image_url} 
+                    alt="Post do Instagram" 
+                    className="w-full h-48 object-cover"
+                    onLoad={() => console.log('✅ Imagem carregada:', localImageUrl ? 'via proxy' : 'diretamente')}
+                    onError={(e) => {
+                      console.error('❌ Erro ao carregar imagem:', e);
+                      if (localImageUrl && latestPost.image_url !== localImageUrl) {
+                        console.log('🔄 Tentando carregar imagem original...');
+                        (e.target as HTMLImageElement).src = latestPost.image_url;
+                      }
+                    }}
+                  />
+                )
               ) : (
                 <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
                   <div className="text-center text-white/70">

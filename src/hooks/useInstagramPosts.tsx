@@ -56,8 +56,10 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           .order('created_at', { ascending: false })
           .limit(1) as any;
 
+        console.log(`📊 Primeira busca (completa): ${data?.length || 0} posts encontrados`);
+
         // If no complete post found, try to get any post with at least an image
-        if (supabaseError && supabaseError.code === 'PGRST116') {
+        if (!data || data.length === 0) {
           console.log('🔍 Nenhum post completo encontrado, buscando post com imagem...');
           ({ data, error: supabaseError } = await supabase
             .from('instagram_posts' as any)
@@ -67,6 +69,8 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
             .neq('image_url', '')
             .order('created_at', { ascending: false })
             .limit(1) as any);
+          
+          console.log(`📊 Segunda busca (só imagem): ${data?.length || 0} posts encontrados`);
         }
 
         if (supabaseError) {
