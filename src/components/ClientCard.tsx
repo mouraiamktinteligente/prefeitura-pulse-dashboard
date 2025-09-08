@@ -9,7 +9,7 @@ import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useInstagramPosts } from '@/hooks/useInstagramPosts';
-import { useImageDownloader } from '@/hooks/useImageDownloader';
+
 
 interface ClientCardProps {
   client: Cliente;
@@ -19,10 +19,6 @@ interface ClientCardProps {
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
   const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
-  const { localImageUrl, isDownloading, downloadError } = useImageDownloader(
-    latestPost?.image_url,
-    latestPost?.id
-  );
   const navigate = useNavigate();
 
   // Debug logs for ClientCard
@@ -33,14 +29,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
     hasLatestPost: !!latestPost,
     postLoading,
     postError,
-    downloadState: {
-      localImageUrl: !!localImageUrl,
-      isDownloading,
-      downloadError
-    },
     postData: latestPost ? {
       id: latestPost.id,
-      hasImage: !!latestPost.image_url,
+      hasPublicLink: !!latestPost.link_publico_imagem,
+      publicImageUrl: latestPost.link_publico_imagem,
       imageUrl: latestPost.image_url,
       description: latestPost.description?.substring(0, 30) + '...',
       likes: latestPost.likes_count,
@@ -120,17 +112,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
               </div>
             ) : latestPost ? (
               <>
-                {/* Imagem com download automático */}
-                {isDownloading ? (
-                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-1"></div>
-                      <p className="text-blue-200 text-xs">Baixando imagem...</p>
-                    </div>
-                  </div>
-                ) : (localImageUrl || latestPost?.image_url) ? (
+                {/* Imagem usando link público */}
+                {(latestPost.link_publico_imagem || latestPost.image_url) ? (
                   <img 
-                    src={localImageUrl || latestPost.image_url}
+                    src={latestPost.link_publico_imagem || latestPost.image_url}
                     alt={`Post do Instagram de ${client.nome_completo}`}
                     className="w-full h-32 object-cover rounded mb-2"
                     onLoad={() => {
@@ -140,19 +125,6 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
                       console.error('❌ Erro ao carregar imagem');
                     }}
                   />
-                ) : downloadError ? (
-                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
-                    <div className="text-center p-2">
-                      <p className="text-red-300 text-xs mb-1">Erro no download</p>
-                      <p className="text-blue-200 text-xs">{downloadError}</p>
-                    </div>
-                  </div>
-                ) : latestPost?.image_url ? (
-                  <div className="w-full h-32 bg-blue-600 rounded mb-2 flex items-center justify-center">
-                    <div className="text-center p-2">
-                      <p className="text-blue-200 text-xs">Preparando download...</p>
-                    </div>
-                  </div>
                 ) : (
                   <div className="w-full h-32 bg-gradient-to-br from-blue-600 to-blue-700 rounded mb-2 flex items-center justify-center">
                     <div className="text-center">
