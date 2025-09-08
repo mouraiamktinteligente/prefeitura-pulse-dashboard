@@ -6,10 +6,9 @@ interface PhoneMockupProps {
   client: Cliente;
   onClick: () => void;
   children: React.ReactNode;
-  instagramImageUrl?: string;
 }
 
-export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, children, instagramImageUrl }) => {
+export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, children }) => {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
 
@@ -64,23 +63,9 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, child
               overflow: 'hidden', // Garante que nada saia dos limites da tela
             }}
           >
-            {/* Background com imagem do Instagram se disponível */}
-            {instagramImageUrl && (
-              <div 
-                className="absolute inset-0 z-0"
-                style={{
-                  backgroundImage: `url(${instagramImageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  opacity: '0.3',
-                  borderRadius: '2.5rem',
-                }}
-              />
-            )}
-            
             {/* Conteúdo da tela (ClientCard redimensionado) */}
             <div 
-              className="w-full h-full flex items-start justify-center pt-0 overflow-y-auto iphone-scroll relative z-10"
+              className="w-full h-full flex items-start justify-center pt-0 overflow-y-auto iphone-scroll"
             >
               <div className="transform scale-[0.87] origin-top">
                 {children}
