@@ -1,31 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Instagram, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useInstagramPosts } from '@/hooks/useInstagramPosts';
-import { useImageDownloader } from '@/hooks/useImageDownloader';
 
 interface InstagramLatestPostProps {
   profile?: string;
 }
 
 export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profile }) => {
-  console.log('🚨 COMPONENTE INSTAGRAM RENDERIZADO:', { profile });
-  
+  const [imageError, setImageError] = useState(false);
   const { latestPost, loading, error } = useInstagramPosts(profile);
-  const { localImageUrl, isDownloading, downloadError } = useImageDownloader(
-    latestPost?.image_url,
-    latestPost?.id
-  );
 
   console.log('🎨 InstagramLatestPost render:', {
     profile,
     hasPost: !!latestPost,
     imageUrl: latestPost?.image_url,
-    localImageUrl,
-    isDownloading,
-    downloadError,
+    imageError,
     latestPost: latestPost ? {
       id: latestPost.id,
       description: latestPost.description?.substring(0, 50) + '...',
@@ -116,29 +108,29 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
 
           {/* Post Image */}
           <div className="relative mb-3 flex-1">
-            {isDownloading ? (
-              <Skeleton className="w-full h-full rounded-lg" />
+            {latestPost.image_url && !imageError ? (
+              <img 
+                src={latestPost.image_url}
+                alt="Post do Instagram" 
+                className="w-full h-full object-cover rounded-lg"
+                onLoad={() => {
+                  console.log('✅ Imagem do Instagram carregada diretamente');
+                  setImageError(false);
+                }}
+                onError={() => {
+                  console.log('❌ Erro ao carregar imagem do Instagram - mostrando placeholder');
+                  setImageError(true);
+                }}
+              />
             ) : (
-              latestPost.image_url ? (
-                <img 
-                  src={localImageUrl || `/supabase/functions/v1/image-proxy?url=${encodeURIComponent(latestPost.image_url)}`}
-                  alt="Post do Instagram" 
-                  className="w-full h-full object-cover rounded-lg"
-                  onLoad={() => console.log('✅ Imagem carregada via proxy')}
-                  onError={(e) => {
-                    console.error('❌ Erro ao carregar via proxy, tentando direto:', e);
-                    // Don't try direct load as it causes CORS error
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-white/70">
-                    <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-xs">Imagem não disponível</p>
-                  </div>
+              <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
+                <div className="text-center text-white/70">
+                  <Instagram className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs">
+                    {latestPost.image_url ? 'Imagem não pode ser carregada' : 'Imagem não disponível'}
+                  </p>
                 </div>
-              )
+              </div>
             )}
           </div>
 
