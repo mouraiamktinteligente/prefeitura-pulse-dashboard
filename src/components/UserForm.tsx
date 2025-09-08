@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Crown, Users, Building } from "lucide-react";
+import { Crown, Users, Building, Eye, EyeOff } from "lucide-react";
 import { validateCPF, validateCNPJ, formatCPF, formatCNPJ, formatCEP, formatPhone, searchCEP } from "@/utils/validation";
 import { UsuarioSistema } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +52,7 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const handleCEPSearch = async (cep: string) => {
@@ -271,14 +272,30 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
           {(formData.tipo_usuario === 'administrador' || formData.tipo_usuario === 'usuario') && (
             <div>
               <Label htmlFor="senha">Senha {!user && '*'}</Label>
-              <Input
-                id="senha"
-                type="password"
-                value={formData.senha}
-                onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))}
-                required={!user}
-                placeholder={user ? 'Deixe em branco para manter a atual' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="senha"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.senha}
+                  onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))}
+                  required={!user}
+                  placeholder={user ? 'Deixe em branco para manter a atual' : ''}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                </Button>
+              </div>
             </div>
           )}
 
