@@ -55,7 +55,7 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
 
   return (
     <Card 
-      className="bg-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer w-80 h-[620px] border-none"
+      className="bg-transparent transition-all duration-300 cursor-pointer w-80 h-[620px] border-none"
       onClick={onClick}
     >
       {/* Header com nome da prefeitura e esfera de status */}
