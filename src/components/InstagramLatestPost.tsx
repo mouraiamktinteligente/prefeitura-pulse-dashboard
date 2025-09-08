@@ -142,12 +142,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             </p>
 
             {/* Caption */}
-            <div className="text-white text-xs mb-2">
-              <span className="font-semibold">@{username}</span>
-              <span className="ml-1 line-clamp-2">
-                {latestPost.description || "Confira as últimas novidades! 🏛️✨ #Transparencia #Gestao"}
-              </span>
-            </div>
+            {latestPost.description && (
+              <div className="text-white text-xs mb-2">
+                <span className="font-semibold">@{username}</span>
+                <span className="ml-1 line-clamp-2">
+                  {latestPost.description}
+                </span>
+              </div>
+            )}
 
 
             {/* Time */}

@@ -44,13 +44,30 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
         
         console.log(`📡 Fetching Instagram posts for profile: ${profile} (attempt ${retryCount + 1})`);
         
-        // Use rpc or direct query with type assertion
-        const { data, error: supabaseError } = await supabase
+        // First try to get a post with both image and description
+        let { data, error: supabaseError } = await supabase
           .from('instagram_posts' as any)
           .select('*')
           .eq('profile', profile)
+          .not('image_url', 'is', null)
+          .not('description', 'is', null)
+          .neq('image_url', '')
+          .neq('description', '')
           .order('created_at', { ascending: false })
           .limit(1) as any;
+
+        // If no complete post found, try to get any post with at least an image
+        if (supabaseError && supabaseError.code === 'PGRST116') {
+          console.log('🔍 Nenhum post completo encontrado, buscando post com imagem...');
+          ({ data, error: supabaseError } = await supabase
+            .from('instagram_posts' as any)
+            .select('*')
+            .eq('profile', profile)
+            .not('image_url', 'is', null)
+            .neq('image_url', '')
+            .order('created_at', { ascending: false })
+            .limit(1) as any);
+        }
 
         if (supabaseError) {
           console.error('❌ Supabase error:', supabaseError);
