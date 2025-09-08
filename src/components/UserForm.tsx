@@ -31,7 +31,7 @@ const defaultPermissions = {
 
 export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const [formData, setFormData] = useState({
-    tipo_usuario: user?.tipo_usuario || 'cliente' as const,
+    tipo_usuario: user?.tipo_usuario || 'usuario' as const,
     tipo_pessoa: user?.tipo_pessoa || 'fisica' as const,
     nome_completo: user?.nome_completo || '',
     razao_social: user?.razao_social || '',
@@ -141,8 +141,6 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
         return <Crown className="w-5 h-5 text-yellow-500" />;
       case 'usuario':
         return <Users className="w-5 h-5 text-blue-500" />;
-      case 'cliente':
-        return <Building className="w-5 h-5 text-green-500" />;
     }
   };
 
@@ -151,8 +149,7 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {getTypeIcon()}
-          {user ? 'Editar' : 'Novo'} {formData.tipo_usuario === 'administrador' ? 'Administrador' : 
-            formData.tipo_usuario === 'usuario' ? 'Usuário' : 'Cliente'}
+          {user ? 'Editar' : 'Novo'} {formData.tipo_usuario === 'administrador' ? 'Administrador' : 'Usuário'}
         </CardTitle>
       </CardHeader>
       
@@ -171,7 +168,6 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
                 <SelectContent>
                   <SelectItem value="administrador">👑 Administrador Master</SelectItem>
                   <SelectItem value="usuario">👥 Usuário Operacional</SelectItem>
-                  <SelectItem value="cliente">🏢 Cliente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
