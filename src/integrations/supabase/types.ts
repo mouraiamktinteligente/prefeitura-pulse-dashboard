@@ -465,6 +465,7 @@ export type Database = {
           image_url: string | null
           instagram_post_id: string | null
           likes_count: number | null
+          link_publico_imagem: string | null
           post_url: string | null
           profile: string | null
           updated_at: string
@@ -477,6 +478,7 @@ export type Database = {
           image_url?: string | null
           instagram_post_id?: string | null
           likes_count?: number | null
+          link_publico_imagem?: string | null
           post_url?: string | null
           profile?: string | null
           updated_at?: string
@@ -489,6 +491,7 @@ export type Database = {
           image_url?: string | null
           instagram_post_id?: string | null
           likes_count?: number | null
+          link_publico_imagem?: string | null
           post_url?: string | null
           profile?: string | null
           updated_at?: string
@@ -597,10 +600,12 @@ export type Database = {
           campanha_id: string
           created_at: string
           data_aprovacao: string | null
+          descricao_gerada: string | null
           id: string
           metadata_adicional: Json | null
           observacoes_rejeicao: string | null
           status_aprovacao: string
+          status_aprovacao_descricao: string
           tipo_imagem: string
           url_imagem: string
           versao: number
@@ -610,10 +615,12 @@ export type Database = {
           campanha_id: string
           created_at?: string
           data_aprovacao?: string | null
+          descricao_gerada?: string | null
           id?: string
           metadata_adicional?: Json | null
           observacoes_rejeicao?: string | null
           status_aprovacao?: string
+          status_aprovacao_descricao?: string
           tipo_imagem: string
           url_imagem: string
           versao?: number
@@ -623,10 +630,12 @@ export type Database = {
           campanha_id?: string
           created_at?: string
           data_aprovacao?: string | null
+          descricao_gerada?: string | null
           id?: string
           metadata_adicional?: Json | null
           observacoes_rejeicao?: string | null
           status_aprovacao?: string
+          status_aprovacao_descricao?: string
           tipo_imagem?: string
           url_imagem?: string
           versao?: number
