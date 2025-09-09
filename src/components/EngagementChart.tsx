@@ -49,33 +49,66 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
     if (!data?.length) return [];
     
     if (type === 'daily') {
-      return data.slice(-7).map(item => ({
-        period: item.data_brasileira ? item.data_brasileira.substring(0, 5) : 'N/A',
-        sentiment: calculateSentimentScore(
-          item.comentarios_positivos || 0,
-          item.comentarios_neutros || 0,
-          item.comentarios_negativos || 0
-        ),
-        totalComments: item.total_comentarios || 0,
-        positivos: item.comentarios_positivos || 0,
-        neutros: item.comentarios_neutros || 0,
-        negativos: item.comentarios_negativos || 0
-      }));
+      return data.slice(-7).map(item => {
+        // Usar data_formatada (YYYY-MM-DD) como chave e converter para DD/MM para exibição
+        let displayDate = 'N/A';
+        let periodKey = item.data_formatada || item.data_brasileira;
+        
+        if (item.data_formatada) {
+          // Converter YYYY-MM-DD para DD/MM
+          const [year, month, day] = item.data_formatada.split('-');
+          displayDate = `${day}/${month}`;
+          periodKey = item.data_formatada;
+        } else if (item.data_brasileira) {
+          displayDate = item.data_brasileira.substring(0, 5);
+          periodKey = item.data_brasileira;
+        }
+        
+        return {
+          period: displayDate,
+          periodKey: periodKey,
+          sentiment: calculateSentimentScore(
+            item.comentarios_positivos || 0,
+            item.comentarios_neutros || 0,
+            item.comentarios_negativos || 0
+          ),
+          totalComments: item.total_comentarios || 0,
+          positivos: item.comentarios_positivos || 0,
+          neutros: item.comentarios_neutros || 0,
+          negativos: item.comentarios_negativos || 0
+        };
+      });
     }
     
     if (type === 'weekly') {
-      return data.slice(-4).map((item, index) => ({
-        period: `S${index + 1}`,
-        sentiment: calculateSentimentScore(
-          item.comentarios_positivos || 0,
-          item.comentarios_neutros || 0,
-          item.comentarios_negativos || 0
-        ),
-        totalComments: item.total_comentarios || 0,
-        positivos: item.comentarios_positivos || 0,
-        neutros: item.comentarios_neutros || 0,
-        negativos: item.comentarios_negativos || 0
-      }));
+      return data.slice(-4).map(item => {
+        // Usar semana_inicio e semana_fim para criar labels informativos
+        let displayPeriod = 'Semana';
+        let periodKey = item.semana_inicio;
+        
+        if (item.semana_inicio && item.semana_fim) {
+          const inicio = new Date(item.semana_inicio);
+          const fim = new Date(item.semana_fim);
+          const inicioFormatted = format(inicio, 'dd/MM', { locale: ptBR });
+          const fimFormatted = format(fim, 'dd/MM', { locale: ptBR });
+          displayPeriod = `${inicioFormatted} - ${fimFormatted}`;
+          periodKey = item.semana_inicio;
+        }
+        
+        return {
+          period: displayPeriod,
+          periodKey: periodKey,
+          sentiment: calculateSentimentScore(
+            item.comentarios_positivos || 0,
+            item.comentarios_neutros || 0,
+            item.comentarios_negativos || 0
+          ),
+          totalComments: item.total_comentarios || 0,
+          positivos: item.comentarios_positivos || 0,
+          neutros: item.comentarios_neutros || 0,
+          negativos: item.comentarios_negativos || 0
+        };
+      });
     }
     
     if (type === 'monthly') {
@@ -87,18 +120,36 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
           return itemMonth >= initialMonthIndex;
         })
         .slice(0, 6)
-        .map(item => ({
-          period: item.mes_nome || format(new Date(item.mes_ano!), 'MMM', { locale: ptBR }),
-          sentiment: calculateSentimentScore(
-            item.comentarios_positivos || 0,
-            item.comentarios_neutros || 0,
-            item.comentarios_negativos || 0
-          ),
-          totalComments: item.total_comentarios || 0,
-          positivos: item.comentarios_positivos || 0,
-          neutros: item.comentarios_neutros || 0,
-          negativos: item.comentarios_negativos || 0
-        }));
+        .map(item => {
+          // Usar mes_formatado ou criar formato brasileiro
+          let displayPeriod = 'Mês';
+          let periodKey = item.mes_ano;
+          
+          if (item.mes_formatado) {
+            // Converter YYYY-MM para Mês/Ano
+            const [year, month] = item.mes_formatado.split('-');
+            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            displayPeriod = `${monthNames[parseInt(month) - 1]}/${year.slice(-2)}`;
+            periodKey = item.mes_formatado;
+          } else if (item.mes_ano) {
+            displayPeriod = format(new Date(item.mes_ano), 'MMM/yy', { locale: ptBR });
+            periodKey = item.mes_ano;
+          }
+          
+          return {
+            period: displayPeriod,
+            periodKey: periodKey,
+            sentiment: calculateSentimentScore(
+              item.comentarios_positivos || 0,
+              item.comentarios_neutros || 0,
+              item.comentarios_negativos || 0
+            ),
+            totalComments: item.total_comentarios || 0,
+            positivos: item.comentarios_positivos || 0,
+            neutros: item.comentarios_neutros || 0,
+            negativos: item.comentarios_negativos || 0
+          };
+        });
     }
     
     return [];
@@ -223,24 +274,50 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
     const prefeitoData = getCurrentData('prefeito');
     const prefeituraData = getCurrentData('prefeitura');
     
-    // Criar array combinado com ambos os dados
-    const maxLength = Math.max(prefeitoData.length, prefeituraData.length);
-    const combinedData = [];
+    // Criar mapa de períodos únicos
+    const periodMap = new Map();
     
-    for (let i = 0; i < maxLength; i++) {
-      const prefeitoItem = prefeitoData[i];
-      const prefeituraItem = prefeituraData[i];
-      
-      combinedData.push({
-        period: prefeitoItem?.period || prefeituraItem?.period || `P${i + 1}`,
-        prefeito: prefeitoItem?.sentiment || 0,
-        prefeitura: prefeituraItem?.sentiment || 0,
-        prefeitoComments: prefeitoItem?.totalComments || 0,
-        prefeituraComments: prefeituraItem?.totalComments || 0
-      });
-    }
+    // Adicionar dados do prefeito
+    prefeitoData.forEach(item => {
+      const key = item.periodKey || item.period;
+      if (!periodMap.has(key)) {
+        periodMap.set(key, {
+          period: item.period,
+          periodKey: key,
+          prefeito: 0,
+          prefeitura: 0,
+          prefeitoComments: 0,
+          prefeituraComments: 0
+        });
+      }
+      periodMap.get(key).prefeito = item.sentiment || 0;
+      periodMap.get(key).prefeitoComments = item.totalComments || 0;
+    });
     
-    return combinedData;
+    // Adicionar dados da prefeitura
+    prefeituraData.forEach(item => {
+      const key = item.periodKey || item.period;
+      if (!periodMap.has(key)) {
+        periodMap.set(key, {
+          period: item.period,
+          periodKey: key,
+          prefeito: 0,
+          prefeitura: 0,
+          prefeitoComments: 0,
+          prefeituraComments: 0
+        });
+      }
+      periodMap.get(key).prefeitura = item.sentiment || 0;
+      periodMap.get(key).prefeituraComments = item.totalComments || 0;
+    });
+    
+    // Converter mapa para array e ordenar por chave de período
+    return Array.from(periodMap.values()).sort((a, b) => {
+      if (a.periodKey && b.periodKey) {
+        return a.periodKey.localeCompare(b.periodKey);
+      }
+      return 0;
+    });
   };
 
   return (
