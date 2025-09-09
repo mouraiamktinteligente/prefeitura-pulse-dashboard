@@ -48,8 +48,21 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
   const processData = (data: any[], type: 'daily' | 'weekly' | 'monthly') => {
     if (!data?.length) return [];
     
+    // Obter mês e ano atuais
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // getMonth() retorna 0-11
+    const currentMonthStr = currentMonth.toString().padStart(2, '0');
+    const currentYearMonth = `${currentYear}-${currentMonthStr}`;
+    
     if (type === 'daily') {
-      return data.slice(-7).map(item => {
+      // Filtrar apenas registros do mês atual
+      const currentMonthData = data.filter(item => {
+        if (!item.data_formatada) return false;
+        return item.data_formatada.startsWith(currentYearMonth);
+      });
+      
+      return currentMonthData.map(item => {
         // Usar data_formatada (YYYY-MM-DD) como chave e converter para DD/MM para exibição
         let displayDate = 'N/A';
         let periodKey = item.data_formatada || item.data_brasileira;
@@ -81,7 +94,15 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({ profile }) => 
     }
     
     if (type === 'weekly') {
-      return data.slice(-4).map(item => {
+      // Filtrar apenas semanas que começam no mês atual
+      const currentMonthData = data.filter(item => {
+        if (!item.semana_inicio) return false;
+        const semanaInicio = new Date(item.semana_inicio);
+        return semanaInicio.getFullYear() === currentYear && 
+               (semanaInicio.getMonth() + 1) === currentMonth;
+      });
+      
+      return currentMonthData.map(item => {
         // Usar semana_inicio e semana_fim para criar labels informativos
         let displayPeriod = 'Semana';
         let periodKey = item.semana_inicio;
