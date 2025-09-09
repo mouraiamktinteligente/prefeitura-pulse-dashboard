@@ -239,16 +239,16 @@ export const DocumentUpload = () => {
                       {getStatusBadge(documento.status)}
                       
                       
-                      {/* Botão Baixar Relatório */}
+                      {/* Botão Baixar Plano */}
                       {(documento.status === 'concluído' || documento.status === 'finalizado') && documento.url_plano && (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => downloadPlano(documento)}
-                          className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                          className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
                         >
                           <Download className="w-4 h-4" />
-                          <span>Baixar Relatório</span>
+                          <span>Baixar Plano</span>
                         </Button>
                       )}
 
