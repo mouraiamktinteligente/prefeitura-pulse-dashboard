@@ -494,7 +494,7 @@ const ClientDetails = () => {
                                     className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
                                   >
                                     <Download className="w-4 h-4" />
-                                    <span>Relatório</span>
+                                    <span>Baixar Relatório</span>
                                   </Button>
                                 )}
                                 
@@ -506,7 +506,7 @@ const ClientDetails = () => {
                                     className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
                                   >
                                     <Download className="w-4 h-4" />
-                                    <span>Análise</span>
+                                    <span>Baixar Análise</span>
                                   </Button>
                                 )}
                                 
@@ -603,7 +603,7 @@ const ClientDetails = () => {
                                     className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
                                   >
                                     <Download className="w-4 h-4" />
-                                    <span>Relatório</span>
+                                    <span>Baixar Relatório</span>
                                   </Button>
                                 )}
                                 
@@ -615,7 +615,7 @@ const ClientDetails = () => {
                                     className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
                                   >
                                     <Download className="w-4 h-4" />
-                                    <span>Análise</span>
+                                    <span>Baixar Análise</span>
                                   </Button>
                                 )}
                                 
@@ -819,7 +819,7 @@ const ClientDetails = () => {
                                     className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
                                   >
                                     <Download className="w-4 h-4" />
-                                    <span>Baixar</span>
+                                    <span>Baixar Relatório</span>
                                   </Button>
                                 )}
                                 
