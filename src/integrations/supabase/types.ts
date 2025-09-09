@@ -1376,6 +1376,17 @@ export type Database = {
       }
     }
     Functions: {
+      authenticate_user: {
+        Args: { p_email: string; p_senha_hash: string }
+        Returns: {
+          ativo: boolean
+          email: string
+          id: string
+          nome_completo: string
+          permissoes: string
+          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+        }[]
+      }
       exemplo_hora: {
         Args: Record<PropertyKey, never>
         Returns: string
