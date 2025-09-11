@@ -17,7 +17,7 @@ export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerPr
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[600px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
-          📊 Pesquisa Qualitativa
+          📊 Termômetro de Satisfação Popular
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -87,7 +87,7 @@ export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerPr
 
           {/* Satisfaction Label */}
           <div className="text-center">
-            <p className="text-base text-blue-300">Pesquisa Qualitativa</p>
+            <p className="text-base text-blue-300">Termômetro de Satisfação Popular</p>
             {dataRealizacao && (
               <p className="text-sm text-blue-400 mt-1">
                 Realizada em {format(dataRealizacao, 'dd/MM/yyyy', { locale: ptBR })}
