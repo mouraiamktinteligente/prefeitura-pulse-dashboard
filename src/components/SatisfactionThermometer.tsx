@@ -14,7 +14,7 @@ export const SatisfactionThermometer = ({ clienteId }: SatisfactionThermometerPr
   const dataRealizacao = satisfactionData?.dataRealizacao;
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[540px]">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[600px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center">
           📊 Pesquisa Qualitativa
