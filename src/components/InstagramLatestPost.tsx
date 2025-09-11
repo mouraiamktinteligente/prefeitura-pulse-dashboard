@@ -108,12 +108,12 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
           </div>
 
           {/* Post Image */}
-          <div className="relative mb-3 h-64">
+          <div className="relative mb-3 aspect-square">
             {(latestPost.link_publico_imagem || latestPost.image_url) && !imageError ? (
               <img 
                 src={latestPost.link_publico_imagem || latestPost.image_url}
                 alt="Post do Instagram" 
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover object-top rounded-lg"
                 onLoad={() => {
                   const usedUrl = latestPost.link_publico_imagem ? 'link_publico_imagem (Supabase Storage)' : 'image_url (Instagram direto)';
                   console.log(`✅ Imagem carregada via ${usedUrl}`);
