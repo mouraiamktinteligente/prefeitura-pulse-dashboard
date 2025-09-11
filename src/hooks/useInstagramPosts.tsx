@@ -19,6 +19,11 @@ interface UseInstagramPostsReturn {
   error: string | null;
 }
 
+// Helper function to normalize profile format (remove @ prefix)
+const normalizeProfile = (profile: string): string => {
+  return profile.replace(/^@/, '').trim();
+};
+
 export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => {
   const [latestPost, setLatestPost] = useState<InstagramPost | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +36,10 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
       return;
     }
 
-    console.log('🚀 useInstagramPosts: Starting for profile:', profile);
+    // Normalize the profile to remove @ prefix
+    const normalizedProfile = normalizeProfile(profile);
+    console.log('🚀 useInstagramPosts: Starting for profile:', normalizedProfile, '(original:', profile, ')');
+    
     let retryCount = 0;
     const maxRetries = 3;
     let timeoutId: NodeJS.Timeout;
@@ -43,13 +51,13 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           setError(null);
         }
         
-        console.log(`📡 Fetching Instagram posts for profile: ${profile} (attempt ${retryCount + 1})`);
+        console.log(`📡 Fetching Instagram posts for profile: ${normalizedProfile} (attempt ${retryCount + 1})`);
         
         // Prioritize posts with link_publico_imagem (Supabase Storage URLs work better)
         let { data, error: supabaseError } = await supabase
           .from('instagram_posts' as any)
           .select('*')
-          .eq('profile', profile)
+          .eq('profile', normalizedProfile)
           .not('link_publico_imagem', 'is', null)
           .neq('link_publico_imagem', '')
           .order('created_at', { ascending: false })
@@ -63,7 +71,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           ({ data, error: supabaseError } = await supabase
             .from('instagram_posts' as any)
             .select('*')
-            .eq('profile', profile)
+            .eq('profile', normalizedProfile)
             .not('image_url', 'is', null)
             .neq('image_url', '')
             .order('created_at', { ascending: false })
@@ -78,7 +86,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           ({ data, error: supabaseError } = await supabase
             .from('instagram_posts' as any)
             .select('*')
-            .eq('profile', profile)
+            .eq('profile', normalizedProfile)
             .order('created_at', { ascending: false })
             .limit(1) as any);
           
@@ -107,7 +115,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           });
           setLatestPost(post);
         } else {
-          console.log('📭 No posts found for profile:', profile);
+          console.log('📭 No posts found for normalized profile:', normalizedProfile);
           setLatestPost(null);
         }
         
@@ -149,21 +157,21 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
     let channel: any;
     
     try {
-      console.log('🔄 Setting up real-time subscription for profile:', profile);
+      console.log('🔄 Setting up real-time subscription for profile:', normalizedProfile);
       
       channel = supabase
-        .channel(`instagram-posts-${profile}`)
+        .channel(`instagram-posts-${normalizedProfile}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'instagram_posts',
-            filter: `profile=eq.${profile}`
+            filter: `profile=eq.${normalizedProfile}`
           },
           (payload) => {
             console.log('📥 New Instagram post inserted:', payload);
-            if (payload.new && payload.new.profile === profile) {
+            if (payload.new && payload.new.profile === normalizedProfile) {
               const newPost = payload.new as InstagramPost;
               console.log('📥 Processing new post:', {
                 id: newPost.id,
@@ -187,11 +195,11 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
             event: 'UPDATE',
             schema: 'public',
             table: 'instagram_posts',
-            filter: `profile=eq.${profile}`
+            filter: `profile=eq.${normalizedProfile}`
           },
           (payload) => {
             console.log('📝 Instagram post updated:', payload);
-            if (payload.new && payload.new.profile === profile) {
+            if (payload.new && payload.new.profile === normalizedProfile) {
               const updatedPost = payload.new as InstagramPost;
               setLatestPost(current => {
                 if (current && current.id === updatedPost.id) {
@@ -213,11 +221,11 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
             event: 'DELETE',
             schema: 'public',
             table: 'instagram_posts',
-            filter: `profile=eq.${profile}`
+            filter: `profile=eq.${normalizedProfile}`
           },
           (payload) => {
             console.log('🗑️ Instagram post deleted:', payload);
-            if (payload.old && payload.old.profile === profile) {
+            if (payload.old && payload.old.profile === normalizedProfile) {
               const deletedPost = payload.old as InstagramPost;
               setLatestPost(current => {
                 if (current && current.id === deletedPost.id) {
@@ -259,7 +267,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
     }
 
     return () => {
-      console.log('🧹 Cleaning up useInstagramPosts for profile:', profile);
+      console.log('🧹 Cleaning up useInstagramPosts for profile:', normalizedProfile);
       if (channel) {
         supabase.removeChannel(channel);
       }
