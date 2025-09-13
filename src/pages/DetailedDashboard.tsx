@@ -13,7 +13,7 @@ import { CommentsRanking } from '../components/CommentsRanking';
 import { CrisisTimeline } from '../components/CrisisTimeline';
 import { InstagramLatestPost } from '../components/InstagramLatestPost';
 import { useClients } from '@/hooks/useClients';
-import { useClientMetrics } from '@/hooks/useClientMetrics';
+import { useDualMetrics } from '@/hooks/useDualMetrics';
 
 const DetailedDashboard = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -32,10 +32,25 @@ const DetailedDashboard = () => {
     selectedClient: selectedClient ? {
       id: selectedClient.id,
       nome: selectedClient.nome_completo,
-      instagram_prefeitura: selectedClient.instagram_prefeitura
+      instagram_prefeitura: selectedClient.instagram_prefeitura,
+      instagram_prefeito: selectedClient.instagram_prefeito
     } : null
   });
-  const { metrics, loading: metricsLoading } = useClientMetrics(selectedClient?.instagram_prefeitura || undefined);
+  
+  // Use dual metrics para combinar dados do prefeito e prefeitura
+  const { metrics: dualMetrics, loading: metricsLoading } = useDualMetrics(
+    selectedClient?.instagram_prefeito || undefined,
+    selectedClient?.instagram_prefeitura || undefined
+  );
+  
+  // Combine metrics from both profiles
+  const combinedMetrics = {
+    totalComments: dualMetrics.prefeito.totalComments + dualMetrics.prefeitura.totalComments,
+    positiveComments: dualMetrics.prefeito.positiveComments + dualMetrics.prefeitura.positiveComments,
+    negativeComments: dualMetrics.prefeito.negativeComments + dualMetrics.prefeitura.negativeComments,
+    neutralComments: dualMetrics.prefeito.neutralComments + dualMetrics.prefeitura.neutralComments,
+    lastActivity: dualMetrics.prefeito.lastActivity || dualMetrics.prefeitura.lastActivity
+  };
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -68,10 +83,10 @@ const DetailedDashboard = () => {
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Última análise info */}
-        {metrics.lastActivity && (
+        {combinedMetrics.lastActivity && (
           <div className="text-center">
             <p className="text-blue-300 text-sm">
-              Última análise: {formatLastActivity(metrics.lastActivity)}
+              Última análise: {formatLastActivity(combinedMetrics.lastActivity)}
             </p>
           </div>
         )}
@@ -88,10 +103,11 @@ const DetailedDashboard = () => {
           </div>
         ) : (
           <MetricsCards 
-            totalComments={metrics.totalComments}
-            positiveComments={metrics.positiveComments}
-            negativeComments={metrics.negativeComments}
-            neutralComments={metrics.neutralComments}
+            totalComments={combinedMetrics.totalComments}
+            positiveComments={combinedMetrics.positiveComments}
+            negativeComments={combinedMetrics.negativeComments}
+            neutralComments={combinedMetrics.neutralComments}
+            isDualProfile={true}
           />
         )}
         

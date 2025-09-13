@@ -7,13 +7,15 @@ interface MetricsCardsProps {
   positiveComments?: number;
   negativeComments?: number;
   neutralComments?: number;
+  isDualProfile?: boolean; // Indica se são dados combinados de prefeito + prefeitura
 }
 
 export const MetricsCards: React.FC<MetricsCardsProps> = ({
   totalComments = 0,
   positiveComments = 0,
   negativeComments = 0,
-  neutralComments = 0
+  neutralComments = 0,
+  isDualProfile = false
 }) => {
   // Calcula o sentimento médio usando a fórmula corrigida
   const calculateAverageSentiment = () => {
@@ -84,7 +86,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
     {
       title: 'Comentários Analisados',
       value: totalComments.toLocaleString(),
-      period: 'total acumulado',
+      period: isDualProfile ? 'prefeito + prefeitura' : 'total acumulado',
       icon: MessageSquare,
       color: 'text-blue-400'
     },
@@ -105,7 +107,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
     {
       title: 'Risco Reputacional',
       value: negativeComments.toString(),
-      period: 'comentários negativos',
+      period: isDualProfile ? 'negativos combinados' : 'comentários negativos',
       icon: AlertTriangle,
       color: 'text-red-400'
     }
