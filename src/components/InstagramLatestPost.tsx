@@ -101,11 +101,6 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
       </CardHeader>
       <CardContent className="px-4 py-2 h-[520px] overflow-hidden">
         <div className="rounded-lg overflow-hidden h-full flex flex-col">
-          {/* Post Header */}
-          <div className="flex items-center gap-2 mb-3">
-            <Instagram className="w-4 h-4 text-pink-400" />
-            <p className="text-white font-semibold text-sm">@{username}</p>
-          </div>
 
           {/* Post Image */}
           <div className="relative mb-3 aspect-square">
