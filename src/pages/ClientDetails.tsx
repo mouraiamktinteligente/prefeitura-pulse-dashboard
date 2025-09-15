@@ -448,7 +448,6 @@ const ClientDetails = () => {
                           <Badge variant="secondary" className="bg-pink-900/20 text-pink-300 border-pink-700">
                             Prefeitura
                           </Badge>
-                          <span className="text-sm text-slate-400">@{client?.instagram_prefeitura}</span>
                         </h5>
                         {relatoriosInstagram
                           .filter(r => r.profile === client?.instagram_prefeitura)
@@ -676,7 +675,6 @@ const ClientDetails = () => {
                           <Badge variant="secondary" className="bg-pink-900/20 text-pink-300 border-pink-700">
                             Prefeitura
                           </Badge>
-                          <span className="text-sm text-slate-400">@{client?.instagram_prefeitura}</span>
                         </h5>
                         {relatoriosWeb
                           .filter(r => r.profile === client?.instagram_prefeitura)
