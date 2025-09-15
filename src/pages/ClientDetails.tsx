@@ -547,7 +547,7 @@ const ClientDetails = () => {
                     )}
                     
                     {/* Instagram Prefeito */}
-                    {relatoriosInstagram.filter(r => r.profile === client?.instagram_prefeito).length > 0 && (
+                    {relatoriosPrefeito.filter(r => r.profile === client?.instagram_prefeito).length > 0 && (
                       <div className="space-y-3">
                         <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2 ml-4">
                           <Badge variant="secondary" className="bg-blue-900/20 text-blue-300 border-blue-700">
@@ -555,7 +555,7 @@ const ClientDetails = () => {
                           </Badge>
                           <span className="text-sm text-slate-400">@{client?.instagram_prefeito}</span>
                         </h5>
-                        {relatoriosInstagram
+                        {relatoriosPrefeito
                           .filter(r => r.profile === client?.instagram_prefeito)
                           .map((relatorio) => (
                             <div
@@ -603,18 +603,6 @@ const ClientDetails = () => {
                                   </Button>
                                 )}
                                 
-                                {relatorio.link_analise && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => window.open(relatorio.link_analise, '_blank')}
-                                    className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                    <span>Baixar Análise</span>
-                                  </Button>
-                                )}
-                                
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
@@ -632,7 +620,7 @@ const ClientDetails = () => {
                                         Confirmar exclusão
                                       </AlertDialogTitle>
                                       <AlertDialogDescription className="text-slate-400">
-                                        Tem certeza que deseja deletar este relatório de análise de sentimento do Instagram? 
+                                        Tem certeza que deseja deletar este relatório de análise de sentimento do Prefeito? 
                                         Esta ação não pode ser desfeita.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
@@ -641,7 +629,7 @@ const ClientDetails = () => {
                                         Cancelar
                                       </AlertDialogCancel>
                                       <AlertDialogAction
-                                        onClick={() => deleteRelatorioInstagram(relatorio)}
+                                        onClick={() => deleteRelatorioPrefeito(relatorio)}
                                         className="bg-red-600 hover:bg-red-700 text-white"
                                       >
                                         Deletar
