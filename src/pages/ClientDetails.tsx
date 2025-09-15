@@ -445,9 +445,6 @@ const ClientDetails = () => {
                     {relatoriosInstagram.filter(r => r.profile === client?.instagram_prefeitura).length > 0 && (
                       <div className="space-y-3">
                         <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2 ml-4">
-                          <Badge variant="secondary" className="bg-pink-900/20 text-pink-300 border-pink-700">
-                            Prefeitura
-                          </Badge>
                         </h5>
                         {relatoriosInstagram
                           .filter(r => r.profile === client?.instagram_prefeitura)
@@ -672,9 +669,6 @@ const ClientDetails = () => {
                     {relatoriosWeb.filter(r => r.profile === client?.instagram_prefeitura).length > 0 && (
                       <div className="space-y-3">
                         <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2 ml-4">
-                          <Badge variant="secondary" className="bg-pink-900/20 text-pink-300 border-pink-700">
-                            Prefeitura
-                          </Badge>
                         </h5>
                         {relatoriosWeb
                           .filter(r => r.profile === client?.instagram_prefeitura)
