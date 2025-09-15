@@ -570,7 +570,7 @@ const ClientDetails = () => {
                                       Relatório da Análise de Sentimento do Instagram
                                     </p>
                                     <p className="text-sm text-slate-400">
-                                      PDF • {client.nome_completo} • Criado em{' '}
+                                      PDF • {client.nome_completo_prefeito || client.nome_completo} • Criado em{' '}
                                       {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
                                     </p>
                                     <p className="text-xs text-green-400 flex items-center mt-1">
