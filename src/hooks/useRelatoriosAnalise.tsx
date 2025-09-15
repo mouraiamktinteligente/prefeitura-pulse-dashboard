@@ -189,6 +189,8 @@ export const useRelatoriosAnalise = () => {
     
     setLoading(true);
     try {
+      console.log('🔍 [DEBUG] Buscando relatórios Instagram para perfis:', validProfiles);
+      
       const { data, error } = await supabase
         .from('relatorio_analise_instagram')
         .select('*')
@@ -197,7 +199,7 @@ export const useRelatoriosAnalise = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar relatórios do Instagram:', error);
+        console.error('❌ [ERROR] Erro ao buscar relatórios do Instagram:', error);
         toast({
           title: "Erro",
           description: "Erro ao carregar relatórios do Instagram",
@@ -206,11 +208,42 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
+      console.log('📊 [DEBUG] Dados recebidos da tabela relatorio_analise_instagram:', {
+        totalRegistros: data?.length || 0,
+        registros: data?.map(r => ({
+          id: r.id,
+          profile: r.profile,
+          nome: r.nome,
+          linkRelatorio: r.link_relatorio?.substring(0, 60) + '...',
+          linkAnalise: r.link_analise?.substring(0, 60) + '...',
+          tipoDetectado: r.profile?.includes('prefeito') ? 'PREFEITO' : 
+                        r.profile?.includes('prefeitura') ? 'PREFEITURA' : 'INDEFINIDO'
+        }))
+      });
+
+      // Validar consistência dos dados
+      if (data) {
+        data.forEach(relatorio => {
+          const isProfilePrefeito = relatorio.profile?.includes('prefeito') || relatorio.profile?.includes('mayor');
+          const isProfilePrefeitura = relatorio.profile?.includes('prefeitura') || relatorio.profile?.includes('municipal');
+          
+          if (!isProfilePrefeito && !isProfilePrefeitura) {
+            console.warn(`⚠️ [WARN] Profile não identificado claramente:`, {
+              id: relatorio.id,
+              profile: relatorio.profile,
+              suggestion: 'Verificar se o profile está correto na base de dados'
+            });
+          }
+        });
+      }
+
       // Aplicar deduplicação como fallback
       const uniqueReports = deduplicateReports(data || []);
+      console.log('✅ [DEBUG] Relatórios únicos após deduplicação:', uniqueReports.length);
+      
       setRelatoriosInstagram(uniqueReports);
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error('❌ [ERROR] Erro inesperado:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao carregar relatórios",
@@ -307,15 +340,15 @@ export const useRelatoriosAnalise = () => {
 
   // Funções para Relatório de Análise do Prefeito
   const fetchRelatoriosPrefeito = async (instagramProfile?: string) => {
-    console.log('DEBUG: fetchRelatoriosPrefeito chamado com profile:', instagramProfile);
+    console.log('🔍 [DEBUG] fetchRelatoriosPrefeito chamado com profile:', instagramProfile);
     if (!instagramProfile) {
-      console.log('DEBUG: profile não fornecido, saindo...');
+      console.log('🔍 [DEBUG] profile não fornecido, saindo...');
       return;
     }
     
     setLoading(true);
     try {
-      console.log('DEBUG: Fazendo query na tabela relatorio_analise_prefeito...');
+      console.log('🔍 [DEBUG] Fazendo query na tabela relatorio_analise_prefeito...');
       const { data, error } = await supabase
         .from('relatorio_analise_prefeito')
         .select('*')
@@ -323,10 +356,19 @@ export const useRelatoriosAnalise = () => {
         .not('link_relatorio', 'is', null)
         .order('created_at', { ascending: false });
 
-      console.log('DEBUG: Resultado da query prefeito:', { data, error });
+      console.log('📊 [DEBUG] Resultado da query prefeito:', { 
+        totalRegistros: data?.length || 0,
+        error,
+        registros: data?.map(r => ({
+          id: r.id,
+          profile: r.profile,
+          nomeDocumento: r.nome_documento,
+          linkRelatorio: r.link_relatorio?.substring(0, 60) + '...',
+        }))
+      });
 
       if (error) {
-        console.error('Erro ao buscar relatórios do Prefeito:', error);
+        console.error('❌ [ERROR] Erro ao buscar relatórios do Prefeito:', error);
         toast({
           title: "Erro",
           description: "Erro ao carregar relatórios do Prefeito",
@@ -335,12 +377,12 @@ export const useRelatoriosAnalise = () => {
         return;
       }
 
-      console.log('DEBUG: Dados encontrados para Prefeito:', data?.length || 0, 'itens');
+      console.log('✅ [DEBUG] Dados encontrados para Prefeito:', data?.length || 0, 'itens');
       // Aplicar deduplicação como fallback
       const uniqueReports = deduplicateReports(data || []);
       setRelatoriosPrefeito(uniqueReports);
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error('❌ [ERROR] Erro inesperado ao buscar relatórios do Prefeito:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao carregar relatórios",
