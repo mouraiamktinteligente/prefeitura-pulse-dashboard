@@ -98,7 +98,7 @@ const DetailedDashboard = () => {
           </div>
         )}
         {/* Metrics Cards */}
-        {metricsLoading ? (
+        {metricsLoading || postsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, index) => (
               <div key={index} className="bg-blue-700 rounded-lg p-6 animate-pulse">
@@ -114,6 +114,7 @@ const DetailedDashboard = () => {
             positiveComments={combinedMetrics.positiveComments}
             negativeComments={combinedMetrics.negativeComments}
             neutralComments={combinedMetrics.neutralComments}
+            totalPostsMonitorados={totalPostsMonitorados}
             isDualProfile={true}
           />
         )}

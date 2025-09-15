@@ -1255,6 +1255,26 @@ export type Database = {
         }
         Relationships: []
       }
+      "Resumo Posts Monitorados Por Cliente": {
+        Row: {
+          cliente: string | null
+          comentarios_negativos: number | null
+          comentarios_neutros: number | null
+          comentarios_positivos: number | null
+          media_likes_por_comentario: number | null
+          nome_completo: string | null
+          perfil_monitorado: string | null
+          perfil_prefeito: string | null
+          perfil_prefeitura: string | null
+          primeira_coleta: string | null
+          status_monitoramento: string | null
+          tipo_perfil: string | null
+          total_comentarios_coletados: number | null
+          total_posts_monitorados: number | null
+          ultima_coleta: string | null
+        }
+        Relationships: []
+      }
       resumo_diario_comments: {
         Row: {
           classificacao_volume: string | null
@@ -1390,6 +1410,12 @@ export type Database = {
       authenticate_user_secure: {
         Args: { p_email: string }
         Returns: boolean
+      }
+      buscar_posts_monitorados: {
+        Args: { perfis: string[] }
+        Returns: {
+          total_posts: number
+        }[]
       }
       exemplo_hora: {
         Args: Record<PropertyKey, never>

@@ -27,10 +27,10 @@ export const usePostsMonitorados = (prefeitoProfile?: string, prefeituraProfile?
       
       console.log('usePostsMonitorados - Buscando dados para perfis:', profiles);
       
-      // Usar query SQL direta pois a tabela não está tipada
+      // Usar a função RPC que criamos
       const { data, error } = await supabase.rpc('buscar_posts_monitorados', {
         perfis: profiles
-      }).single();
+      });
 
       if (error) {
         console.error('Erro ao buscar posts monitorados:', error);
@@ -42,10 +42,10 @@ export const usePostsMonitorados = (prefeitoProfile?: string, prefeituraProfile?
         return;
       }
 
-      // Somar todos os posts monitorados encontrados
-      const totalPosts = data?.reduce((total, item) => {
-        return total + (item.total_posts_monitorados || 0);
-      }, 0) || 0;
+      console.log('usePostsMonitorados - Dados retornados:', data);
+      
+      // A função retorna um array de objetos com total_posts
+      const totalPosts = data?.[0]?.total_posts || 0;
 
       console.log('usePostsMonitorados - Total de posts encontrados:', totalPosts);
       
