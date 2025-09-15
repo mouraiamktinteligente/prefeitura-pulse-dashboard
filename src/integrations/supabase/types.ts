@@ -391,6 +391,36 @@ export type Database = {
           },
         ]
       }
+      debug_relatorios_acesso: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          link_acessado: string | null
+          metadata: Json | null
+          profile: string | null
+          tabela_origem: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          link_acessado?: string | null
+          metadata?: Json | null
+          profile?: string | null
+          tabela_origem?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          link_acessado?: string | null
+          metadata?: Json | null
+          profile?: string | null
+          tabela_origem?: string | null
+        }
+        Relationships: []
+      }
       documentos_analisados: {
         Row: {
           cliente_id: string
@@ -1432,6 +1462,17 @@ export type Database = {
       renovar_sessao: {
         Args: { p_session_token: string; p_user_email: string }
         Returns: boolean
+      }
+      verificar_consistencia_links_relatorios: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          description: string
+          id: number
+          issue_type: string
+          link_relatorio: string
+          profile: string
+          tabela: string
+        }[]
       }
       verificar_sessoes_multiplas_ip: {
         Args: { p_ip_address: string }

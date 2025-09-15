@@ -638,7 +638,13 @@ export const useRelatoriosAnalise = () => {
 
   // Função genérica para download
   const downloadRelatorio = async (relatorio: { link_relatorio: string | null }) => {
+    console.log('🔍 [DEBUG] downloadRelatorio chamado:', {
+      linkRelatorio: relatorio.link_relatorio?.substring(0, 50) + '...',
+      timestamp: new Date().toISOString()
+    });
+    
     if (!relatorio.link_relatorio) {
+      console.warn('❌ [WARN] Link de relatório não disponível');
       toast({
         title: "Erro",
         description: "Link de relatório não disponível",
@@ -648,9 +654,26 @@ export const useRelatoriosAnalise = () => {
     }
 
     try {
+      // Log no banco para auditoria
+      await supabase.from('debug_relatorios_acesso').insert({
+        action: 'DOWNLOAD_RELATORIO',
+        profile: 'N/A', // Perfil específico será adicionado quando disponível
+        tabela_origem: 'GENERIC_DOWNLOAD', 
+        link_acessado: relatorio.link_relatorio,
+        metadata: {
+          user_agent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (logError) {
+      console.warn('⚠️ [WARN] Erro ao registrar log de debug:', logError);
+    }
+
+    try {
+      console.log('✅ [DEBUG] Abrindo link:', relatorio.link_relatorio);
       window.open(relatorio.link_relatorio, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error('Erro ao abrir relatório:', error);
+      console.error('❌ [ERROR] Erro ao abrir relatório:', error);
       toast({
         title: "Erro",
         description: "Erro ao abrir relatório",
