@@ -7,6 +7,7 @@ interface MetricsCardsProps {
   positiveComments?: number;
   negativeComments?: number;
   neutralComments?: number;
+  totalPostsMonitorados?: number;
   isDualProfile?: boolean; // Indica se são dados combinados de prefeito + prefeitura
 }
 
@@ -15,6 +16,7 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
   positiveComments = 0,
   negativeComments = 0,
   neutralComments = 0,
+  totalPostsMonitorados = 0,
   isDualProfile = false
 }) => {
   // Calcula o sentimento médio usando a fórmula corrigida
@@ -98,9 +100,9 @@ export const MetricsCards: React.FC<MetricsCardsProps> = ({
       color: getSentimentColor(averageSentiment)
     },
     {
-      title: 'Postagens Hoje',
-      value: '24',
-      period: 'publicações',
+      title: 'Postagens Monitoradas',
+      value: totalPostsMonitorados.toString(),
+      period: isDualProfile ? 'posts combinados' : 'posts monitorados',
       icon: Calendar,
       color: 'text-orange-400'
     },

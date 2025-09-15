@@ -14,6 +14,7 @@ import { CrisisTimeline } from '../components/CrisisTimeline';
 import { InstagramLatestPost } from '../components/InstagramLatestPost';
 import { useClients } from '@/hooks/useClients';
 import { useDualMetrics } from '@/hooks/useDualMetrics';
+import { usePostsMonitorados } from '@/hooks/usePostsMonitorados';
 
 const DetailedDashboard = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -39,6 +40,12 @@ const DetailedDashboard = () => {
   
   // Use dual metrics para combinar dados do prefeito e prefeitura
   const { metrics: dualMetrics, loading: metricsLoading } = useDualMetrics(
+    selectedClient?.instagram_prefeito || undefined,
+    selectedClient?.instagram_prefeitura || undefined
+  );
+  
+  // Buscar dados de posts monitorados
+  const { totalPostsMonitorados, loading: postsLoading } = usePostsMonitorados(
     selectedClient?.instagram_prefeito || undefined,
     selectedClient?.instagram_prefeitura || undefined
   );
