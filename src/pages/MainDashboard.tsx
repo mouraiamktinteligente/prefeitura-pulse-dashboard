@@ -105,7 +105,7 @@ const MainDashboard = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 justify-items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6 justify-items-center">
               {clients.map((client) => (
                 <PhoneMockup
                   key={client.id}
