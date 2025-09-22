@@ -19,6 +19,7 @@ export type Database = {
           assunto: string | null
           created_at: string
           id: number
+          link_materia: string | null
           nivel: string | null
           profile_prefeito: string | null
           profile_prefeitura: string | null
@@ -28,6 +29,7 @@ export type Database = {
           assunto?: string | null
           created_at?: string
           id?: number
+          link_materia?: string | null
           nivel?: string | null
           profile_prefeito?: string | null
           profile_prefeitura?: string | null
@@ -37,6 +39,7 @@ export type Database = {
           assunto?: string | null
           created_at?: string
           id?: number
+          link_materia?: string | null
           nivel?: string | null
           profile_prefeito?: string | null
           profile_prefeitura?: string | null
@@ -498,6 +501,7 @@ export type Database = {
           link_publico_imagem: string | null
           post_url: string | null
           profile: string | null
+          profile_prefeito: string | null
           updated_at: string
         }
         Insert: {
@@ -511,6 +515,7 @@ export type Database = {
           link_publico_imagem?: string | null
           post_url?: string | null
           profile?: string | null
+          profile_prefeito?: string | null
           updated_at?: string
         }
         Update: {
@@ -524,7 +529,29 @@ export type Database = {
           link_publico_imagem?: string | null
           post_url?: string | null
           profile?: string | null
+          profile_prefeito?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      linkweb_monitoramento_cliente: {
+        Row: {
+          created_at: string
+          id: number
+          link: string | null
+          profile_prefeitura: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          link?: string | null
+          profile_prefeitura?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          link?: string | null
+          profile_prefeitura?: string | null
         }
         Relationships: []
       }
