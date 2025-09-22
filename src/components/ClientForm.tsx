@@ -24,6 +24,18 @@ interface ClientFormProps {
 
 export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
   const [monitoredLinks, setMonitoredLinks] = useState<string[]>([]);
+  
+  console.log('ClientForm render, monitoredLinks:', monitoredLinks);
+  
+  // Debug: Track changes to monitored links
+  useEffect(() => {
+    console.log('MonitoredLinks changed in ClientForm:', monitoredLinks);
+  }, [monitoredLinks]);
+
+  const handleMonitoredLinksChange = (newLinks: string[]) => {
+    console.log('handleMonitoredLinksChange called with:', newLinks);
+    setMonitoredLinks(newLinks);
+  };
   const [formData, setFormData] = useState({
     tipo_pessoa: client?.tipo_pessoa || 'fisica' as const,
     nome_completo: client?.nome_completo || '',
@@ -53,7 +65,9 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
   useEffect(() => {
     const loadMonitoredLinks = async () => {
       if (client?.instagram_prefeitura) {
+        console.log('Loading monitored links for:', client.instagram_prefeitura);
         const existingLinks = await getMonitoredLinks(client.instagram_prefeitura);
+        console.log('Existing links loaded:', existingLinks);
         setMonitoredLinks(existingLinks);
       }
     };
@@ -200,7 +214,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
 
           <MonitoredLinksFields
             links={monitoredLinks}
-            onLinksChange={setMonitoredLinks}
+            onLinksChange={handleMonitoredLinksChange}
             variant="dark"
           />
 

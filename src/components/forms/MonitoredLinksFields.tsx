@@ -30,6 +30,8 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
   };
 
   const handleAddLink = () => {
+    console.log('handleAddLink called, current links:', links);
+    
     if (!currentLink.trim()) {
       toast({
         title: "Erro",
@@ -61,7 +63,9 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
       return;
     }
 
-    onLinksChange([...links, linkToAdd]);
+    const newLinks = [...links, linkToAdd];
+    console.log('Adding link:', linkToAdd, 'New links array:', newLinks);
+    onLinksChange(newLinks);
     setCurrentLink('');
     
     toast({
@@ -87,9 +91,13 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
     }
   };
 
+  // Debug: Always show the links section to test rendering
+  const showLinksSection = true; // Temporary for debugging
+
   return (
     <div className="space-y-4">
       <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : ''}`}>Link dos sites monitorados</h3>
+      <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Debug: {links.length} links no array</p>
       
       <div className="flex gap-2">
         <div className="flex-1">
@@ -116,44 +124,48 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
         </div>
       </div>
 
-      {links.length > 0 && (
+      {showLinksSection && (
         <div className="space-y-2">
           <Label className={labelClasses}>Links salvos ({links.length})</Label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {links.map((link, index) => (
-              <div
-                key={index}
-                className={`flex items-center justify-between p-3 rounded-md border ${
-                  isDark 
-                    ? 'bg-slate-700 border-slate-600' 
-                    : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <LinkIcon className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                  <span className={`text-sm truncate ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                    {link}
-                  </span>
-                  <Badge variant="secondary" className="text-xs flex-shrink-0">
-                    #{index + 1}
-                  </Badge>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveLink(index)}
-                  className={`ml-2 flex-shrink-0 ${
+          {links.length === 0 ? (
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Nenhum link adicionado ainda</p>
+          ) : (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {links.map((link, index) => (
+                <div
+                  key={`link-${index}-${link}`}
+                  className={`flex items-center justify-between p-3 rounded-md border ${
                     isDark 
-                      ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300' 
-                      : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                      ? 'bg-slate-700 border-slate-600' 
+                      : 'bg-gray-50 border-gray-200'
                   }`}
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <LinkIcon className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <span className={`text-sm truncate ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {link}
+                    </span>
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                      #{index + 1}
+                    </Badge>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveLink(index)}
+                    className={`ml-2 flex-shrink-0 ${
+                      isDark 
+                        ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300' 
+                        : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                    }`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
