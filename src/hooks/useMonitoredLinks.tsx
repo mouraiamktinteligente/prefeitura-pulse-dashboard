@@ -1,10 +1,11 @@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCallback } from 'react';
 
 export const useMonitoredLinks = () => {
   const { toast } = useToast();
 
-  const getMonitoredLinks = async (profilePrefeitura: string) => {
+  const getMonitoredLinks = useCallback(async (profilePrefeitura: string) => {
     try {
       const { data, error } = await supabase
         .from('linkweb_monitoramento_cliente' as any)
@@ -22,9 +23,9 @@ export const useMonitoredLinks = () => {
       console.error('Erro inesperado ao buscar links:', error);
       return [];
     }
-  };
+  }, []);
 
-  const saveMonitoredLinks = async (links: string[], profilePrefeitura: string) => {
+  const saveMonitoredLinks = useCallback(async (links: string[], profilePrefeitura: string) => {
     try {
       // Primeiro, deletar todos os links existentes para este perfil
       const { error: deleteError } = await supabase
@@ -65,9 +66,9 @@ export const useMonitoredLinks = () => {
       console.error('Erro inesperado ao salvar links:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const deleteAllMonitoredLinks = async (profilePrefeitura: string) => {
+  const deleteAllMonitoredLinks = useCallback(async (profilePrefeitura: string) => {
     try {
       const { error } = await supabase
         .from('linkweb_monitoramento_cliente' as any)
@@ -84,7 +85,7 @@ export const useMonitoredLinks = () => {
       console.error('Erro inesperado ao deletar links:', error);
       throw error;
     }
-  };
+  }, []);
 
   return {
     getMonitoredLinks,

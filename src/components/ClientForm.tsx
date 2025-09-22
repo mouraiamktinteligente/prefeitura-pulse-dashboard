@@ -61,19 +61,22 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
   const { toast } = useToast();
   const { getMonitoredLinks } = useMonitoredLinks();
 
-  // Carregar links monitorados quando editando um cliente
+  // Carregar links monitorados ao iniciar edição sem sobrescrever alterações locais
   useEffect(() => {
+    let active = true;
     const loadMonitoredLinks = async () => {
       if (client?.instagram_prefeitura) {
         console.log('Loading monitored links for:', client.instagram_prefeitura);
         const existingLinks = await getMonitoredLinks(client.instagram_prefeitura);
+        if (!active) return;
         console.log('Existing links loaded:', existingLinks);
-        setMonitoredLinks(existingLinks);
+        setMonitoredLinks(prev => (prev.length === 0 ? existingLinks : prev));
       }
     };
-
     loadMonitoredLinks();
-  }, [client?.instagram_prefeitura, getMonitoredLinks]);
+    return () => { active = false; };
+    // Executa apenas quando trocar de cliente
+  }, [client?.id, client?.instagram_prefeitura]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

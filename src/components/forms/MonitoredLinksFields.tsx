@@ -84,7 +84,7 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
     });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddLink();
@@ -106,7 +106,7 @@ export const MonitoredLinksFields = ({ links, onLinksChange, variant = 'default'
             id="monitored_link"
             value={currentLink}
             onChange={(e) => setCurrentLink(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Digite o link do site (ex: www.exemplo.com)"
             className={inputClasses}
           />

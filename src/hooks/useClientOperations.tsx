@@ -41,6 +41,11 @@ export const useClientOperations = () => {
           console.log(`${monitoredLinks.length} links monitorados salvos para ${data.instagram_prefeitura}`);
         } catch (linkError) {
           console.error('Erro ao salvar links monitorados:', linkError);
+          toast({
+            title: "Links não foram salvos",
+            description: "Falha ao salvar links monitorados. Tente novamente na edição.",
+            variant: "destructive"
+          });
           // Não falha a criação do cliente por erro nos links
         }
       }
@@ -103,6 +108,11 @@ export const useClientOperations = () => {
           console.log(`Links monitorados atualizados para ${data.instagram_prefeitura}`);
         } catch (linkError) {
           console.error('Erro ao atualizar links monitorados:', linkError);
+          toast({
+            title: "Erro ao salvar links",
+            description: "Não foi possível salvar os links monitorados.",
+            variant: "destructive"
+          });
           // Não falha a atualização do cliente por erro nos links
         }
       }
