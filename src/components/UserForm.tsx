@@ -24,7 +24,7 @@ const defaultPermissions = {
   acesso_dashboard: false,
   acesso_clientes: false,
   acesso_relatorios: false,
-  acesso_financeiro: false,
+  acesso_marketing: false,
   acesso_usuarios: false,
   acesso_logs: false
 };
