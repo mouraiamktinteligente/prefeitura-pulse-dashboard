@@ -4,14 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useMovimentacoes } from '@/hooks/useMovimentacoes';
 import { useAuth } from '@/contexts/auth';
+import { useMonitoredLinks } from '@/hooks/useMonitoredLinks';
 import type { Cliente, ClienteInsert, ClienteUpdate } from './useClients';
 
 export const useClientOperations = () => {
   const { toast } = useToast();
   const { registrarMovimentacao } = useMovimentacoes();
   const { user } = useAuth();
+  const { saveMonitoredLinks } = useMonitoredLinks();
 
-  const createClient = async (clientData: ClienteInsert) => {
+  const createClient = async (clientData: ClienteInsert, monitoredLinks: string[] = []) => {
     try {
       console.log('Criando cliente:', clientData);
       const { data, error } = await supabase
@@ -31,6 +33,17 @@ export const useClientOperations = () => {
       }
 
       console.log('Cliente criado:', data);
+      
+      // Salvar links monitorados se há instagram_prefeitura e links
+      if (data.instagram_prefeitura && monitoredLinks.length > 0) {
+        try {
+          await saveMonitoredLinks(monitoredLinks, data.instagram_prefeitura);
+          console.log(`${monitoredLinks.length} links monitorados salvos para ${data.instagram_prefeitura}`);
+        } catch (linkError) {
+          console.error('Erro ao salvar links monitorados:', linkError);
+          // Não falha a criação do cliente por erro nos links
+        }
+      }
       
       // Registrar movimentação
       await registrarMovimentacao(
@@ -53,7 +66,7 @@ export const useClientOperations = () => {
     }
   };
 
-  const updateClient = async (id: string, clientData: ClienteUpdate) => {
+  const updateClient = async (id: string, clientData: ClienteUpdate, monitoredLinks: string[] = []) => {
     try {
       console.log('Atualizando cliente:', id, clientData);
       
@@ -82,6 +95,17 @@ export const useClientOperations = () => {
       }
 
       console.log('Cliente atualizado:', data);
+      
+      // Atualizar links monitorados se há instagram_prefeitura
+      if (data.instagram_prefeitura) {
+        try {
+          await saveMonitoredLinks(monitoredLinks, data.instagram_prefeitura);
+          console.log(`Links monitorados atualizados para ${data.instagram_prefeitura}`);
+        } catch (linkError) {
+          console.error('Erro ao atualizar links monitorados:', linkError);
+          // Não falha a atualização do cliente por erro nos links
+        }
+      }
       
       // Registrar movimentação
       await registrarMovimentacao(

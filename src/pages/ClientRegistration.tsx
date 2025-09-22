@@ -30,14 +30,14 @@ const ClientRegistration = () => {
     return matchesSearch;
   });
 
-  const handleCreateClient = async (clientData: ClienteInsert) => {
-    await createClient(clientData);
+  const handleCreateClient = async (clientData: ClienteInsert, monitoredLinks: string[] = []) => {
+    await createClient(clientData, monitoredLinks);
     setIsFormOpen(false);
   };
 
-  const handleUpdateClient = async (clientData: ClienteInsert) => {
+  const handleUpdateClient = async (clientData: ClienteInsert, monitoredLinks: string[] = []) => {
     if (selectedClient) {
-      await updateClient(selectedClient.id, clientData);
+      await updateClient(selectedClient.id, clientData, monitoredLinks);
       setSelectedClient(null);
       setIsFormOpen(false);
     }

@@ -15,14 +15,14 @@ export const useClients = () => {
   const { createClient: createClientOp, updateClient: updateClientOp, deleteClient: deleteClientOp } = useClientOperations();
   const hasCalledRef = useRef(false);
 
-  const createClient = async (clientData: ClienteInsert) => {
-    const data = await createClientOp(clientData);
+  const createClient = async (clientData: ClienteInsert, monitoredLinks: string[] = []) => {
+    const data = await createClientOp(clientData, monitoredLinks);
     setClients(prev => [data, ...prev]);
     return data;
   };
 
-  const updateClient = async (id: string, clientData: ClienteUpdate) => {
-    const data = await updateClientOp(id, clientData);
+  const updateClient = async (id: string, clientData: ClienteUpdate, monitoredLinks: string[] = []) => {
+    const data = await updateClientOp(id, clientData, monitoredLinks);
     setClients(prev => prev.map(client => client.id === id ? data : client));
     return data;
   };

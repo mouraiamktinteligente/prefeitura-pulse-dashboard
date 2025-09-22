@@ -8,18 +8,22 @@ import { Building, User } from "lucide-react";
 import { validateCPF, validateCNPJ } from "@/utils/validation";
 import { Cliente, ClienteInsert } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
+import { useMonitoredLinks } from "@/hooks/useMonitoredLinks";
+import { useEffect } from 'react';
 import { PersonTypeSelector } from "./forms/PersonTypeSelector";
 import { BasicInfoFields } from "./forms/BasicInfoFields";
 import { ContactFields } from "./forms/ContactFields";
 import { AddressFields } from "./forms/AddressFields";
+import { MonitoredLinksFields } from "./forms/MonitoredLinksFields";
 
 interface ClientFormProps {
   client?: Cliente;
-  onSubmit: (clientData: ClienteInsert) => Promise<void>;
+  onSubmit: (clientData: ClienteInsert, monitoredLinks: string[]) => Promise<void>;
   onCancel: () => void;
 }
 
 export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
+  const [monitoredLinks, setMonitoredLinks] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     tipo_pessoa: client?.tipo_pessoa || 'fisica' as const,
     nome_completo: client?.nome_completo || '',
@@ -43,6 +47,19 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { getMonitoredLinks } = useMonitoredLinks();
+
+  // Carregar links monitorados quando editando um cliente
+  useEffect(() => {
+    const loadMonitoredLinks = async () => {
+      if (client?.instagram_prefeitura) {
+        const existingLinks = await getMonitoredLinks(client.instagram_prefeitura);
+        setMonitoredLinks(existingLinks);
+      }
+    };
+
+    loadMonitoredLinks();
+  }, [client?.instagram_prefeitura, getMonitoredLinks]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +105,7 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
         ativo: formData.ativo
       };
       
-      await onSubmit(submitData);
+      await onSubmit(submitData, monitoredLinks);
     } catch (error) {
       // Erro já tratado no hook
     } finally {
@@ -178,6 +195,12 @@ export const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
               estado: formData.endereco_estado
             }}
             onEnderecoChange={(field, value) => setFormData(prev => ({ ...prev, [`endereco_${field}`]: value }))}
+            variant="dark"
+          />
+
+          <MonitoredLinksFields
+            links={monitoredLinks}
+            onLinksChange={setMonitoredLinks}
             variant="dark"
           />
 
