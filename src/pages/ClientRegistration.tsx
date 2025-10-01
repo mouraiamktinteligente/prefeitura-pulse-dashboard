@@ -18,6 +18,7 @@ const ClientRegistration = () => {
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   const filteredClients = clients.filter(client => {
@@ -44,7 +45,14 @@ const ClientRegistration = () => {
   };
 
   const handleDeleteClient = async (clientId: string) => {
-    await deleteClient(clientId);
+    try {
+      setIsDeleting(true);
+      await deleteClient(clientId);
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const formatDocument = (document: string, type: string) => {
@@ -192,7 +200,6 @@ const ClientRegistration = () => {
                                     size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      e.preventDefault();
                                     }}
                                     className="border-red-600 text-red-400 hover:bg-red-700/50"
                                   >
@@ -210,14 +217,11 @@ const ClientRegistration = () => {
                                  <AlertDialogFooter>
                                    <AlertDialogCancel className="bg-blue-700 text-white hover:bg-blue-600">Cancelar</AlertDialogCancel>
                                    <AlertDialogAction
-                                     onClick={(e) => {
-                                       e.stopPropagation();
-                                       e.preventDefault();
-                                       handleDeleteClient(client.id);
-                                     }}
+                                     onClick={() => handleDeleteClient(client.id)}
+                                     disabled={isDeleting}
                                      className="bg-red-600 hover:bg-red-700"
                                    >
-                                     Excluir
+                                     {isDeleting ? 'Excluindo...' : 'Excluir'}
                                    </AlertDialogAction>
                                  </AlertDialogFooter>
                               </AlertDialogContent>
