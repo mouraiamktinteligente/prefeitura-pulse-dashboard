@@ -444,7 +444,7 @@ const ClientDetails = () => {
                     {/* Instagram Prefeitura */}
                     {relatoriosInstagram.filter(r => r.profile === client?.instagram_prefeitura).length > 0 && (
                       <div className="space-y-3">
-                        <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2 ml-4">
+                        <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2">
                           <Badge variant="secondary" className="bg-pink-900/20 text-pink-300 border-pink-700">
                             Prefeitura
                           </Badge>
@@ -454,7 +454,7 @@ const ClientDetails = () => {
                           .map((relatorio) => (
                             <div
                               key={relatorio.id}
-                              className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors ml-4"
+                              className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
                             >
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3">
@@ -552,7 +552,7 @@ const ClientDetails = () => {
                     {/* Instagram Prefeito */}
                     {relatoriosPrefeito.filter(r => r.profile === client?.instagram_prefeito).length > 0 && (
                       <div className="space-y-3">
-                        <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2 ml-4">
+                        <h5 className="text-md font-medium text-slate-300 flex items-center space-x-2">
                           <Badge variant="secondary" className="bg-blue-900/20 text-blue-300 border-blue-700">
                             Prefeito
                           </Badge>
@@ -562,7 +562,7 @@ const ClientDetails = () => {
                           .map((relatorio) => (
                             <div
                               key={relatorio.id}
-                              className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors ml-4"
+                              className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
                             >
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3">
