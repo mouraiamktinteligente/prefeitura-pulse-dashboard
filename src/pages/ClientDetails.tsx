@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useClients } from '@/hooks/useClients';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
@@ -52,7 +53,30 @@ const ClientDetails = () => {
   } = useRelatoriosAnalise();
   const { toast } = useToast();
 
+  // Estados para filtro de data
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+
   const client = clients.find(c => c.id === clientId);
+
+  const months = [
+    { value: 1, label: 'Janeiro' },
+    { value: 2, label: 'Fevereiro' },
+    { value: 3, label: 'Março' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Maio' },
+    { value: 6, label: 'Junho' },
+    { value: 7, label: 'Julho' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Setembro' },
+    { value: 10, label: 'Outubro' },
+    { value: 11, label: 'Novembro' },
+    { value: 12, label: 'Dezembro' }
+  ];
+
+  // Gerar anos disponíveis (2020 até ano atual)
+  const years = Array.from({ length: currentDate.getFullYear() - 2019 }, (_, i) => 2020 + i);
 
   useEffect(() => {
     if (clientId) {
@@ -63,22 +87,23 @@ const ClientDetails = () => {
   useEffect(() => {
     if (client?.instagram_prefeitura || client?.instagram_prefeito) {
       const profiles = [client.instagram_prefeitura, client.instagram_prefeito].filter(Boolean);
+      const dateFilter = { month: selectedMonth, year: selectedYear };
       
       if (profiles.length > 0) {
-        fetchRelatoriosInstagram(profiles);
-        fetchRelatoriosWeb(profiles);
+        fetchRelatoriosInstagram(profiles, dateFilter);
+        fetchRelatoriosWeb(profiles, dateFilter);
         
         // For Mayor reports, try both profiles
         if (client.instagram_prefeito) {
-          fetchRelatoriosPrefeito(client.instagram_prefeito);
-          fetchRelatoriosQualitativo(client.instagram_prefeito);
+          fetchRelatoriosPrefeito(client.instagram_prefeito, dateFilter);
+          fetchRelatoriosQualitativo(client.instagram_prefeito, dateFilter);
         } else if (client.instagram_prefeitura) {
-          fetchRelatoriosPrefeito(client.instagram_prefeitura);
-          fetchRelatoriosQualitativo(client.instagram_prefeitura);
+          fetchRelatoriosPrefeito(client.instagram_prefeitura, dateFilter);
+          fetchRelatoriosQualitativo(client.instagram_prefeitura, dateFilter);
         }
       }
     }
-  }, [client?.instagram_prefeitura, client?.instagram_prefeito]);
+  }, [client?.instagram_prefeitura, client?.instagram_prefeito, selectedMonth, selectedYear]);
 
 
   const formatDocument = (document: string, type: string): string => {
@@ -408,9 +433,48 @@ const ClientDetails = () => {
         {/* Relatórios de Análises de Sentimento */}
         <Card className="bg-slate-900/50 border-slate-700/50 mt-8">
           <CardHeader>
-            <CardTitle className="text-slate-200">
-              Relatórios de Análises de Sentimento
-            </CardTitle>
+            <div className="flex flex-col space-y-4">
+              <CardTitle className="text-slate-200">
+                Relatórios de Análises de Sentimento
+              </CardTitle>
+              
+              {/* Filtro de Data */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400">Filtrar por período:</span>
+                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                    <SelectTrigger className="w-[140px] bg-slate-800 border-slate-700 text-slate-200">
+                      <SelectValue placeholder="Mês" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value.toString()} className="text-slate-200">
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-[100px] bg-slate-800 border-slate-700 text-slate-200">
+                      <SelectValue placeholder="Ano" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()} className="text-slate-200">
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="text-sm text-slate-500">
+                  Mostrando relatórios de {months.find(m => m.value === selectedMonth)?.label}/{selectedYear}
+                  {' '}({relatoriosInstagram.length + relatoriosPrefeito.length + relatoriosWeb.length + relatoriosQualitativo.length} encontrados)
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {!client?.instagram_prefeitura && !client?.instagram_prefeito ? (

@@ -179,7 +179,7 @@ export const useRelatoriosAnalise = () => {
     };
   }, [toast]);
 
-  const fetchRelatoriosInstagram = async (instagramProfile?: string | string[]) => {
+  const fetchRelatoriosInstagram = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
     if (!instagramProfile) return;
     
     const profiles = Array.isArray(instagramProfile) ? instagramProfile : [instagramProfile];
@@ -191,12 +191,24 @@ export const useRelatoriosAnalise = () => {
     try {
       console.log('🔍 [DEBUG] Buscando relatórios Instagram para perfis:', validProfiles);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('relatorio_analise_instagram')
         .select('*')
         .in('profile', validProfiles)
-        .or('link_relatorio.not.is.null,link_analise.not.is.null')
-        .order('created_at', { ascending: false });
+        .or('link_relatorio.not.is.null,link_analise.not.is.null');
+
+      // Aplicar filtro de data se fornecido
+      if (dateFilter) {
+        const { month, year } = dateFilter;
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        
+        query = query.gte('created_at', startDate).lt('created_at', endDate);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ [ERROR] Erro ao buscar relatórios do Instagram:', error);
@@ -339,7 +351,7 @@ export const useRelatoriosAnalise = () => {
   };
 
   // Funções para Relatório de Análise do Prefeito
-  const fetchRelatoriosPrefeito = async (instagramProfile?: string) => {
+  const fetchRelatoriosPrefeito = async (instagramProfile?: string, dateFilter?: { month: number, year: number }) => {
     console.log('🔍 [DEBUG] fetchRelatoriosPrefeito chamado com profile:', instagramProfile);
     if (!instagramProfile) {
       console.log('🔍 [DEBUG] profile não fornecido, saindo...');
@@ -349,12 +361,24 @@ export const useRelatoriosAnalise = () => {
     setLoading(true);
     try {
       console.log('🔍 [DEBUG] Fazendo query na tabela relatorio_analise_prefeito...');
-      const { data, error } = await supabase
+      let query = supabase
         .from('relatorio_analise_prefeito')
         .select('*')
         .eq('profile', instagramProfile)
-        .not('link_relatorio', 'is', null)
-        .order('created_at', { ascending: false });
+        .not('link_relatorio', 'is', null);
+
+      // Aplicar filtro de data se fornecido
+      if (dateFilter) {
+        const { month, year } = dateFilter;
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        
+        query = query.gte('created_at', startDate).lt('created_at', endDate);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       console.log('📊 [DEBUG] Resultado da query prefeito:', { 
         totalRegistros: data?.length || 0,
@@ -443,7 +467,7 @@ export const useRelatoriosAnalise = () => {
   };
 
   // Funções para Relatório de Análise Web
-  const fetchRelatoriosWeb = async (instagramProfile?: string | string[]) => {
+  const fetchRelatoriosWeb = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
     console.log('DEBUG: fetchRelatoriosWeb chamado com profile:', instagramProfile);
     if (!instagramProfile) {
       console.log('DEBUG: profile não fornecido, saindo...');
@@ -458,12 +482,24 @@ export const useRelatoriosAnalise = () => {
     setLoading(true);
     try {
       console.log('DEBUG: Fazendo query na tabela relatorio_analise_web...');
-      const { data, error } = await supabase
+      let query = supabase
         .from('relatorio_analise_web')
         .select('*')
         .in('profile', validProfiles)
-        .not('link_relatorio', 'is', null)
-        .order('created_at', { ascending: false });
+        .not('link_relatorio', 'is', null);
+
+      // Aplicar filtro de data se fornecido
+      if (dateFilter) {
+        const { month, year } = dateFilter;
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        
+        query = query.gte('created_at', startDate).lt('created_at', endDate);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       console.log('DEBUG: Resultado da query web:', { data, error });
 
@@ -543,7 +579,7 @@ export const useRelatoriosAnalise = () => {
   };
 
   // Funções para Relatório Qualitativo
-  const fetchRelatoriosQualitativo = async (instagramProfile?: string) => {
+  const fetchRelatoriosQualitativo = async (instagramProfile?: string, dateFilter?: { month: number, year: number }) => {
     console.log('DEBUG: fetchRelatoriosQualitativo chamado com profile:', instagramProfile);
     if (!instagramProfile) {
       console.log('DEBUG: profile não fornecido, saindo...');
@@ -553,11 +589,23 @@ export const useRelatoriosAnalise = () => {
     setLoading(true);
     try {
       console.log('DEBUG: Fazendo query na tabela relatorio_qualitativo...');
-      const { data, error } = await supabase
+      let query = supabase
         .from('relatorio_qualitativo')
         .select('*')
-        .eq('profile', instagramProfile)
-        .order('created_at', { ascending: false });
+        .eq('profile', instagramProfile);
+
+      // Aplicar filtro de data se fornecido
+      if (dateFilter) {
+        const { month, year } = dateFilter;
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        
+        query = query.gte('created_at', startDate).lt('created_at', endDate);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       console.log('DEBUG: Resultado da query qualitativo:', { data, error });
 
