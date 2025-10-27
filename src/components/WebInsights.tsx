@@ -265,8 +265,8 @@ export const WebInsights = () => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            <span className="text-red-400 text-sm">Em construção</span>
             🔍 Insights Web
+            <span className="text-red-400 text-sm">Em construção</span>
           </CardTitle>
           {totalCriticos > 0 && (
             <Badge className="bg-red-500 text-white text-xs animate-pulse">
