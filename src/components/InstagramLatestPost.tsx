@@ -92,14 +92,14 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
   }
 
   return (
-    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 h-[600px]">
+    <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 min-h-[600px]">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
           <Instagram className="w-5 h-5 text-pink-400" />
           Última Postagem no Instagram
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 py-2 h-[520px] overflow-hidden">
+      <CardContent className="px-4 py-2 max-h-[520px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-700/20">
         <div className="rounded-lg overflow-hidden h-full flex flex-col">
 
           {/* Post Image */}
@@ -152,7 +152,7 @@ export const InstagramLatestPost: React.FC<InstagramLatestPostProps> = ({ profil
             {latestPost.description && (
               <div className="text-white text-sm">
                 <span className="font-semibold">@{username}</span>
-                <span className="ml-1 line-clamp-2">
+                <span className="ml-1">
                   {latestPost.description}
                 </span>
               </div>
