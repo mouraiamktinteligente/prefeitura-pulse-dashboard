@@ -15,7 +15,7 @@ export const CommentsRanking = ({ profile }: { profile?: string }) => {
       <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            🏆 Ranking de Comentários
+            🏆 Ranking de Comentários do Instagram
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -30,7 +30,7 @@ export const CommentsRanking = ({ profile }: { profile?: string }) => {
       <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            🏆 Ranking de Comentários
+            🏆 Ranking de Comentários do Instagram
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -78,7 +78,7 @@ export const CommentsRanking = ({ profile }: { profile?: string }) => {
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-          🏆 Ranking de Comentários
+          🏆 Ranking de Comentários do Instagram
         </CardTitle>
       </CardHeader>
       <CardContent>
