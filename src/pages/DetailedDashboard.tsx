@@ -10,7 +10,7 @@ import { SatisfactionThermometer } from '../components/SatisfactionThermometer';
 import { EngagementChart } from '../components/EngagementChart';
 import { MaliciousComments } from '../components/MaliciousComments';
 import { CommentsRanking } from '../components/CommentsRanking';
-import { CrisisTimeline } from '../components/CrisisTimeline';
+import { WebInsights } from '../components/WebInsights';
 import { InstagramLatestPost } from '../components/InstagramLatestPost';
 import { useClients } from '@/hooks/useClients';
 import { useDualMetrics } from '@/hooks/useDualMetrics';
@@ -136,7 +136,7 @@ const DetailedDashboard = () => {
           {/* Right Column */}
           <div className="space-y-6">
             <MaliciousComments profile={selectedClient?.instagram_prefeitura} />
-            <CrisisTimeline />
+            <WebInsights />
           </div>
         </div>
         
