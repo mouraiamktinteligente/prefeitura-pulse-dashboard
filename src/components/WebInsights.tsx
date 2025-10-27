@@ -264,10 +264,12 @@ export const WebInsights = () => {
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 min-h-[600px]">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-            🔍 Insights Web
-            <span className="text-red-400 text-sm">Em construção</span>
-          </CardTitle>
+          <div>
+            <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+              🔍 Insights Web
+            </CardTitle>
+            <p className="text-red-400 text-xs mt-1">⚠️ Em construção</p>
+          </div>
           {totalCriticos > 0 && (
             <Badge className="bg-red-500 text-white text-xs animate-pulse">
               {totalCriticos} ALERTA{totalCriticos > 1 ? 'S' : ''}
