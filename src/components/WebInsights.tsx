@@ -266,7 +266,7 @@ export const WebInsights = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-              🔍 Insights Web
+              🔍 Alertas Web
             </CardTitle>
             <p className="text-red-400 text-xs mt-1">⚠️ Em construção</p>
           </div>
@@ -282,7 +282,7 @@ export const WebInsights = () => {
       <CardContent className="max-h-[520px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-700/20 px-4">
         {/* Web Section */}
         <InsightSection 
-          titulo="Insights Web"
+          titulo="Alertas Web"
           icon={Globe}
           insights={webInsights}
           corIcone="text-cyan-400"
