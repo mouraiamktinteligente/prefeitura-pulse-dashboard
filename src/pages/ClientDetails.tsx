@@ -669,6 +669,18 @@ const ClientDetails = () => {
                                   </Button>
                                 )}
                                 
+                                {relatorio.link_analise && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => window.open(relatorio.link_analise, '_blank')}
+                                    className="flex items-center space-x-1 border-blue-600/50 hover:bg-blue-700/20 text-blue-400 hover:text-blue-300"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                    <span>Baixar Análise</span>
+                                  </Button>
+                                )}
+                                
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button

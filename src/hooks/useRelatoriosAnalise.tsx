@@ -17,6 +17,7 @@ interface RelatorioAnalisePrefeito {
   created_at: string;
   profile: string | null;
   link_relatorio: string | null;
+  link_analise: string | null;
   nome?: string;
   nome_documento?: string;
 }
@@ -403,7 +404,7 @@ export const useRelatoriosAnalise = () => {
 
       console.log('✅ [DEBUG] Dados encontrados para Prefeito:', data?.length || 0, 'itens');
       // Aplicar deduplicação como fallback
-      const uniqueReports = deduplicateReports(data || []);
+      const uniqueReports = deduplicateReports(data || []) as RelatorioAnalisePrefeito[];
       setRelatoriosPrefeito(uniqueReports);
     } catch (error) {
       console.error('❌ [ERROR] Erro inesperado ao buscar relatórios do Prefeito:', error);
