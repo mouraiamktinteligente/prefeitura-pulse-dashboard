@@ -17,7 +17,7 @@ interface WhatsappPorCidade {
   grupos: ResumoWhatsapp[];
 }
 
-export const useResumoWhatsapp = (dataSelecionada?: Date) => {
+export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: string) => {
   const [whatsappPorCidade, setWhatsappPorCidade] = useState<WhatsappPorCidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -67,12 +67,20 @@ export const useResumoWhatsapp = (dataSelecionada?: Date) => {
         const fimDia = new Date(dataFiltro);
         fimDia.setHours(23, 59, 59, 999);
         
-        const { data, error } = await supabase
+        // Query base
+        let query = supabase
           .from('resumo_whatsapp')
           .select('*')
           .gte('created_at', inicioDia.toISOString())
-          .lte('created_at', fimDia.toISOString())
-          .order('created_at', { ascending: false });
+          .lte('created_at', fimDia.toISOString());
+        
+        // Filtro por prefeitura se fornecido
+        if (prefeituraFiltro) {
+          const nomeCidadeTratado = extrairNomeCidade(prefeituraFiltro);
+          query = query.or(`prefeitura.ilike.%${nomeCidadeTratado}%,prefeitura.ilike.%${prefeituraFiltro}%`);
+        }
+        
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) {
           console.error('Erro ao buscar resumos WhatsApp:', error);
@@ -95,7 +103,7 @@ export const useResumoWhatsapp = (dataSelecionada?: Date) => {
     };
 
     fetchResumoWhatsapp();
-  }, [dataSelecionada]);
+  }, [dataSelecionada, prefeituraFiltro]);
 
   return { whatsappPorCidade, isLoading };
 };

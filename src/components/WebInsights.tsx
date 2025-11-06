@@ -10,9 +10,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-export const WebInsights = () => {
+interface WebInsightsProps {
+  prefeituraFiltro?: string;
+}
+
+export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
-  const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada);
+  const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada, prefeituraFiltro);
   
   const [isWhatsappExpanded, setIsWhatsappExpanded] = useState(true);
   const [isRadioExpanded, setIsRadioExpanded] = useState(false);
