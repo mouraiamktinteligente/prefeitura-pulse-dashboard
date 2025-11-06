@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Globe, Radio, MessageCircle, CalendarIcon } from 'lucide-react';
+import { Globe, Radio, MessageCircle, CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { useResumoWhatsapp } from '@/hooks/useResumoWhatsapp';
 import { Calendar } from '@/components/ui/calendar';
@@ -13,6 +13,10 @@ import { cn } from '@/lib/utils';
 export const WebInsights = () => {
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
   const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada);
+  
+  const [isWhatsappExpanded, setIsWhatsappExpanded] = useState(true);
+  const [isRadioExpanded, setIsRadioExpanded] = useState(false);
+  const [isWebExpanded, setIsWebExpanded] = useState(false);
 
   return (
     <Card className="bg-blue-700 backdrop-blur-sm shadow-xl border border-blue-600 hover:shadow-2xl transition-all duration-300 min-h-[600px]">
@@ -59,26 +63,38 @@ export const WebInsights = () => {
       <CardContent className="max-h-[520px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-700/20 px-4">
         {/* 1. WhatsApp Section - PRIMEIRO */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <MessageCircle className="w-5 h-5 text-green-400" />
-            <h3 className="text-white font-semibold text-base">Insights WhatsApp</h3>
-            <Badge className="bg-green-500/20 text-green-300 border border-green-500 text-xs">
-              {whatsappPorCidade.reduce((total, cidade) => total + cidade.grupos.length, 0)} grupos
-            </Badge>
+          <div 
+            className="flex items-center justify-between mb-3 cursor-pointer group"
+            onClick={() => setIsWhatsappExpanded(!isWhatsappExpanded)}
+          >
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-green-400" />
+              <h3 className="text-white font-semibold text-base">Insights WhatsApp</h3>
+              <Badge className="bg-green-500/20 text-green-300 border border-green-500 text-xs">
+                {whatsappPorCidade.reduce((total, cidade) => total + cidade.grupos.length, 0)} grupos
+              </Badge>
+            </div>
+            {isWhatsappExpanded ? (
+              <ChevronUp className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            )}
           </div>
 
-          {isLoadingWhatsapp ? (
-            <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
-              <p className="text-green-300 text-sm">🔄 Carregando dados...</p>
-            </div>
-          ) : whatsappPorCidade.length === 0 ? (
-            <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
-              <p className="text-green-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
-              <p className="text-blue-300 text-xs mt-2">
-                Selecione outra data para visualizar os insights
-              </p>
-            </div>
-          ) : (
+          {isWhatsappExpanded && (
+            <>
+              {isLoadingWhatsapp ? (
+                <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
+                  <p className="text-green-300 text-sm">🔄 Carregando dados...</p>
+                </div>
+              ) : whatsappPorCidade.length === 0 ? (
+                <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
+                  <p className="text-green-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
+                  <p className="text-blue-300 text-xs mt-2">
+                    Selecione outra data para visualizar os insights
+                  </p>
+                </div>
+              ) : (
             <div className="space-y-4">
               {whatsappPorCidade.map((cidadeData) => (
                 <div key={cidadeData.cidade} className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4">
@@ -132,43 +148,69 @@ export const WebInsights = () => {
                 </div>
               ))}
             </div>
+              )}
+            </>
           )}
         </div>
 
         {/* 2. Radio Section - SEGUNDO (EM CONSTRUÇÃO) */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Radio className="w-5 h-5 text-orange-400" />
-            <h3 className="text-white font-semibold text-base">Insights Rádio</h3>
-            <Badge className="bg-orange-500/20 text-orange-300 border border-orange-500 text-xs">
-              Em construção
-            </Badge>
+          <div 
+            className="flex items-center justify-between mb-3 cursor-pointer group"
+            onClick={() => setIsRadioExpanded(!isRadioExpanded)}
+          >
+            <div className="flex items-center gap-2">
+              <Radio className="w-5 h-5 text-orange-400" />
+              <h3 className="text-white font-semibold text-base">Insights Rádio</h3>
+              <Badge className="bg-orange-500/20 text-orange-300 border border-orange-500 text-xs">
+                Em construção
+              </Badge>
+            </div>
+            {isRadioExpanded ? (
+              <ChevronUp className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            )}
           </div>
           
-          <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
-            <p className="text-orange-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
-            <p className="text-blue-300 text-xs mt-2">
-              Em breve você poderá monitorar insights de rádio
-            </p>
-          </div>
+          {isRadioExpanded && (
+            <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center animate-fade-in">
+              <p className="text-orange-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
+              <p className="text-blue-300 text-xs mt-2">
+                Em breve você poderá monitorar insights de rádio
+              </p>
+            </div>
+          )}
         </div>
 
         {/* 3. Web Section - TERCEIRO (EM CONSTRUÇÃO) */}
         <div className="mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Globe className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-white font-semibold text-base">Alertas Web</h3>
-            <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500 text-xs">
-              Em construção
-            </Badge>
+          <div 
+            className="flex items-center justify-between mb-3 cursor-pointer group"
+            onClick={() => setIsWebExpanded(!isWebExpanded)}
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-white font-semibold text-base">Alertas Web</h3>
+              <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500 text-xs">
+                Em construção
+              </Badge>
+            </div>
+            {isWebExpanded ? (
+              <ChevronUp className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+            )}
           </div>
           
-          <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
-            <p className="text-cyan-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
-            <p className="text-blue-300 text-xs mt-2">
-              Em breve você poderá monitorar alertas da web
-            </p>
-          </div>
+          {isWebExpanded && (
+            <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center animate-fade-in">
+              <p className="text-cyan-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
+              <p className="text-blue-300 text-xs mt-2">
+                Em breve você poderá monitorar alertas da web
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
