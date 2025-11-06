@@ -394,6 +394,33 @@ export type Database = {
           },
         ]
       }
+      comments: {
+        Row: {
+          id: string
+          postCaption: string | null
+          postComments: Json | null
+          postUrl: string | null
+          prefeitura: string | null
+          shortCode: string | null
+        }
+        Insert: {
+          id?: string
+          postCaption?: string | null
+          postComments?: Json | null
+          postUrl?: string | null
+          prefeitura?: string | null
+          shortCode?: string | null
+        }
+        Update: {
+          id?: string
+          postCaption?: string | null
+          postComments?: Json | null
+          postUrl?: string | null
+          prefeitura?: string | null
+          shortCode?: string | null
+        }
+        Relationships: []
+      }
       debug_relatorios_acesso: {
         Row: {
           action: string
@@ -740,6 +767,105 @@ export type Database = {
         }
         Relationships: []
       }
+      noticias_prefeito: {
+        Row: {
+          ativo: boolean | null
+          autor: string | null
+          categoria: string | null
+          cidade: string
+          conteudo_completo: string | null
+          created_at: string | null
+          data_busca: string | null
+          data_publicacao: string | null
+          data_scraping: string | null
+          descricao_completa: string | null
+          erro_scraping: string | null
+          estado: string | null
+          fonte: string | null
+          id: number
+          imagens: Json | null
+          palavras_chave: string | null
+          prefeito: string
+          processado: boolean | null
+          relevancia: number | null
+          resumo: string | null
+          resumo_ia: string | null
+          sentimento: string | null
+          status_scraping: string | null
+          tags: string[] | null
+          tamanho_conteudo: number | null
+          tentativas_scraping: number | null
+          titulo: string
+          titulo_extraido: string | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          autor?: string | null
+          categoria?: string | null
+          cidade: string
+          conteudo_completo?: string | null
+          created_at?: string | null
+          data_busca?: string | null
+          data_publicacao?: string | null
+          data_scraping?: string | null
+          descricao_completa?: string | null
+          erro_scraping?: string | null
+          estado?: string | null
+          fonte?: string | null
+          id?: number
+          imagens?: Json | null
+          palavras_chave?: string | null
+          prefeito: string
+          processado?: boolean | null
+          relevancia?: number | null
+          resumo?: string | null
+          resumo_ia?: string | null
+          sentimento?: string | null
+          status_scraping?: string | null
+          tags?: string[] | null
+          tamanho_conteudo?: number | null
+          tentativas_scraping?: number | null
+          titulo: string
+          titulo_extraido?: string | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          ativo?: boolean | null
+          autor?: string | null
+          categoria?: string | null
+          cidade?: string
+          conteudo_completo?: string | null
+          created_at?: string | null
+          data_busca?: string | null
+          data_publicacao?: string | null
+          data_scraping?: string | null
+          descricao_completa?: string | null
+          erro_scraping?: string | null
+          estado?: string | null
+          fonte?: string | null
+          id?: number
+          imagens?: Json | null
+          palavras_chave?: string | null
+          prefeito?: string
+          processado?: boolean | null
+          relevancia?: number | null
+          resumo?: string | null
+          resumo_ia?: string | null
+          sentimento?: string | null
+          status_scraping?: string | null
+          tags?: string[] | null
+          tamanho_conteudo?: number | null
+          tentativas_scraping?: number | null
+          titulo?: string
+          titulo_extraido?: string | null
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       "perfil-negative": {
         Row: {
           comment: string | null
@@ -881,6 +1007,8 @@ export type Database = {
           cidade: string | null
           estado: string | null
           id: string
+          last_analysis_prefeito: string | null
+          last_analysis_prefeitura: string | null
           nome: string | null
           nome_prefeito: string | null
           profile_prefeito: string | null
@@ -893,6 +1021,8 @@ export type Database = {
           cidade?: string | null
           estado?: string | null
           id?: string
+          last_analysis_prefeito?: string | null
+          last_analysis_prefeitura?: string | null
           nome?: string | null
           nome_prefeito?: string | null
           profile_prefeito?: string | null
@@ -905,6 +1035,8 @@ export type Database = {
           cidade?: string | null
           estado?: string | null
           id?: string
+          last_analysis_prefeito?: string | null
+          last_analysis_prefeitura?: string | null
           nome?: string | null
           nome_prefeito?: string | null
           profile_prefeito?: string | null
@@ -998,6 +1130,24 @@ export type Database = {
         }
         Relationships: []
       }
+      radio_transcriber: {
+        Row: {
+          created_at: string
+          id: string
+          output_json: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          output_json?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          output_json?: Json | null
+        }
+        Relationships: []
+      }
       registro_movimentacoes: {
         Row: {
           acao_realizada: string
@@ -1083,25 +1233,37 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          id_analise: string | null
+          id_relatorio: string | null
+          link_analise: string | null
           link_relatorio: string | null
           nome: string | null
-          nome_documento: string | null
+          nome_analise: string | null
+          nome_relatorio: string | null
           profile: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          id_analise?: string | null
+          id_relatorio?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
-          nome_documento?: string | null
+          nome_analise?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          id_analise?: string | null
+          id_relatorio?: string | null
+          link_analise?: string | null
           link_relatorio?: string | null
           nome?: string | null
-          nome_documento?: string | null
+          nome_analise?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
         }
         Relationships: []
@@ -1163,6 +1325,33 @@ export type Database = {
           nome?: string | null
           nome_documento?: string | null
           profile?: string | null
+        }
+        Relationships: []
+      }
+      resumo_whatsapp: {
+        Row: {
+          created_at: string
+          grupo: string | null
+          id: number
+          prefeitura: string | null
+          resumo: string | null
+          tema: string | null
+        }
+        Insert: {
+          created_at?: string
+          grupo?: string | null
+          id?: number
+          prefeitura?: string | null
+          resumo?: string | null
+          tema?: string | null
+        }
+        Update: {
+          created_at?: string
+          grupo?: string | null
+          id?: number
+          prefeitura?: string | null
+          resumo?: string | null
+          tema?: string | null
         }
         Relationships: []
       }
@@ -1274,6 +1463,33 @@ export type Database = {
           tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_groups: {
+        Row: {
+          created_at: string
+          group_id: string | null
+          group_name: string | null
+          id: string
+          picture_url: string | null
+          prefeitura: string | null
+        }
+        Insert: {
+          created_at?: string
+          group_id?: string | null
+          group_name?: string | null
+          id?: string
+          picture_url?: string | null
+          prefeitura?: string | null
+        }
+        Update: {
+          created_at?: string
+          group_id?: string | null
+          group_name?: string | null
+          id?: string
+          picture_url?: string | null
+          prefeitura?: string | null
         }
         Relationships: []
       }
@@ -1464,34 +1680,25 @@ export type Database = {
           tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
         }[]
       }
-      authenticate_user_secure: {
-        Args: { p_email: string }
-        Returns: boolean
-      }
+      authenticate_user_secure: { Args: { p_email: string }; Returns: boolean }
       buscar_posts_monitorados: {
         Args: { perfis: string[] }
         Returns: {
           total_posts: number
         }[]
       }
-      exemplo_hora: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      exemplo_hora: { Args: never; Returns: string }
       force_logout_user: {
         Args: { p_motivo?: string; p_user_email: string }
         Returns: undefined
       }
-      limpar_sessoes_expiradas: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      limpar_sessoes_expiradas: { Args: never; Returns: undefined }
       renovar_sessao: {
         Args: { p_session_token: string; p_user_email: string }
         Returns: boolean
       }
       verificar_consistencia_links_relatorios: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           description: string
           id: number

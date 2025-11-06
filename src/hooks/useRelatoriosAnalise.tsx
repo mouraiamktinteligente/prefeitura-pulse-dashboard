@@ -19,7 +19,8 @@ interface RelatorioAnalisePrefeito {
   link_relatorio: string | null;
   link_analise: string | null;
   nome?: string;
-  nome_documento?: string;
+  nome_relatorio?: string;
+  nome_analise?: string;
 }
 
 interface RelatorioAnaliseWeb {
@@ -387,7 +388,7 @@ export const useRelatoriosAnalise = () => {
         registros: data?.map(r => ({
           id: r.id,
           profile: r.profile,
-          nomeDocumento: r.nome_documento,
+          nomeDocumento: r.nome || r.nome_relatorio,
           linkRelatorio: r.link_relatorio?.substring(0, 60) + '...',
         }))
       });

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Globe, Radio, MessageCircle, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+import { useResumoWhatsapp } from '@/hooks/useResumoWhatsapp';
 
 interface Insight {
   id: string;
@@ -257,6 +258,7 @@ const InsightSection = ({
 export const WebInsights = () => {
   const webInsights = mockInsights.filter(i => i.tipo === 'web');
   const radioInsights = mockInsights.filter(i => i.tipo === 'radio');
+  const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp();
   
   const totalCriticos = mockInsights.filter(i => i.criticidade === 'critico').length;
 
@@ -298,23 +300,86 @@ export const WebInsights = () => {
           corBadge="bg-orange-500/20 text-orange-300 border border-orange-500"
         />
 
-        {/* WhatsApp Section (Em desenvolvimento) */}
+        {/* WhatsApp Section */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
             <MessageCircle className="w-5 h-5 text-green-400" />
             <h3 className="text-white font-semibold text-base">Insights WhatsApp</h3>
             <Badge className="bg-green-500/20 text-green-300 border border-green-500 text-xs">
-              Em breve
+              {whatsappPorCidade.reduce((total, cidade) => total + cidade.grupos.length, 0)} grupos
             </Badge>
           </div>
-          <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
-            <p className="text-green-300 text-sm">
-              🔄 Funcionalidade em desenvolvimento
-            </p>
-            <p className="text-blue-300 text-xs mt-2">
-              Em breve você poderá monitorar grupos de WhatsApp
-            </p>
-          </div>
+
+          {isLoadingWhatsapp ? (
+            <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
+              <p className="text-green-300 text-sm">Carregando dados...</p>
+            </div>
+          ) : whatsappPorCidade.length === 0 ? (
+            <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
+              <p className="text-green-300 text-sm">Nenhum dado disponível</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {whatsappPorCidade.map((cidadeData) => (
+                <div key={cidadeData.cidade} className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4">
+                  {/* Cabeçalho da Cidade */}
+                  <div className="mb-3 pb-2 border-b border-green-500/30">
+                    <h4 className="text-white font-semibold text-sm flex items-center gap-2">
+                      📍 {cidadeData.cidade}
+                      <Badge className="bg-green-600/30 text-green-300 text-xs">
+                        {cidadeData.grupos.length} grupo{cidadeData.grupos.length > 1 ? 's' : ''}
+                      </Badge>
+                    </h4>
+                  </div>
+
+                  {/* Grupos da Cidade */}
+                  <div className="space-y-3">
+                    {cidadeData.grupos.map((grupo) => (
+                      <div 
+                        key={grupo.id} 
+                        className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-200"
+                      >
+                        {/* Nome do Grupo */}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h5 className="text-green-300 font-medium text-sm flex items-center gap-1">
+                            💬 {grupo.grupo}
+                          </h5>
+                        </div>
+
+                        {/* Cidade (linha abaixo do grupo) */}
+                        <p className="text-blue-200 text-xs mb-2">
+                          📌 {grupo.cidade}
+                        </p>
+
+                        {/* Resumo */}
+                        <div className="mb-2">
+                          <p className="text-blue-200 text-xs leading-relaxed">
+                            {grupo.resumo}
+                          </p>
+                        </div>
+
+                        {/* Tema (opcional) */}
+                        {grupo.tema && (
+                          <div className="mb-2">
+                            <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/50 text-xs">
+                              🏷️ {grupo.tema}
+                            </Badge>
+                          </div>
+                        )}
+
+                        {/* Data */}
+                        <div className="flex items-center justify-end mt-2 pt-2 border-t border-green-500/20">
+                          <span className="text-green-400 text-xs">
+                            📅 {grupo.data_formatada}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
