@@ -17,7 +17,7 @@ interface WhatsappPorCidade {
   grupos: ResumoWhatsapp[];
 }
 
-export const useResumoWhatsapp = () => {
+export const useResumoWhatsapp = (dataSelecionada?: Date) => {
   const [whatsappPorCidade, setWhatsappPorCidade] = useState<WhatsappPorCidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,9 +57,21 @@ export const useResumoWhatsapp = () => {
       try {
         setIsLoading(true);
         
+        // Obter data atual ou data selecionada
+        const dataFiltro = dataSelecionada || new Date();
+        
+        // Formatar data para comparação (início e fim do dia)
+        const inicioDia = new Date(dataFiltro);
+        inicioDia.setHours(0, 0, 0, 0);
+        
+        const fimDia = new Date(dataFiltro);
+        fimDia.setHours(23, 59, 59, 999);
+        
         const { data, error } = await supabase
           .from('resumo_whatsapp')
           .select('*')
+          .gte('created_at', inicioDia.toISOString())
+          .lte('created_at', fimDia.toISOString())
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -83,7 +95,7 @@ export const useResumoWhatsapp = () => {
     };
 
     fetchResumoWhatsapp();
-  }, []);
+  }, [dataSelecionada]);
 
   return { whatsappPorCidade, isLoading };
 };
