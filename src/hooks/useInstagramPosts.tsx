@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 
 interface InstagramPost {
   id: string;
@@ -25,13 +26,14 @@ const normalizeProfile = (profile: string): string => {
 };
 
 export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => {
+  const { user } = useAuth();
   const [latestPost, setLatestPost] = useState<InstagramPost | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!profile) {
-      console.log('No profile provided to useInstagramPosts');
+    if (!profile || !user?.email) {
+      console.log('No profile or user email provided to useInstagramPosts');
       setLatestPost(null);
       return;
     }
@@ -51,50 +53,21 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
           setError(null);
         }
         
-        console.log(`📡 Fetching Instagram posts for profile: ${normalizedProfile} (attempt ${retryCount + 1})`);
+        console.log(`📡 Fetching Instagram posts via RPC for profile: ${normalizedProfile} (attempt ${retryCount + 1})`);
         
-        // Prioritize posts with link_publico_imagem (Supabase Storage URLs work better)
-        let { data, error: supabaseError } = await supabase
-          .from('instagram_posts' as any)
-          .select('*')
-          .eq('profile', normalizedProfile)
-          .not('link_publico_imagem', 'is', null)
-          .neq('link_publico_imagem', '')
-          .order('created_at', { ascending: false })
-          .limit(1) as any;
+        // Usar RPC em vez de query direta
+        const { data, error: supabaseError } = await supabase.rpc('get_instagram_posts', {
+          p_profile: normalizedProfile,
+          p_session_email: user.email,
+          p_limit: 1,
+          p_order_by: 'created_at',
+          p_ascending: false
+        });
 
-        console.log(`📊 Primeira busca (link_publico_imagem): ${data?.length || 0} posts encontrados`);
-
-        // If no post with link_publico_imagem found, try image_url
-        if (!data || data.length === 0) {
-          console.log('🔍 Nenhum post com link_publico_imagem encontrado, buscando com image_url...');
-          ({ data, error: supabaseError } = await supabase
-            .from('instagram_posts' as any)
-            .select('*')
-            .eq('profile', normalizedProfile)
-            .not('image_url', 'is', null)
-            .neq('image_url', '')
-            .order('created_at', { ascending: false })
-            .limit(1) as any);
-          
-          console.log(`📊 Segunda busca (image_url): ${data?.length || 0} posts encontrados`);
-        }
-
-        // Final fallback: if still no data, just get the latest post regardless
-        if (!data || data.length === 0) {
-          console.log('⚠️ Nenhum post com imagem encontrado, pegando último post disponível...');
-          ({ data, error: supabaseError } = await supabase
-            .from('instagram_posts' as any)
-            .select('*')
-            .eq('profile', normalizedProfile)
-            .order('created_at', { ascending: false })
-            .limit(1) as any);
-          
-          console.log(`📊 Terceira busca (qualquer post): ${data?.length || 0} posts encontrados`);
-        }
+        console.log(`📊 RPC response: ${data?.length || 0} posts encontrados`);
 
         if (supabaseError) {
-          console.error('❌ Supabase error:', supabaseError);
+          console.error('❌ Supabase RPC error:', supabaseError);
           throw supabaseError;
         }
 
@@ -273,7 +246,7 @@ export const useInstagramPosts = (profile?: string): UseInstagramPostsReturn => 
       }
       clearTimeout(timeoutId);
     };
-  }, [profile]);
+  }, [profile, user?.email]);
 
   return { latestPost, loading, error };
 };

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 
 export interface AlertaComentario {
   id: string;
@@ -44,62 +45,44 @@ export interface AlertaComentario {
 }
 
 export const useAlertasComentarios = (profile?: string) => {
+  const { user } = useAuth();
   console.log('🚀 Hook useAlertasComentarios inicializado com profile:', profile);
   
   return useQuery({
-    queryKey: ['alertas-comentarios', profile],
+    queryKey: ['alertas-comentarios', profile, user?.email],
     queryFn: async () => {
-      console.log('🔍 Executando query para alertas de comentários...');
+      if (!user?.email) {
+        console.error('❌ Usuário não autenticado');
+        throw new Error('Usuário não autenticado');
+      }
+
+      console.log('🔍 Executando RPC para alertas de comentários...');
       console.log('📋 Profile usado na busca:', profile);
+      console.log('👤 Email do usuário:', user.email);
       
       try {
-        // Primeiro, testar uma query simples sem filtros
-        console.log('🧪 Testando query sem filtros...');
-        const testQuery = await supabase
-          .from('alertas_comentarios')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log('📊 Total de registros na tabela:', testQuery.count || 0);
-        
-        // Agora executar a query principal
-        let query = supabase
-          .from('alertas_comentarios')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        // Filtrar por profile se fornecido
-        if (profile) {
-          console.log('🎯 Aplicando filtro por profile:', profile);
-          query = query.eq('profile', profile);
-        } else {
-          console.log('⚠️ Nenhum profile fornecido, buscando todos os registros');
-        }
-
-        const { data, error } = await query.limit(1);
+        const { data, error } = await supabase.rpc('get_alertas_comentarios', {
+          p_profile: profile || null,
+          p_session_email: user.email,
+          p_limit: 1
+        });
 
         if (error) {
-          console.error('❌ Erro na query:', error);
-          console.error('❌ Detalhes do erro:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
+          console.error('❌ Erro na RPC:', error);
           throw error;
         }
 
-        console.log('✅ Query executada com sucesso!');
+        console.log('✅ RPC executada com sucesso!');
         console.log('📦 Dados retornados:', data?.length || 0, 'registros');
-        console.log('🔍 Primeiros registros:', data?.slice(0, 2));
         
         return data as AlertaComentario[];
       } catch (error) {
-        console.error('💥 Erro inesperado na query:', error);
+        console.error('💥 Erro inesperado na RPC:', error);
         throw error;
       }
     },
-    enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
     retry: 2
   });
 };

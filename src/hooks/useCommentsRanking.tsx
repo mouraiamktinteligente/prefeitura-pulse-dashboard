@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/auth';
 import { AlertaComentario } from './useAlertasComentarios';
 
 export interface RankingComment {
@@ -13,20 +14,20 @@ export interface RankingComment {
 }
 
 export const useCommentsRanking = (profile?: string) => {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['comments-ranking', profile],
+    queryKey: ['comments-ranking', profile, user?.email],
     queryFn: async () => {
-      let query = supabase
-        .from('alertas_comentarios')
-        .select('*');
-      
-      if (profile) {
-        query = query.eq('profile', profile);
+      if (!user?.email) {
+        throw new Error('Usuário não autenticado');
       }
-      
-      const { data, error } = await query
-        .order('created_at', { ascending: false })
-        .limit(1);
+
+      const { data, error } = await supabase.rpc('get_alertas_comentarios', {
+        p_profile: profile || null,
+        p_session_email: user.email,
+        p_limit: 1
+      });
       
       if (error) {
         console.error('Erro ao buscar ranking de comentários:', error);
@@ -35,7 +36,8 @@ export const useCommentsRanking = (profile?: string) => {
       
       return data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
     retry: 2,
   });
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/auth';
 
 interface RelatorioAnaliseInstagram {
   id: number;
@@ -71,6 +72,7 @@ const deduplicateReports = <T extends { id: number; profile: string | null; nome
 };
 
 export const useRelatoriosAnalise = () => {
+  const { user } = useAuth();
   const [relatoriosInstagram, setRelatoriosInstagram] = useState<RelatorioAnaliseInstagram[]>([]);
   const [relatoriosPrefeito, setRelatoriosPrefeito] = useState<RelatorioAnalisePrefeito[]>([]);
   const [relatoriosWeb, setRelatoriosWeb] = useState<RelatorioAnaliseWeb[]>([]);
@@ -218,7 +220,7 @@ export const useRelatoriosAnalise = () => {
   }, [toast]);
 
   const fetchRelatoriosInstagram = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
-    if (!instagramProfile) return;
+    if (!instagramProfile || !user?.email) return;
     
     const profiles = Array.isArray(instagramProfile) ? instagramProfile : [instagramProfile];
     const validProfiles = profiles.filter(p => p && p.trim() !== '');
@@ -229,24 +231,25 @@ export const useRelatoriosAnalise = () => {
     try {
       console.log('🔍 [DEBUG] Buscando relatórios Instagram para perfis:', validProfiles);
       
-      let query = supabase
-        .from('relatorio_analise_instagram')
-        .select('*')
-        .in('profile', validProfiles)
-        .or('link_relatorio.not.is.null,link_analise.not.is.null');
+      let startDate = null;
+      let endDate = null;
 
       // Aplicar filtro de data se fornecido
       if (dateFilter) {
         const { month, year } = dateFilter;
-        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
-        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
-        
-        query = query.gte('created_at', startDate).lt('created_at', endDate);
+        endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Usar RPC em vez de query direta
+      const { data, error } = await supabase.rpc('get_relatorios_instagram', {
+        p_profiles: validProfiles,
+        p_session_email: user.email,
+        p_start_date: startDate,
+        p_end_date: endDate
+      });
 
       if (error) {
         console.error('❌ [ERROR] Erro ao buscar relatórios do Instagram:', error);
@@ -507,8 +510,8 @@ export const useRelatoriosAnalise = () => {
   // Funções para Relatório de Análise Web
   const fetchRelatoriosWeb = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
     console.log('DEBUG: fetchRelatoriosWeb chamado com profile:', instagramProfile);
-    if (!instagramProfile) {
-      console.log('DEBUG: profile não fornecido, saindo...');
+    if (!instagramProfile || !user?.email) {
+      console.log('DEBUG: profile ou email do usuário não fornecido, saindo...');
       return;
     }
     
@@ -519,25 +522,27 @@ export const useRelatoriosAnalise = () => {
     
     setLoading(true);
     try {
-      console.log('DEBUG: Fazendo query na tabela relatorio_analise_web...');
-      let query = supabase
-        .from('relatorio_analise_web')
-        .select('*')
-        .in('profile', validProfiles)
-        .not('link_relatorio', 'is', null);
+      console.log('DEBUG: Fazendo query via RPC na tabela relatorio_analise_web...');
+      
+      let startDate = null;
+      let endDate = null;
 
       // Aplicar filtro de data se fornecido
       if (dateFilter) {
         const { month, year } = dateFilter;
-        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
-        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
-        
-        query = query.gte('created_at', startDate).lt('created_at', endDate);
+        endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Usar RPC em vez de query direta
+      const { data, error } = await supabase.rpc('get_relatorios_web', {
+        p_profiles: validProfiles,
+        p_session_email: user.email,
+        p_start_date: startDate,
+        p_end_date: endDate
+      });
 
       console.log('DEBUG: Resultado da query web:', { data, error });
 
@@ -619,31 +624,34 @@ export const useRelatoriosAnalise = () => {
   // Funções para Relatório Qualitativo
   const fetchRelatoriosQualitativo = async (instagramProfile?: string, dateFilter?: { month: number, year: number }) => {
     console.log('DEBUG: fetchRelatoriosQualitativo chamado com profile:', instagramProfile);
-    if (!instagramProfile) {
-      console.log('DEBUG: profile não fornecido, saindo...');
+    if (!instagramProfile || !user?.email) {
+      console.log('DEBUG: profile ou email do usuário não fornecido, saindo...');
       return;
     }
     
     setLoading(true);
     try {
-      console.log('DEBUG: Fazendo query na tabela relatorio_qualitativo...');
-      let query = supabase
-        .from('relatorio_qualitativo')
-        .select('*')
-        .eq('profile', instagramProfile);
+      console.log('DEBUG: Fazendo query via RPC na tabela relatorio_qualitativo...');
+      
+      let startDate = null;
+      let endDate = null;
 
       // Aplicar filtro de data se fornecido
       if (dateFilter) {
         const { month, year } = dateFilter;
-        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
-        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
-        
-        query = query.gte('created_at', startDate).lt('created_at', endDate);
+        endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Usar RPC em vez de query direta
+      const { data, error } = await supabase.rpc('get_relatorios_qualitativo', {
+        p_profiles: [instagramProfile],
+        p_session_email: user.email,
+        p_start_date: startDate,
+        p_end_date: endDate
+      });
 
       console.log('DEBUG: Resultado da query qualitativo:', { data, error });
 
@@ -733,8 +741,8 @@ export const useRelatoriosAnalise = () => {
       clientNome
     });
     
-    if (!instagramProfile) {
-      console.log('🔍 [DEBUG] profile não fornecido, saindo...');
+    if (!instagramProfile || !user?.email) {
+      console.log('🔍 [DEBUG] profile ou email do usuário não fornecido, saindo...');
       return;
     }
     
@@ -745,28 +753,29 @@ export const useRelatoriosAnalise = () => {
     
     setLoading(true);
     try {
-      console.log('🔍 [DEBUG] Query inicial por perfis:', validProfiles);
+      console.log('🔍 [DEBUG] Query inicial via RPC por perfis:', validProfiles);
       
-      // Construir query com filtro de data mais robusto
-      let query = supabase
-        .from('analise_consolidada_semanal' as any)
-        .select('*')
-        .in('profile', validProfiles)
-        .not('link_analise', 'is', null);
+      let startDate = null;
+      let endDate = null;
 
       // Aplicar filtro de data com janela completa do mês
       if (dateFilter) {
         const { month, year } = dateFilter;
-        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
         const nextMonth = month === 12 ? 1 : month + 1;
         const nextYear = month === 12 ? year + 1 : year;
-        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
         
         console.log('🔍 [DEBUG] Filtro de data aplicado:', { startDate, endDate });
-        query = query.gte('created_at', startDate).lt('created_at', endDate);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Usar RPC em vez de query direta
+      const { data, error } = await supabase.rpc('get_relatorios_consolidados', {
+        p_profiles: validProfiles,
+        p_session_email: user.email,
+        p_start_date: startDate,
+        p_end_date: endDate
+      });
 
       console.log('📊 [DEBUG] Resultado da query consolidada por profile:', { 
         totalRegistros: data?.length || 0,

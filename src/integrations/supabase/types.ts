@@ -1970,6 +1970,171 @@ export type Database = {
         Args: { p_motivo?: string; p_user_email: string }
         Returns: undefined
       }
+      get_alertas_comentarios: {
+        Args: { p_limit?: number; p_profile?: string; p_session_email?: string }
+        Returns: {
+          created_at: string
+          id: string
+          link_comentario_negativo_1: string
+          link_comentario_negativo_2: string
+          link_comentario_negativo_3: string
+          link_comentario_negativo_4: string
+          link_comentario_positivo_1: string
+          link_comentario_positivo_2: string
+          link_comentario_positivo_3: string
+          link_comentario_positivo_4: string
+          negative_comment_1: string
+          negative_comment_2: string
+          negative_comment_3: string
+          negative_comment_4: string
+          negative_username_1: string
+          negative_username_2: string
+          negative_username_3: string
+          negative_username_4: string
+          positive_comment_1: string
+          positive_comment_2: string
+          positive_comment_3: string
+          positive_comment_4: string
+          positive_username_1: string
+          positive_username_2: string
+          positive_username_3: string
+          positive_username_4: string
+          profile: string
+          profile_negative_1: string
+          profile_negative_2: string
+          profile_negative_3: string
+          profile_negative_4: string
+          profile_positive_1: string
+          profile_positive_2: string
+          profile_positive_3: string
+          profile_positive_4: string
+          score_negative_1: string
+          score_negative_2: string
+          score_negative_3: string
+          score_negative_4: string
+          score_positive_1: string
+          score_positive_2: string
+          score_positive_3: string
+          score_positive_4: string
+          updated_at: string
+        }[]
+      }
+      get_instagram_posts: {
+        Args: {
+          p_ascending?: boolean
+          p_limit?: number
+          p_order_by?: string
+          p_profile?: string
+          p_session_email?: string
+        }
+        Returns: {
+          comments_count: number
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          instagram_post_id: string
+          likes_count: number
+          link_publico_imagem: string
+          post_url: string
+          profile: string
+          profile_prefeito: string
+          updated_at: string
+        }[]
+      }
+      get_relatorios_consolidados: {
+        Args: {
+          p_end_date?: string
+          p_profiles?: string[]
+          p_session_email?: string
+          p_start_date?: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          id_analise: string
+          link_analise: string
+          nome: string
+          nome_analise: string
+          profile: string
+        }[]
+      }
+      get_relatorios_instagram: {
+        Args: {
+          p_end_date?: string
+          p_profiles?: string[]
+          p_session_email?: string
+          p_start_date?: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          id_analise: string
+          id_relatorio: string
+          link_analise: string
+          link_relatorio: string
+          nome: string
+          nome_analise: string
+          nome_relatorio: string
+          profile: string
+          UUID: string
+        }[]
+      }
+      get_relatorios_prefeito: {
+        Args: {
+          p_end_date?: string
+          p_profiles?: string[]
+          p_session_email?: string
+          p_start_date?: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          id_analise: string
+          id_relatorio: string
+          link_analise: string
+          link_relatorio: string
+          nome: string
+          nome_analise: string
+          nome_relatorio: string
+          profile: string
+        }[]
+      }
+      get_relatorios_qualitativo: {
+        Args: {
+          p_end_date?: string
+          p_profiles?: string[]
+          p_session_email?: string
+          p_start_date?: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          link_relatorio: string
+          nome: string
+          nome_documento: string
+          profile: string
+        }[]
+      }
+      get_relatorios_web: {
+        Args: {
+          p_end_date?: string
+          p_profiles?: string[]
+          p_session_email?: string
+          p_start_date?: string
+        }
+        Returns: {
+          created_at: string
+          id: number
+          link_analise: string
+          link_relatorio: string
+          nome: string
+          nome_analise: string
+          nome_documento: string
+          nome_relatorio: string
+          profile: string
+        }[]
+      }
       limpar_sessoes_expiradas: { Args: never; Returns: undefined }
       renovar_sessao: {
         Args: { p_session_token: string; p_user_email: string }
