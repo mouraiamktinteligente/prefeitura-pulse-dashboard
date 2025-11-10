@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ClientCard } from '@/components/ClientCard';
 import { PhoneMockup } from '@/components/PhoneMockup';
 import { useClients } from '@/hooks/useClients';
+import { useClientFilter } from '@/hooks/useClientFilter';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,19 @@ import { RealtimeIndicator } from '@/components/RealtimeIndicator';
 
 const MainDashboard = () => {
   const { clients, loading } = useClients();
+  const { allowedClientIds, hasAccessToAllClients } = useClientFilter();
   const navigate = useNavigate();
+
+  // Filtrar clientes baseado no acesso do usuário
+  const filteredClients = useMemo(() => {
+    if (hasAccessToAllClients) return clients;
+    
+    return clients.filter(c => allowedClientIds.includes(c.id));
+  }, [clients, allowedClientIds, hasAccessToAllClients]);
 
   console.log('MainDashboard - Estado do loading:', loading);
   console.log('MainDashboard - Quantidade de clientes:', clients.length);
+  console.log('MainDashboard - Clientes filtrados:', filteredClients.length);
   console.log('MainDashboard - Lista de clientes:', clients);
 
   // useEffect para configurar listener realtime de clientes
@@ -79,7 +89,7 @@ const MainDashboard = () => {
   return (
     <div className="min-h-screen bg-blue-900">
       <main className="container mx-auto px-6 py-8">
-        {clients.length === 0 ? (
+        {filteredClients.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-blue-700 rounded-lg p-8 max-w-md mx-auto">
               <h3 className="text-white text-xl font-semibold mb-4">
@@ -101,12 +111,12 @@ const MainDashboard = () => {
           <>
             <div className="mb-6">
               <h2 className="text-white text-xl font-semibold">
-                Clientes Monitorados ({clients.length})
+                Clientes Monitorados ({filteredClients.length})
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6 justify-items-center">
-              {clients.map((client) => (
+              {filteredClients.map((client) => (
                 <PhoneMockup
                   key={client.id}
                   client={client}

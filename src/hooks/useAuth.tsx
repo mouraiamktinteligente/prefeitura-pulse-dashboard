@@ -172,7 +172,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: userData.email,
           nome_completo: userData.nome_completo,
           tipo_usuario: userData.tipo_usuario,
-          permissoes: userData.permissoes
+          permissoes: userData.permissoes,
+          cliente_id: userData.cliente_id
         };
 
         setUser(authenticatedUser);

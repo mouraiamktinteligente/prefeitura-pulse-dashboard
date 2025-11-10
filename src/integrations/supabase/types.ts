@@ -191,7 +191,7 @@ export type Database = {
       analisados: {
         Row: {
           analisado_em: string
-          comment_id: string
+          comment_id: string | null
           id: number
           post_id: string | null
           profile: string | null
@@ -199,7 +199,7 @@ export type Database = {
         }
         Insert: {
           analisado_em?: string
-          comment_id: string
+          comment_id?: string | null
           id?: number
           post_id?: string | null
           profile?: string | null
@@ -207,7 +207,7 @@ export type Database = {
         }
         Update: {
           analisado_em?: string
-          comment_id?: string
+          comment_id?: string | null
           id?: number
           post_id?: string | null
           profile?: string | null
@@ -1481,6 +1481,7 @@ export type Database = {
       usuarios_sistema: {
         Row: {
           ativo: boolean | null
+          cliente_id: string | null
           cpf_cnpj: string
           created_at: string
           email: string | null
@@ -1505,6 +1506,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          cliente_id?: string | null
           cpf_cnpj: string
           created_at?: string
           email?: string | null
@@ -1529,6 +1531,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          cliente_id?: string | null
           cpf_cnpj?: string
           created_at?: string
           email?: string | null
@@ -1551,140 +1554,133 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_sistema_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cadastro_clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weekly_summary_instagram_prefeito: {
         Row: {
-          comentarios_repetidos: Json | null
-          comentarios_validos: string | null
           created_at: string
           id: string
-          polaridade: Json | null
-          resumo_semanal: string | null
-          temas: Json | null
-          total_comentarios: string | null
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          openai_content: string | null
+          prefeito: string | null
+          prefeitura: string | null
         }
         Insert: {
-          comentarios_repetidos?: Json | null
-          comentarios_validos?: string | null
           created_at?: string
           id?: string
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_comentarios?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Update: {
-          comentarios_repetidos?: Json | null
-          comentarios_validos?: string | null
           created_at?: string
           id?: string
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_comentarios?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Relationships: []
       }
       weekly_summary_instagram_prefeitura: {
         Row: {
-          comentarios_repetidos: Json | null
-          comentarios_validos: string | null
           created_at: string
           id: string
-          polaridade: Json | null
-          resumo_semanal: string | null
-          temas: Json | null
-          total_comentarios: string | null
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          openai_content: string | null
+          prefeito: string | null
+          prefeitura: string | null
         }
         Insert: {
-          comentarios_repetidos?: Json | null
-          comentarios_validos?: string | null
           created_at?: string
           id?: string
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_comentarios?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Update: {
-          comentarios_repetidos?: Json | null
-          comentarios_validos?: string | null
           created_at?: string
           id?: string
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_comentarios?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Relationships: []
       }
       weekly_summary_web: {
         Row: {
           created_at: string
-          fontes_principais: Json | null
           id: string
-          mencoes_validas: string | null
-          polaridade: Json | null
-          resumo_semanal: string | null
-          temas: Json | null
-          total_mencoes: string | null
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          openai_content: string | null
+          prefeito: string | null
+          prefeitura: string | null
         }
         Insert: {
           created_at?: string
-          fontes_principais?: Json | null
           id?: string
-          mencoes_validas?: string | null
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_mencoes?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Update: {
           created_at?: string
-          fontes_principais?: Json | null
           id?: string
-          mencoes_validas?: string | null
-          polaridade?: Json | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_mencoes?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Relationships: []
       }
       weekly_summary_whatsapp: {
         Row: {
           created_at: string
-          grupos_ativos: string | null
           id: string
-          mensagens_validas: string | null
-          polaridade: Json | null
-          profile: string | null
-          resumo_semanal: string | null
-          temas: Json | null
-          total_mensagens: string | null
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          openai_content: string | null
+          prefeito: string | null
+          prefeitura: string | null
         }
         Insert: {
           created_at?: string
-          grupos_ativos?: string | null
           id?: string
-          mensagens_validas?: string | null
-          polaridade?: Json | null
-          profile?: string | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_mensagens?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Update: {
           created_at?: string
-          grupos_ativos?: string | null
           id?: string
-          mensagens_validas?: string | null
-          polaridade?: Json | null
-          profile?: string | null
-          resumo_semanal?: string | null
-          temas?: Json | null
-          total_mensagens?: string | null
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          openai_content?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
         }
         Relationships: []
       }

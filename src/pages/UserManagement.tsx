@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Crown, Users, Building, Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { Crown, Users, Building, Plus, Edit, Trash2, Search, Filter, Globe } from "lucide-react";
 import { useUsers, UsuarioSistema } from "@/hooks/useUsers";
+import { useClients } from "@/hooks/useClients";
 import { UserForm } from "@/components/UserForm";
 import { formatCPF, formatCNPJ, formatPhone } from "@/utils/validation";
 import type { Database } from "@/integrations/supabase/types";
@@ -17,6 +18,7 @@ type UsuarioInsert = Database['public']['Tables']['usuarios_sistema']['Insert'];
 
 const UserManagement = () => {
   const { users, loading, createUser, updateUser, deleteUser } = useUsers();
+  const { clients } = useClients();
   const [selectedUser, setSelectedUser] = useState<UsuarioSistema | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,15 +165,16 @@ const UserManagement = () => {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>WhatsApp</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
+              <TableRow>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Prefeitura</TableHead>
+                <TableHead>Documento</TableHead>
+                <TableHead>E-mail</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
@@ -186,6 +189,19 @@ const UserManagement = () => {
                             <div className="text-sm text-gray-500">{user.razao_social}</div>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {(user as any).cliente_id ? (
+                          <Badge variant="outline" className="text-xs">
+                            {clients.find(c => c.id === (user as any).cliente_id)?.nome_completo || 
+                             'Prefeitura não encontrada'}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs flex items-center gap-1 w-fit">
+                            <Globe className="h-3 w-3" />
+                            Acesso Geral
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         {formatDocument(user.cpf_cnpj, user.tipo_pessoa)}

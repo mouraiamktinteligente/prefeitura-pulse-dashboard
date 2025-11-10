@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useClients } from '@/hooks/useClients';
+import { useClientFilter } from '@/hooks/useClientFilter';
 import { useDocumentosAnalisados } from '@/hooks/useDocumentosAnalisados';
 import { useRelatoriosAnalise } from '@/hooks/useRelatoriosAnalise';
 import { formatCPF, formatCNPJ, formatPhone } from '@/utils/validation';
@@ -34,6 +35,7 @@ const ClientDetails = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const { clients, loading: clientsLoading } = useClients();
+  const { allowedClientIds, hasAccessToAllClients, isLoading: filterLoading } = useClientFilter();
   const { documentos, loading: docsLoading, fetchDocumentos, deleteDocument, downloadAnalise, downloadPlano } = useDocumentosAnalisados();
   const { 
     relatoriosInstagram, 
@@ -62,6 +64,23 @@ const ClientDetails = () => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   const client = clients.find(c => c.id === clientId);
+
+  // Validar acesso ao cliente
+  useEffect(() => {
+    if (!clientsLoading && !filterLoading && client && !hasAccessToAllClients) {
+      const hasAccess = allowedClientIds.includes(client.id);
+      
+      if (!hasAccess) {
+        console.log('Acesso negado ao cliente:', client.id);
+        navigate('/');
+        toast({
+          title: "Acesso Negado",
+          description: "Você não tem permissão para visualizar este cliente",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [client, allowedClientIds, hasAccessToAllClients, clientsLoading, filterLoading, navigate, toast]);
 
   const months = [
     { value: 1, label: 'Janeiro' },

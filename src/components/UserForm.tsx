@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Crown, Users, Building, Eye, EyeOff } from "lucide-react";
+import { Crown, Users, Building, Eye, EyeOff, Globe, AlertCircle } from "lucide-react";
 import { validateCPF, validateCNPJ, formatCPF, formatCNPJ, formatCEP, formatPhone, searchCEP } from "@/utils/validation";
 import { UsuarioSistema } from "@/hooks/useUsers";
+import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -30,6 +31,7 @@ const defaultPermissions = {
 };
 
 export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
+  const { clients } = useClients();
   const [formData, setFormData] = useState({
     tipo_usuario: user?.tipo_usuario || 'usuario' as const,
     tipo_pessoa: user?.tipo_pessoa || 'fisica' as const,
@@ -48,6 +50,7 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
     endereco_cidade: user?.endereco_cidade || '',
     endereco_estado: user?.endereco_estado || '',
     permissoes: user?.permissoes || defaultPermissions,
+    cliente_id: (user as any)?.cliente_id || null,
     ativo: user?.ativo ?? true
   });
 
@@ -92,6 +95,16 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
       return;
     }
 
+    // Validação: Usuário operacional DEVE ter prefeitura
+    if (formData.tipo_usuario === 'usuario' && !formData.cliente_id) {
+      toast({
+        title: "Erro de validação",
+        description: "Usuários operacionais devem ter uma prefeitura vinculada",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if ((formData.tipo_usuario === 'administrador' || formData.tipo_usuario === 'usuario') && !formData.email) {
       toast({
         title: "Erro de validação",
@@ -120,7 +133,8 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
         endereco_cidade: formData.endereco_cidade || null,
         endereco_estado: formData.endereco_estado || null,
         permissoes: formData.permissoes,
-        ativo: formData.ativo
+        ativo: formData.ativo,
+        cliente_id: formData.cliente_id
       };
       
       // Adicionar senha apenas se foi informada
@@ -371,6 +385,57 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
                 placeholder="SP"
               />
             </div>
+          </div>
+
+          {/* Campo Prefeitura Vinculada */}
+          <div className="space-y-2">
+            <Label htmlFor="cliente_id">
+              Prefeitura Vinculada
+              {formData.tipo_usuario === 'administrador' && (
+                <span className="text-sm text-gray-500 ml-2">
+                  (Deixe "Acesso Geral" para acesso a todas as prefeituras)
+                </span>
+              )}
+            </Label>
+            <Select 
+              value={formData.cliente_id || 'geral'} 
+              onValueChange={(value) => 
+                setFormData(prev => ({ 
+                  ...prev, 
+                  cliente_id: value === 'geral' ? null : value 
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma prefeitura..." />
+              </SelectTrigger>
+              <SelectContent>
+                {formData.tipo_usuario === 'administrador' && (
+                  <SelectItem value="geral">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>🌐 Acesso Geral (Todas as Prefeituras)</span>
+                    </div>
+                  </SelectItem>
+                )}
+                {clients
+                  .filter(c => c.ativo)
+                  .sort((a, b) => a.nome_completo.localeCompare(b.nome_completo))
+                  .map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.nome_completo}
+                    </SelectItem>
+                  ))
+                }
+              </SelectContent>
+            </Select>
+            
+            {formData.tipo_usuario === 'usuario' && !formData.cliente_id && (
+              <p className="text-sm text-amber-600 flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                Usuários operacionais devem ter uma prefeitura vinculada
+              </p>
+            )}
           </div>
 
           {/* Permissões para Usuário Operacional */}
