@@ -215,6 +215,36 @@ export type Database = {
         }
         Relationships: []
       }
+      analise_consolidada_semanal: {
+        Row: {
+          created_at: string
+          id: number
+          id_analise: string | null
+          link_analise: string | null
+          nome: string | null
+          nome_analise: string | null
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          id_analise?: string | null
+          link_analise?: string | null
+          nome?: string | null
+          nome_analise?: string | null
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          id_analise?: string | null
+          link_analise?: string | null
+          nome?: string | null
+          nome_analise?: string | null
+          profile?: string | null
+        }
+        Relationships: []
+      }
       "analysis-comments": {
         Row: {
           comment: string | null
