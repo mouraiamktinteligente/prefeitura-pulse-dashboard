@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { DynamicBreadcrumbs } from "@/components/DynamicBreadcrumbs";
 import { Menu } from "lucide-react";
 
 interface AppLayoutProps {
@@ -13,11 +14,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
-          {/* Header com botão de toggle do sidebar */}
+          {/* Header com botão de toggle do sidebar e breadcrumbs */}
           <header className="bg-blue-800/90 backdrop-blur-sm border-b border-blue-700/50 px-4 py-3 sticky top-0 z-10">
-            <SidebarTrigger className="text-white hover:bg-blue-700/50 rounded-md p-2 transition-colors">
-              <Menu className="w-5 h-5" />
-            </SidebarTrigger>
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="text-white hover:bg-blue-700/50 rounded-md p-2 transition-colors">
+                <Menu className="w-5 h-5" />
+              </SidebarTrigger>
+              
+              <DynamicBreadcrumbs />
+            </div>
           </header>
           
           {/* Conteúdo principal */}
