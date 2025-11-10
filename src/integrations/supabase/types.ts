@@ -1376,6 +1376,36 @@ export type Database = {
         }
         Relationships: []
       }
+      relatorio_whatsapp_semanal: {
+        Row: {
+          created_at: string
+          id: string
+          id_relatorio: string | null
+          instagram_prefeitura: string | null
+          link_relatorio: string | null
+          nome_relatorio: string | null
+          prefeitura: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_relatorio?: string | null
+          instagram_prefeitura?: string | null
+          link_relatorio?: string | null
+          nome_relatorio?: string | null
+          prefeitura?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_relatorio?: string | null
+          instagram_prefeitura?: string | null
+          link_relatorio?: string | null
+          nome_relatorio?: string | null
+          prefeitura?: string | null
+        }
+        Relationships: []
+      }
       resumo_semanal_whatsapp: {
         Row: {
           boatos_desinformacao_e_criticas: string | null
