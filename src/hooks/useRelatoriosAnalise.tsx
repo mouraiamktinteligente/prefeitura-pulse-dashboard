@@ -41,6 +41,16 @@ interface RelatorioQualitativo {
   nome_documento?: string;
 }
 
+interface RelatorioAnaliseConsolidada {
+  id: number;
+  created_at: string;
+  profile: string | null;
+  link_analise: string | null;
+  nome?: string;
+  nome_analise?: string;
+  id_analise?: string;
+}
+
 // Função auxiliar para deduplicar relatórios
 const deduplicateReports = <T extends { id: number; profile: string | null; nome_documento?: string | null; created_at: string }>(
   reports: T[]
@@ -65,6 +75,7 @@ export const useRelatoriosAnalise = () => {
   const [relatoriosPrefeito, setRelatoriosPrefeito] = useState<RelatorioAnalisePrefeito[]>([]);
   const [relatoriosWeb, setRelatoriosWeb] = useState<RelatorioAnaliseWeb[]>([]);
   const [relatoriosQualitativo, setRelatoriosQualitativo] = useState<RelatorioQualitativo[]>([]);
+  const [relatoriosConsolidados, setRelatoriosConsolidados] = useState<RelatorioAnaliseConsolidada[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -171,7 +182,32 @@ export const useRelatoriosAnalise = () => {
         })
         .subscribe();
 
-      return [instagramChannel, prefeitoChannel, webChannel, qualitativoChannel];
+      // Listener para relatórios Consolidados
+      const consolidadoChannel = supabase
+        .channel('relatorio-consolidado-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'analise_consolidada_semanal'
+        }, (payload) => {
+          console.log('Consolidado realtime event:', payload);
+          if (payload.eventType === 'INSERT') {
+            setRelatoriosConsolidados(prev => [payload.new as RelatorioAnaliseConsolidada, ...prev]);
+            toast({
+              title: "Novo relatório Consolidado",
+              description: "Um novo relatório semanal foi gerado",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setRelatoriosConsolidados(prev => prev.filter(r => r.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setRelatoriosConsolidados(prev => prev.map(r => 
+              r.id === payload.new.id ? payload.new as RelatorioAnaliseConsolidada : r
+            ));
+          }
+        })
+        .subscribe();
+
+      return [instagramChannel, prefeitoChannel, webChannel, qualitativoChannel, consolidadoChannel];
     };
 
     const channels = setupRealtimeListeners();
@@ -686,6 +722,126 @@ export const useRelatoriosAnalise = () => {
     }
   };
 
+  const fetchRelatoriosConsolidados = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
+    console.log('🔍 [DEBUG] fetchRelatoriosConsolidados chamado com profile:', instagramProfile);
+    if (!instagramProfile) {
+      console.log('🔍 [DEBUG] profile não fornecido, saindo...');
+      return;
+    }
+    
+    const profiles = Array.isArray(instagramProfile) ? instagramProfile : [instagramProfile];
+    const validProfiles = profiles.filter(p => p && p.trim() !== '');
+    
+    if (validProfiles.length === 0) return;
+    
+    setLoading(true);
+    try {
+      console.log('🔍 [DEBUG] Fazendo query na tabela analise_consolidada_semanal...');
+      
+      // Construir query com filtro de data
+      let queryString = `
+        profile=in.(${validProfiles.map(p => `"${p}"`).join(',')})
+        &link_analise=not.is.null
+        &order=created_at.desc
+      `;
+
+      if (dateFilter) {
+        const { month, year } = dateFilter;
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const nextMonth = month === 12 ? 1 : month + 1;
+        const nextYear = month === 12 ? year + 1 : year;
+        const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+        
+        queryString += `&created_at=gte.${startDate}&created_at=lt.${endDate}`;
+      }
+
+      const { data, error } = await supabase
+        .from('analise_consolidada_semanal' as any)
+        .select('*')
+        .in('profile', validProfiles)
+        .not('link_analise', 'is', null)
+        .gte('created_at', dateFilter ? `${dateFilter.year}-${dateFilter.month.toString().padStart(2, '0')}-01` : '2020-01-01')
+        .order('created_at', { ascending: false });
+
+      console.log('📊 [DEBUG] Resultado da query consolidada:', { 
+        totalRegistros: data?.length || 0,
+        error,
+        primeirosRegistros: data?.slice(0, 3)
+      });
+
+      if (error) {
+        console.error('❌ [ERROR] Erro ao buscar relatórios Consolidados:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar relatórios consolidados semanais",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ [DEBUG] Dados encontrados para Consolidados:', data?.length || 0, 'itens');
+      setRelatoriosConsolidados((data || []) as unknown as RelatorioAnaliseConsolidada[]);
+    } catch (error) {
+      console.error('❌ [ERROR] Erro inesperado ao buscar relatórios consolidados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao carregar relatórios",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteRelatorioConsolidado = async (relatorio: RelatorioAnaliseConsolidada) => {
+    try {
+      // Primeiro, tentar deletar do Google Drive (se existir)
+      let driveDeleteSuccess = true;
+      if (relatorio.link_analise) {
+        console.log('Deletando relatório Consolidado do Google Drive...');
+        driveDeleteSuccess = await deleteFromGoogleDrive(relatorio.link_analise);
+      }
+
+      const { error } = await supabase
+        .from('analise_consolidada_semanal' as any)
+        .delete()
+        .eq('id', relatorio.id);
+
+      if (error) {
+        console.error('Erro ao deletar relatório:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao deletar relatório consolidado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setRelatoriosConsolidados(prev => prev.filter(r => r.id !== relatorio.id));
+      
+      // Mostrar toast baseado no resultado
+      if (driveDeleteSuccess) {
+        toast({
+          title: "Sucesso",
+          description: "Relatório consolidado deletado com sucesso do banco e Google Drive",
+        });
+      } else {
+        toast({
+          title: "Parcialmente deletado",
+          description: "Relatório removido do banco, mas houve erro ao deletar do Google Drive",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao deletar relatório consolidado",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função genérica para download
   const downloadRelatorio = async (relatorio: { link_relatorio: string | null }) => {
     console.log('🔍 [DEBUG] downloadRelatorio chamado:', {
@@ -737,15 +893,18 @@ export const useRelatoriosAnalise = () => {
     relatoriosPrefeito,
     relatoriosWeb,
     relatoriosQualitativo,
+    relatoriosConsolidados,
     loading,
     fetchRelatoriosInstagram,
     fetchRelatoriosPrefeito,
     fetchRelatoriosWeb,
     fetchRelatoriosQualitativo,
+    fetchRelatoriosConsolidados,
     deleteRelatorioInstagram,
     deleteRelatorioPrefeito,
     deleteRelatorioWeb,
     deleteRelatorioQualitativo,
+    deleteRelatorioConsolidado,
     downloadRelatorio
   };
 };

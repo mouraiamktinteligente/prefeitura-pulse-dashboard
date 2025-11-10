@@ -39,16 +39,19 @@ const ClientDetails = () => {
     relatoriosInstagram, 
     relatoriosPrefeito, 
     relatoriosWeb, 
-    relatoriosQualitativo, 
+    relatoriosQualitativo,
+    relatoriosConsolidados,
     loading: relatoriosLoading, 
     fetchRelatoriosInstagram, 
     fetchRelatoriosPrefeito, 
     fetchRelatoriosWeb, 
-    fetchRelatoriosQualitativo, 
+    fetchRelatoriosQualitativo,
+    fetchRelatoriosConsolidados,
     deleteRelatorioInstagram, 
     deleteRelatorioPrefeito, 
     deleteRelatorioWeb, 
-    deleteRelatorioQualitativo, 
+    deleteRelatorioQualitativo,
+    deleteRelatorioConsolidado,
     downloadRelatorio 
   } = useRelatoriosAnalise();
   const { toast } = useToast();
@@ -92,6 +95,7 @@ const ClientDetails = () => {
       if (profiles.length > 0) {
         fetchRelatoriosInstagram(profiles, dateFilter);
         fetchRelatoriosWeb(profiles, dateFilter);
+        fetchRelatoriosConsolidados(profiles, dateFilter);
         
         // For Mayor reports, try both profiles
         if (client.instagram_prefeito) {
@@ -471,7 +475,7 @@ const ClientDetails = () => {
                 
                 <div className="text-sm text-slate-500">
                   Mostrando relatórios de {months.find(m => m.value === selectedMonth)?.label}/{selectedYear}
-                  {' '}({relatoriosInstagram.length + relatoriosPrefeito.length + relatoriosWeb.length + relatoriosQualitativo.length} encontrados)
+                  {' '}({relatoriosInstagram.length + relatoriosPrefeito.length + relatoriosWeb.length + relatoriosQualitativo.length + relatoriosConsolidados.length} encontrados)
                 </div>
               </div>
             </div>
@@ -487,7 +491,7 @@ const ClientDetails = () => {
               </div>
             ) : relatoriosLoading ? (
               <p className="text-slate-400">Carregando relatórios...</p>
-            ) : (relatoriosInstagram.length === 0 && relatoriosPrefeito.length === 0 && relatoriosWeb.length === 0 && relatoriosQualitativo.length === 0) ? (
+            ) : (relatoriosInstagram.length === 0 && relatoriosPrefeito.length === 0 && relatoriosWeb.length === 0 && relatoriosQualitativo.length === 0 && relatoriosConsolidados.length === 0) ? (
               <div className="text-center py-8">
                 <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                 <p className="text-slate-400 mb-2">Nenhum relatório encontrado</p>
@@ -803,6 +807,99 @@ const ClientDetails = () => {
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => deleteRelatorioWeb(relatorio)}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                  Deletar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Análise Semanal Consolidada */}
+                {relatoriosConsolidados.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                      <BarChart3 className="w-5 h-5 text-orange-400" />
+                      <span>Análise Semanal Consolidada</span>
+                    </h4>
+                    {relatoriosConsolidados.map((relatorio) => (
+                      <div
+                        key={relatorio.id}
+                        className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <BarChart3 className="w-5 h-5 text-orange-400" />
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                {relatorio.nome_analise || 'Análise Semanal Consolidada'}
+                              </p>
+                              <p className="text-sm text-slate-400">
+                                PDF • {client.nome_completo} • Criado em{' '}
+                                {new Date(relatorio.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-green-400 flex items-center mt-1">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Concluído em {new Date(relatorio.created_at).toLocaleDateString('pt-BR')} às{' '}
+                                {new Date(relatorio.created_at).toLocaleTimeString('pt-BR', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <Badge className="bg-green-900/20 text-green-300 border-green-700 border">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="ml-1">Concluído</span>
+                          </Badge>
+                          
+                          {relatorio.link_analise && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(relatorio.link_analise, '_blank')}
+                              className="flex items-center space-x-1 border-green-600/50 hover:bg-green-700/20 text-green-400 hover:text-green-300"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Baixar Análise</span>
+                            </Button>
+                          )}
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center space-x-1 border-red-600/50 hover:bg-red-700/20 text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Deletar</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-700">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-slate-200">
+                                  Confirmar exclusão
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400">
+                                  Tem certeza que deseja deletar este relatório de análise semanal consolidada? 
+                                  Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                                  Cancelar
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteRelatorioConsolidado(relatorio)}
                                   className="bg-red-600 hover:bg-red-700 text-white"
                                 >
                                   Deletar
