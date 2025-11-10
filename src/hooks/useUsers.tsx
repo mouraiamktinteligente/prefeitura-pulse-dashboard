@@ -63,13 +63,32 @@ export const useUsers = () => {
 
   const createUser = async (userData: UsuarioInsert) => {
     try {
-      const { data, error } = await supabase
-        .from('usuarios_sistema')
-        .insert(userData)
-        .select()
-        .single();
+      const { data: rpcData, error } = await supabase.rpc('create_usuario_sistema', {
+        p_tipo_usuario: userData.tipo_usuario,
+        p_tipo_pessoa: userData.tipo_pessoa,
+        p_nome_completo: userData.nome_completo,
+        p_cpf_cnpj: userData.cpf_cnpj,
+        p_email: userData.email,
+        p_senha_hash: userData.senha_hash,
+        p_whatsapp: userData.whatsapp,
+        p_endereco_cep: userData.endereco_cep,
+        p_endereco_rua: userData.endereco_rua,
+        p_endereco_numero: userData.endereco_numero,
+        p_endereco_complemento: userData.endereco_complemento,
+        p_endereco_bairro: userData.endereco_bairro,
+        p_endereco_cidade: userData.endereco_cidade,
+        p_endereco_estado: userData.endereco_estado,
+        p_razao_social: userData.razao_social,
+        p_nome_responsavel: userData.nome_responsavel,
+        p_permissoes: userData.permissoes,
+        p_cliente_id: userData.cliente_id,
+        p_ativo: userData.ativo,
+        p_session_email: user?.email
+      });
 
       if (error) throw error;
+      
+      const data = rpcData as unknown as UsuarioSistema;
       
       // Registrar movimentação
       await registrarMovimentacao(
@@ -106,14 +125,33 @@ export const useUsers = () => {
         .eq('id', id)
         .single();
       
-      const { data, error } = await supabase
-        .from('usuarios_sistema')
-        .update(userData)
-        .eq('id', id)
-        .select()
-        .single();
+      const { data: rpcData, error } = await supabase.rpc('update_usuario_sistema', {
+        p_id: id,
+        p_tipo_usuario: userData.tipo_usuario,
+        p_tipo_pessoa: userData.tipo_pessoa,
+        p_nome_completo: userData.nome_completo,
+        p_cpf_cnpj: userData.cpf_cnpj,
+        p_email: userData.email,
+        p_senha_hash: userData.senha_hash,
+        p_whatsapp: userData.whatsapp,
+        p_endereco_cep: userData.endereco_cep,
+        p_endereco_rua: userData.endereco_rua,
+        p_endereco_numero: userData.endereco_numero,
+        p_endereco_complemento: userData.endereco_complemento,
+        p_endereco_bairro: userData.endereco_bairro,
+        p_endereco_cidade: userData.endereco_cidade,
+        p_endereco_estado: userData.endereco_estado,
+        p_razao_social: userData.razao_social,
+        p_nome_responsavel: userData.nome_responsavel,
+        p_permissoes: userData.permissoes,
+        p_cliente_id: userData.cliente_id,
+        p_ativo: userData.ativo,
+        p_session_email: user?.email
+      });
 
       if (error) throw error;
+      
+      const data = rpcData as unknown as UsuarioSistema;
       
       // Registrar movimentação
       await registrarMovimentacao(
@@ -150,10 +188,10 @@ export const useUsers = () => {
         .eq('id', id)
         .single();
       
-      const { error } = await supabase
-        .from('usuarios_sistema')
-        .delete()
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('delete_usuario_sistema', {
+        p_id: id,
+        p_session_email: user?.email
+      });
 
       if (error) throw error;
       

@@ -1936,6 +1936,35 @@ export type Database = {
         }[]
       }
       cleanup_orphan_access_logs: { Args: never; Returns: undefined }
+      create_usuario_sistema: {
+        Args: {
+          p_ativo?: boolean
+          p_cliente_id?: string
+          p_cpf_cnpj: string
+          p_email?: string
+          p_endereco_bairro?: string
+          p_endereco_cep?: string
+          p_endereco_cidade?: string
+          p_endereco_complemento?: string
+          p_endereco_estado?: string
+          p_endereco_numero?: string
+          p_endereco_rua?: string
+          p_nome_completo: string
+          p_nome_responsavel?: string
+          p_permissoes?: Json
+          p_razao_social?: string
+          p_senha_hash?: string
+          p_session_email?: string
+          p_tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"]
+          p_tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
+          p_whatsapp?: string
+        }
+        Returns: Json
+      }
+      delete_usuario_sistema: {
+        Args: { p_id: string; p_session_email: string }
+        Returns: boolean
+      }
       exemplo_hora: { Args: never; Returns: string }
       force_logout_user: {
         Args: { p_motivo?: string; p_user_email: string }
@@ -1945,6 +1974,32 @@ export type Database = {
       renovar_sessao: {
         Args: { p_session_token: string; p_user_email: string }
         Returns: boolean
+      }
+      update_usuario_sistema: {
+        Args: {
+          p_ativo?: boolean
+          p_cliente_id?: string
+          p_cpf_cnpj?: string
+          p_email?: string
+          p_endereco_bairro?: string
+          p_endereco_cep?: string
+          p_endereco_cidade?: string
+          p_endereco_complemento?: string
+          p_endereco_estado?: string
+          p_endereco_numero?: string
+          p_endereco_rua?: string
+          p_id: string
+          p_nome_completo?: string
+          p_nome_responsavel?: string
+          p_permissoes?: Json
+          p_razao_social?: string
+          p_senha_hash?: string
+          p_session_email?: string
+          p_tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"]
+          p_tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
+          p_whatsapp?: string
+        }
+        Returns: Json
       }
       verificar_consistencia_links_relatorios: {
         Args: never
