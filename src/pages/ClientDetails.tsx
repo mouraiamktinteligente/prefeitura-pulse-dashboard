@@ -95,7 +95,7 @@ const ClientDetails = () => {
       if (profiles.length > 0) {
         fetchRelatoriosInstagram(profiles, dateFilter);
         fetchRelatoriosWeb(profiles, dateFilter);
-        fetchRelatoriosConsolidados(profiles, dateFilter);
+        fetchRelatoriosConsolidados(profiles, dateFilter, client.nome_completo);
         
         // For Mayor reports, try both profiles
         if (client.instagram_prefeito) {
@@ -821,13 +821,17 @@ const ClientDetails = () => {
                 )}
 
                 {/* Análise Semanal Consolidada */}
-                {relatoriosConsolidados.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
-                      <BarChart3 className="w-5 h-5 text-orange-400" />
-                      <span>Análise Semanal Consolidada</span>
-                    </h4>
-                    {relatoriosConsolidados.map((relatorio) => (
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-slate-200 flex items-center space-x-2">
+                    <BarChart3 className="w-5 h-5 text-orange-400" />
+                    <span>Análise Semanal Consolidada</span>
+                  </h4>
+                  {relatoriosConsolidados.length === 0 ? (
+                    <div className="text-sm text-slate-400 border border-slate-700/50 rounded-lg p-4 bg-slate-800/10">
+                      Nenhum relatório consolidado encontrado para o período selecionado.
+                    </div>
+                  ) : (
+                    relatoriosConsolidados.map((relatorio) => (
                       <div
                         key={relatorio.id}
                         className="flex items-center justify-between p-4 border border-slate-700/50 rounded-lg bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
@@ -909,9 +913,9 @@ const ClientDetails = () => {
                           </AlertDialog>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
 
                 {/* Relatórios Qualitativos */}
                 {relatoriosQualitativo.length > 0 && (

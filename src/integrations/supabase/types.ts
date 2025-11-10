@@ -1659,6 +1659,7 @@ export type Database = {
           id: string
           mensagens_validas: string | null
           polaridade: Json | null
+          profile: string | null
           resumo_semanal: string | null
           temas: Json | null
           total_mensagens: string | null
@@ -1669,6 +1670,7 @@ export type Database = {
           id?: string
           mensagens_validas?: string | null
           polaridade?: Json | null
+          profile?: string | null
           resumo_semanal?: string | null
           temas?: Json | null
           total_mensagens?: string | null
@@ -1679,6 +1681,7 @@ export type Database = {
           id?: string
           mensagens_validas?: string | null
           polaridade?: Json | null
+          profile?: string | null
           resumo_semanal?: string | null
           temas?: Json | null
           total_mensagens?: string | null

@@ -722,8 +722,17 @@ export const useRelatoriosAnalise = () => {
     }
   };
 
-  const fetchRelatoriosConsolidados = async (instagramProfile?: string | string[], dateFilter?: { month: number, year: number }) => {
-    console.log('🔍 [DEBUG] fetchRelatoriosConsolidados chamado com profile:', instagramProfile);
+  const fetchRelatoriosConsolidados = async (
+    instagramProfile?: string | string[], 
+    dateFilter?: { month: number, year: number },
+    clientNome?: string
+  ) => {
+    console.log('🔍 [DEBUG] fetchRelatoriosConsolidados chamado com:', {
+      instagramProfile,
+      dateFilter,
+      clientNome
+    });
+    
     if (!instagramProfile) {
       console.log('🔍 [DEBUG] profile não fornecido, saindo...');
       return;
@@ -736,15 +745,16 @@ export const useRelatoriosAnalise = () => {
     
     setLoading(true);
     try {
-      console.log('🔍 [DEBUG] Fazendo query na tabela analise_consolidada_semanal...');
+      console.log('🔍 [DEBUG] Query inicial por perfis:', validProfiles);
       
-      // Construir query com filtro de data
-      let queryString = `
-        profile=in.(${validProfiles.map(p => `"${p}"`).join(',')})
-        &link_analise=not.is.null
-        &order=created_at.desc
-      `;
+      // Construir query com filtro de data mais robusto
+      let query = supabase
+        .from('analise_consolidada_semanal' as any)
+        .select('*')
+        .in('profile', validProfiles)
+        .not('link_analise', 'is', null);
 
+      // Aplicar filtro de data com janela completa do mês
       if (dateFilter) {
         const { month, year } = dateFilter;
         const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
@@ -752,21 +762,17 @@ export const useRelatoriosAnalise = () => {
         const nextYear = month === 12 ? year + 1 : year;
         const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
         
-        queryString += `&created_at=gte.${startDate}&created_at=lt.${endDate}`;
+        console.log('🔍 [DEBUG] Filtro de data aplicado:', { startDate, endDate });
+        query = query.gte('created_at', startDate).lt('created_at', endDate);
       }
 
-      const { data, error } = await supabase
-        .from('analise_consolidada_semanal' as any)
-        .select('*')
-        .in('profile', validProfiles)
-        .not('link_analise', 'is', null)
-        .gte('created_at', dateFilter ? `${dateFilter.year}-${dateFilter.month.toString().padStart(2, '0')}-01` : '2020-01-01')
-        .order('created_at', { ascending: false });
+      const { data, error } = await query.order('created_at', { ascending: false });
 
-      console.log('📊 [DEBUG] Resultado da query consolidada:', { 
+      console.log('📊 [DEBUG] Resultado da query consolidada por profile:', { 
         totalRegistros: data?.length || 0,
         error,
-        primeirosRegistros: data?.slice(0, 3)
+        profiles: validProfiles,
+        primeirosRegistros: data?.slice(0, 2)
       });
 
       if (error) {
@@ -777,6 +783,42 @@ export const useRelatoriosAnalise = () => {
           variant: "destructive",
         });
         return;
+      }
+
+      // Fallback: se não encontrou por profile e temos nome do cliente, tentar buscar por nome
+      if ((!data || data.length === 0) && clientNome) {
+        console.log('🔍 [DEBUG] Fallback: Buscando por nome do cliente:', clientNome);
+        
+        let fallbackQuery = supabase
+          .from('analise_consolidada_semanal' as any)
+          .select('*')
+          .ilike('nome', `%${clientNome}%`)
+          .not('link_analise', 'is', null);
+
+        // Se tinha filtro de data, aplicar também no fallback
+        if (dateFilter) {
+          const { month, year } = dateFilter;
+          const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+          const nextMonth = month === 12 ? 1 : month + 1;
+          const nextYear = month === 12 ? year + 1 : year;
+          const endDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+          
+          fallbackQuery = fallbackQuery.gte('created_at', startDate).lt('created_at', endDate);
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false });
+
+        console.log('📊 [DEBUG] Resultado do fallback por nome:', {
+          totalRegistros: fallbackData?.length || 0,
+          error: fallbackError,
+          primeirosRegistros: fallbackData?.slice(0, 2)
+        });
+
+        if (!fallbackError && fallbackData && fallbackData.length > 0) {
+          console.log('✅ [DEBUG] Dados encontrados via fallback por nome:', fallbackData.length, 'itens');
+          setRelatoriosConsolidados(fallbackData as unknown as RelatorioAnaliseConsolidada[]);
+          return;
+        }
       }
 
       console.log('✅ [DEBUG] Dados encontrados para Consolidados:', data?.length || 0, 'itens');
