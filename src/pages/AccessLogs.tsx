@@ -11,10 +11,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Shield, Search, RefreshCw, LogOut, Calendar } from "lucide-react";
+import { Shield, Search, RefreshCw, LogOut, Calendar, Download, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
+import { AuditDashboard } from "@/components/AuditDashboard";
+import { exportToExcel, exportToPDF } from "@/utils/reportExporter";
 import {
   Select,
   SelectContent,
@@ -57,6 +59,7 @@ const AccessLogs = () => {
   const [filteredLogs, setFilteredLogs] = useState<AccessLog[]>([]);
   const [paginatedLogs, setPaginatedLogs] = useState<AccessLog[]>([]);
   const [searchEmail, setSearchEmail] = useState('');
+  const [showDashboard, setShowDashboard] = useState(false);
   const getCurrentMonthYear = () => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -321,6 +324,52 @@ const AccessLogs = () => {
     return userAgent;
   };
 
+  const calculateAverageSessionTime = (logs: AccessLog[]): string => {
+    const sessionsWithLogout = logs.filter(log => log.data_hora_logout);
+    
+    if (sessionsWithLogout.length === 0) return '0 min';
+    
+    const totalMinutes = sessionsWithLogout.reduce((acc, log) => {
+      const loginTime = new Date(log.data_hora_login).getTime();
+      const logoutTime = new Date(log.data_hora_logout!).getTime();
+      const minutes = (logoutTime - loginTime) / (1000 * 60);
+      return acc + minutes;
+    }, 0);
+
+    const avgMinutes = Math.round(totalMinutes / sessionsWithLogout.length);
+    
+    if (avgMinutes >= 60) {
+      const hours = Math.floor(avgMinutes / 60);
+      const mins = avgMinutes % 60;
+      return `${hours}h ${mins}min`;
+    }
+    
+    return `${avgMinutes} min`;
+  };
+
+  const handleExportExcel = () => {
+    exportToExcel(filteredLogs, { searchEmail, selectedMonth, selectedYear });
+    toast({
+      title: "Exportação concluída",
+      description: "Relatório Excel foi gerado com sucesso",
+    });
+  };
+
+  const handleExportPDF = () => {
+    const stats = {
+      totalAccess: filteredLogs.length,
+      uniqueUsers: new Set(filteredLogs.map(l => l.email_usuario)).size,
+      activeSessions: filteredLogs.filter(l => !l.data_hora_logout).length,
+      averageSessionTime: calculateAverageSessionTime(filteredLogs)
+    };
+    
+    exportToPDF(filteredLogs, { searchEmail, selectedMonth, selectedYear }, stats);
+    toast({
+      title: "Exportação concluída",
+      description: "Relatório PDF foi gerado com sucesso",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-blue-900 p-4">
       <div className="container mx-auto space-y-6">
@@ -389,33 +438,86 @@ const AccessLogs = () => {
                 </SelectContent>
               </Select>
 
-              <div className="flex space-x-2">
-                <Button
-                  onClick={fetchLogs}
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Recarregar
-                </Button>
-                <Button
-                  onClick={clearFilters}
-                  variant="outline"
-                  className="border-red-600 text-red-200 hover:bg-red-700/50"
-                >
-                  {selectedMonth || selectedYear || searchEmail ? 'Limpar Filtros' : 'Ver Todos os Registros'}
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={fetchLogs}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Recarregar
+                  </Button>
+                  <Button
+                    onClick={clearFilters}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-600 text-red-200 hover:bg-red-700/50"
+                  >
+                    {selectedMonth || selectedYear || searchEmail ? 'Limpar Filtros' : 'Ver Todos'}
+                  </Button>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handleExportExcel}
+                    variant="outline"
+                    size="sm"
+                    className="border-green-600 text-green-200 hover:bg-green-700/50"
+                    disabled={filteredLogs.length === 0}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Excel
+                  </Button>
+                  <Button
+                    onClick={handleExportPDF}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+                    disabled={filteredLogs.length === 0}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
+        </Card>
+
+        {/* Dashboard de Auditoria */}
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Dashboard de Auditoria
+              </CardTitle>
+              <Button
+                onClick={() => setShowDashboard(!showDashboard)}
+                variant="outline"
+                size="sm"
+                className="border-blue-600 text-blue-200 hover:bg-blue-700/50"
+              >
+                {showDashboard ? 'Ocultar' : 'Mostrar'} Gráficos
+              </Button>
+            </div>
+            <CardDescription className="text-blue-300">
+              Visualize padrões de acesso, horários de pico e métricas detalhadas
+            </CardDescription>
+          </CardHeader>
+          {showDashboard && (
+            <CardContent>
+              <AuditDashboard logs={logs} filteredLogs={filteredLogs} />
+            </CardContent>
+          )}
         </Card>
 
         {/* Estatísticas do Mês Atual */}
         <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
           <CardHeader>
             <CardTitle className="text-white text-lg">
-              📊 Estatísticas do Mês
+              📊 Estatísticas Rápidas
             </CardTitle>
           </CardHeader>
           <CardContent>

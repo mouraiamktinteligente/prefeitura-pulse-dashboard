@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/auth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AccessNotifications } from "@/components/AccessNotifications";
 import {
   Sidebar,
   SidebarContent,
@@ -166,6 +167,11 @@ export function AppSidebar() {
       <SidebarFooter className="p-4 border-t border-blue-700/50">
         {!isCollapsed ? (
           <div className="space-y-3">
+            {isAdmin && (
+              <div className="flex items-center justify-center pb-2">
+                <AccessNotifications />
+              </div>
+            )}
             <div className="text-blue-200">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-sm font-medium truncate">
@@ -188,15 +194,18 @@ export function AppSidebar() {
             </Button>
           </div>
         ) : (
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            size="sm"
-            className="w-full justify-center text-blue-200 hover:text-white hover:bg-blue-700/50"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            {isAdmin && <AccessNotifications />}
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="w-full justify-center text-blue-200 hover:text-white hover:bg-blue-700/50"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
