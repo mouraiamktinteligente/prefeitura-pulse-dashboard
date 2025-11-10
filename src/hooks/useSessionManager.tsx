@@ -63,36 +63,60 @@ export const useSessionManager = () => {
 
   const registerAccessLog = async (email: string, statusConexao: 'login' | 'logout' | 'desconectado_admin' | 'timeout' | 'erro_sessao' = 'login', adminEmail?: string) => {
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      
       if (statusConexao === 'login') {
-        // CRITICAL: Verificar se já existe um log de login recente (últimos 30 segundos) para evitar duplicatas
+        // 1. FECHAR TODOS os logs anteriores do usuário (crítico!)
+        const brazilDateTime = getBrazilDateTime();
+        const { error: closeError } = await supabase
+          .from('logs_acesso')
+          .update({ 
+            data_hora_logout: brazilDateTime,
+            updated_at: brazilDateTime,
+            status_conexao: 'logout' // Auto-logout de sessões antigas
+          })
+          .eq('email_usuario', normalizedEmail)
+          .is('data_hora_logout', null); // Apenas registros sem logout
+
+        if (closeError) {
+          console.error('Erro ao fechar logs anteriores:', closeError);
+        }
+
+        // 2. AGUARDAR propagação (evitar race condition)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 3. VERIFICAR duplicatas recentes (últimos 30 segundos)
         const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
         const { data: recentLog } = await supabase
           .from('logs_acesso')
           .select('*')
-          .eq('email_usuario', email)
+          .eq('email_usuario', normalizedEmail)
           .is('data_hora_logout', null)
           .gte('data_hora_login', thirtySecondsAgo)
           .maybeSingle();
 
         if (recentLog) {
-          console.log('Log de login recente encontrado, evitando duplicata');
+          console.log('Log de login recente encontrado após fechamento, evitando duplicata');
           return;
         }
 
+        // 4. CRIAR novo registro de login
         const realIP = await getRealIP();
         const realBrowser = getRealBrowser();
-        const brazilDateTime = getBrazilDateTime();
+        const newBrazilDateTime = getBrazilDateTime();
         
         await supabase
           .from('logs_acesso')
           .insert({
-            email_usuario: email,
-            data_hora_login: brazilDateTime,
+            email_usuario: normalizedEmail,
+            data_hora_login: newBrazilDateTime,
             ip_address: realIP,
             user_agent: realBrowser,
             session_id: null,
             status_conexao: statusConexao
           });
+          
+        console.log(`✅ Novo log de acesso criado para ${normalizedEmail} - Logs anteriores fechados`);
       } else {
         const { data: latestLog } = await supabase
           .from('logs_acesso')
@@ -145,6 +169,10 @@ export const useSessionManager = () => {
     const normalizedEmail = userEmail.trim().toLowerCase();
     
     try {
+      // ANTES de criar sessão, fechar todos os logs anteriores
+      await registerAccessLog(normalizedEmail, 'logout'); // Fecha logs anteriores
+      await new Promise(resolve => setTimeout(resolve, 300)); // Aguardar propagação
+      
       const realIP = await getRealIP();
       
       console.log(`[SESSÃO] Iniciando criação de sessão para: ${normalizedEmail}`);
@@ -564,6 +592,16 @@ export const useSessionManager = () => {
     };
   }, []);
 
+  // Função para limpar logs órfãos
+  const cleanupOrphanLogs = useCallback(async () => {
+    try {
+      await supabase.rpc('cleanup_orphan_access_logs');
+      console.log('✅ Logs órfãos limpos');
+    } catch (error) {
+      console.error('Erro ao limpar logs órfãos:', error);
+    }
+  }, []);
+
   // Função para limpar sessões expiradas (chamada periodicamente)
   const cleanupExpiredSessions = useCallback(async () => {
     try {
@@ -575,13 +613,19 @@ export const useSessionManager = () => {
 
   // Cleanup automático a cada 5 minutos
   useEffect(() => {
-    const cleanup = setInterval(cleanupExpiredSessions, 5 * 60 * 1000); // 5 minutos
-    
-    // Executar uma vez imediatamente
+    // Executar limpezas imediatamente
     cleanupExpiredSessions();
+    cleanupOrphanLogs();
     
-    return () => clearInterval(cleanup);
-  }, [cleanupExpiredSessions]);
+    // Configurar intervalos
+    const cleanupInterval = setInterval(cleanupExpiredSessions, 5 * 60 * 1000); // 5 minutos
+    const orphanCleanupInterval = setInterval(cleanupOrphanLogs, 60 * 60 * 1000); // 1 hora
+    
+    return () => {
+      clearInterval(cleanupInterval);
+      clearInterval(orphanCleanupInterval);
+    };
+  }, [cleanupExpiredSessions, cleanupOrphanLogs]);
 
   return {
     currentSession,

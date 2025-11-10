@@ -1132,19 +1132,34 @@ export type Database = {
       }
       radio_transcriber: {
         Row: {
+          cidade: string | null
           created_at: string
+          data_hora: string | null
           id: string
-          output_json: Json | null
+          nomes: string | null
+          radio: string | null
+          relevante: boolean | null
+          resumo: string | null
         }
         Insert: {
+          cidade?: string | null
           created_at?: string
+          data_hora?: string | null
           id?: string
-          output_json?: Json | null
+          nomes?: string | null
+          radio?: string | null
+          relevante?: boolean | null
+          resumo?: string | null
         }
         Update: {
+          cidade?: string | null
           created_at?: string
+          data_hora?: string | null
           id?: string
-          output_json?: Json | null
+          nomes?: string | null
+          radio?: string | null
+          relevante?: boolean | null
+          resumo?: string | null
         }
         Relationships: []
       }
@@ -1277,6 +1292,7 @@ export type Database = {
           nome: string | null
           nome_analise: string | null
           nome_documento: string | null
+          nome_relatorio: string | null
           profile: string | null
         }
         Insert: {
@@ -1287,6 +1303,7 @@ export type Database = {
           nome?: string | null
           nome_analise?: string | null
           nome_documento?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
         }
         Update: {
@@ -1297,6 +1314,7 @@ export type Database = {
           nome?: string | null
           nome_analise?: string | null
           nome_documento?: string | null
+          nome_relatorio?: string | null
           profile?: string | null
         }
         Relationships: []
@@ -1325,6 +1343,45 @@ export type Database = {
           nome?: string | null
           nome_documento?: string | null
           profile?: string | null
+        }
+        Relationships: []
+      }
+      resumo_semanal_whatsapp: {
+        Row: {
+          boatos_desinformacao_e_criticas: string | null
+          conclusao: string | null
+          created_at: string
+          id: string
+          influencia_e_disseminacao: string | null
+          "nome-prefeitura": string | null
+          oportunidades_e_recomendacoes_estrategicas: string | null
+          panorama_geral_da_semana: string | null
+          percepcao_e_sentimento_publico: string | null
+          temas_e_narrativas_relevantes: string | null
+        }
+        Insert: {
+          boatos_desinformacao_e_criticas?: string | null
+          conclusao?: string | null
+          created_at?: string
+          id?: string
+          influencia_e_disseminacao?: string | null
+          "nome-prefeitura"?: string | null
+          oportunidades_e_recomendacoes_estrategicas?: string | null
+          panorama_geral_da_semana?: string | null
+          percepcao_e_sentimento_publico?: string | null
+          temas_e_narrativas_relevantes?: string | null
+        }
+        Update: {
+          boatos_desinformacao_e_criticas?: string | null
+          conclusao?: string | null
+          created_at?: string
+          id?: string
+          influencia_e_disseminacao?: string | null
+          "nome-prefeitura"?: string | null
+          oportunidades_e_recomendacoes_estrategicas?: string | null
+          panorama_geral_da_semana?: string | null
+          percepcao_e_sentimento_publico?: string | null
+          temas_e_narrativas_relevantes?: string | null
         }
         Relationships: []
       }
@@ -1463,6 +1520,138 @@ export type Database = {
           tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      weekly_summary_instagram_prefeito: {
+        Row: {
+          comentarios_repetidos: Json | null
+          comentarios_validos: string | null
+          created_at: string
+          id: string
+          polaridade: Json | null
+          resumo_semanal: string | null
+          temas: Json | null
+          total_comentarios: string | null
+        }
+        Insert: {
+          comentarios_repetidos?: Json | null
+          comentarios_validos?: string | null
+          created_at?: string
+          id?: string
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_comentarios?: string | null
+        }
+        Update: {
+          comentarios_repetidos?: Json | null
+          comentarios_validos?: string | null
+          created_at?: string
+          id?: string
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_comentarios?: string | null
+        }
+        Relationships: []
+      }
+      weekly_summary_instagram_prefeitura: {
+        Row: {
+          comentarios_repetidos: Json | null
+          comentarios_validos: string | null
+          created_at: string
+          id: string
+          polaridade: Json | null
+          resumo_semanal: string | null
+          temas: Json | null
+          total_comentarios: string | null
+        }
+        Insert: {
+          comentarios_repetidos?: Json | null
+          comentarios_validos?: string | null
+          created_at?: string
+          id?: string
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_comentarios?: string | null
+        }
+        Update: {
+          comentarios_repetidos?: Json | null
+          comentarios_validos?: string | null
+          created_at?: string
+          id?: string
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_comentarios?: string | null
+        }
+        Relationships: []
+      }
+      weekly_summary_web: {
+        Row: {
+          created_at: string
+          fontes_principais: Json | null
+          id: string
+          mencoes_validas: string | null
+          polaridade: Json | null
+          resumo_semanal: string | null
+          temas: Json | null
+          total_mencoes: string | null
+        }
+        Insert: {
+          created_at?: string
+          fontes_principais?: Json | null
+          id?: string
+          mencoes_validas?: string | null
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_mencoes?: string | null
+        }
+        Update: {
+          created_at?: string
+          fontes_principais?: Json | null
+          id?: string
+          mencoes_validas?: string | null
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_mencoes?: string | null
+        }
+        Relationships: []
+      }
+      weekly_summary_whatsapp: {
+        Row: {
+          created_at: string
+          grupos_ativos: string | null
+          id: string
+          mensagens_validas: string | null
+          polaridade: Json | null
+          resumo_semanal: string | null
+          temas: Json | null
+          total_mensagens: string | null
+        }
+        Insert: {
+          created_at?: string
+          grupos_ativos?: string | null
+          id?: string
+          mensagens_validas?: string | null
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_mensagens?: string | null
+        }
+        Update: {
+          created_at?: string
+          grupos_ativos?: string | null
+          id?: string
+          mensagens_validas?: string | null
+          polaridade?: Json | null
+          resumo_semanal?: string | null
+          temas?: Json | null
+          total_mensagens?: string | null
         }
         Relationships: []
       }
@@ -1687,6 +1876,7 @@ export type Database = {
           total_posts: number
         }[]
       }
+      cleanup_orphan_access_logs: { Args: never; Returns: undefined }
       exemplo_hora: { Args: never; Returns: string }
       force_logout_user: {
         Args: { p_motivo?: string; p_user_email: string }

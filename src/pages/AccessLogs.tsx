@@ -57,8 +57,16 @@ const AccessLogs = () => {
   const [filteredLogs, setFilteredLogs] = useState<AccessLog[]>([]);
   const [paginatedLogs, setPaginatedLogs] = useState<AccessLog[]>([]);
   const [searchEmail, setSearchEmail] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
+  const getCurrentMonthYear = () => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear());
+    return { month, year };
+  };
+
+  const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth); // ✅ Mês atual
+  const [selectedYear, setSelectedYear] = useState(currentYear);   // ✅ Ano atual
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [disconnectingUser, setDisconnectingUser] = useState<string | null>(null);
@@ -336,6 +344,11 @@ const AccessLogs = () => {
             </CardTitle>
             <CardDescription className="text-blue-300">
               Filtre os logs por email, mês ou ano
+              {selectedMonth && selectedYear && (
+                <span className="ml-2 text-blue-200 font-semibold">
+                  • Mostrando: {months.find(m => m.value === selectedMonth)?.label} de {selectedYear}
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -391,8 +404,37 @@ const AccessLogs = () => {
                   variant="outline"
                   className="border-red-600 text-red-200 hover:bg-red-700/50"
                 >
-                  Limpar Filtros
+                  {selectedMonth || selectedYear || searchEmail ? 'Limpar Filtros' : 'Ver Todos os Registros'}
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Estatísticas do Mês Atual */}
+        <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700/50">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">
+              📊 Estatísticas do Mês
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-900/50 p-4 rounded-lg">
+                <div className="text-blue-300 text-sm">Total de Acessos</div>
+                <div className="text-white text-2xl font-bold">{filteredLogs.length}</div>
+              </div>
+              <div className="bg-green-900/50 p-4 rounded-lg">
+                <div className="text-green-300 text-sm">Usuários Únicos</div>
+                <div className="text-white text-2xl font-bold">
+                  {new Set(filteredLogs.map(log => log.email_usuario)).size}
+                </div>
+              </div>
+              <div className="bg-yellow-900/50 p-4 rounded-lg">
+                <div className="text-yellow-300 text-sm">Sessões Ativas Agora</div>
+                <div className="text-white text-2xl font-bold">
+                  {filteredLogs.filter(log => !log.data_hora_logout).length}
+                </div>
               </div>
             </div>
           </CardContent>

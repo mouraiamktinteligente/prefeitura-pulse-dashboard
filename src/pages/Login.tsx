@@ -106,6 +106,10 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // 1. LIMPAR logs órfãos antes de tentar login
+      await supabase.rpc('cleanup_orphan_access_logs');
+      
+      // 2. Tentar login
       const { error } = await signIn(email, password);
       
       if (error) {
