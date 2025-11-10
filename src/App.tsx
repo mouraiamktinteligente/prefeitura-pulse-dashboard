@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { TopNavigation } from "@/components/TopNavigation";
+import { AppLayout } from "@/components/AppLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useAuth } from "@/contexts/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -45,91 +45,81 @@ const AppRoutes = () => {
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <MainDashboard />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/dashboard/:clientId" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <DetailedDashboard />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/cadastro" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <ClientRegistration />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/gestao-clientes" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <ClientRegistration />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/gestao-clientes/:clientId" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <ClientDetails />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/analise-pesquisa" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <AnalisePesquisa />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/marketing" element={
         <ProtectedRoute>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <Marketing />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/admin/access-logs" element={
         <ProtectedRoute requireAdmin={true}>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <AccessLogs />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/admin/platform-users" element={
         <ProtectedRoute requireAdmin={true}>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <PlatformUsers />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
       <Route path="/admin/movimentacoes" element={
         <ProtectedRoute requireAdmin={true}>
-          <TopNavigation />
-          <main className="flex-1">
+          <AppLayout>
             <RegistroMovimentacoes />
-          </main>
+          </AppLayout>
         </ProtectedRoute>
       } />
       
