@@ -57,15 +57,15 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
       try {
         setIsLoading(true);
         
-        // Obter data atual ou data selecionada
         const dataFiltro = dataSelecionada || new Date();
+        const ano = dataFiltro.getFullYear();
+        const mes = dataFiltro.getMonth();
+        const dia = dataFiltro.getDate();
         
-        // Formatar data para comparação (início e fim do dia)
-        const inicioDia = new Date(dataFiltro);
-        inicioDia.setHours(0, 0, 0, 0);
+        const inicioDia = new Date(Date.UTC(ano, mes, dia, 0, 0, 0, 0));
+        const fimDia = new Date(Date.UTC(ano, mes, dia, 23, 59, 59, 999));
         
-        const fimDia = new Date(dataFiltro);
-        fimDia.setHours(23, 59, 59, 999);
+        console.log('🔍 [WhatsApp] Buscando dados entre:', inicioDia.toISOString(), 'e', fimDia.toISOString());
         
         // Query base
         let query = supabase
@@ -85,6 +85,11 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
         if (error) {
           console.error('Erro ao buscar resumos WhatsApp:', error);
           return;
+        }
+
+        console.log('✅ [WhatsApp] Registros retornados:', data?.length || 0);
+        if (prefeituraFiltro) {
+          console.log('🔎 [WhatsApp] Filtro de prefeitura aplicado:', prefeituraFiltro);
         }
 
         const dadosProcessados: ResumoWhatsapp[] = (data || []).map(item => ({

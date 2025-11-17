@@ -1546,28 +1546,52 @@ export type Database = {
       }
       resumo_whatsapp: {
         Row: {
+          alerta_enviado: boolean | null
+          alerta_visualizado: boolean | null
+          contador_alerta: number | null
           created_at: string
           grupo: string | null
+          hora_acao: string | null
           id: number
+          numeros_enviado: Json | null
           prefeitura: string | null
           resumo: string | null
+          sentiment: string | null
+          sentiment_score: string | null
           tema: string | null
+          updated_at: string | null
         }
         Insert: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
           created_at?: string
           grupo?: string | null
+          hora_acao?: string | null
           id?: number
+          numeros_enviado?: Json | null
           prefeitura?: string | null
           resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
           tema?: string | null
+          updated_at?: string | null
         }
         Update: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
           created_at?: string
           grupo?: string | null
+          hora_acao?: string | null
           id?: number
+          numeros_enviado?: Json | null
           prefeitura?: string | null
           resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
           tema?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

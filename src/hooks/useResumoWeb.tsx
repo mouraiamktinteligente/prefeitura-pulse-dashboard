@@ -66,10 +66,14 @@ export const useResumoWeb = (dataSelecionada?: Date, prefeituraFiltro?: string) 
         setIsLoading(true);
         
         const dataFiltro = dataSelecionada || new Date();
-        const inicioDia = new Date(dataFiltro);
-        inicioDia.setHours(0, 0, 0, 0);
-        const fimDia = new Date(dataFiltro);
-        fimDia.setHours(23, 59, 59, 999);
+        const ano = dataFiltro.getFullYear();
+        const mes = dataFiltro.getMonth();
+        const dia = dataFiltro.getDate();
+        
+        const inicioDia = new Date(Date.UTC(ano, mes, dia, 0, 0, 0, 0));
+        const fimDia = new Date(Date.UTC(ano, mes, dia, 23, 59, 59, 999));
+        
+        console.log('🔍 [Web] Buscando dados entre:', inicioDia.toISOString(), 'e', fimDia.toISOString());
         
         let query = supabase
           .from('resumo_web')
@@ -87,6 +91,11 @@ export const useResumoWeb = (dataSelecionada?: Date, prefeituraFiltro?: string) 
         if (error) {
           console.error('Erro ao buscar resumos Web:', error);
           return;
+        }
+
+        console.log('✅ [Web] Registros retornados:', data?.length || 0);
+        if (prefeituraFiltro) {
+          console.log('🔎 [Web] Filtro de prefeitura aplicado:', prefeituraFiltro);
         }
 
         const dadosProcessados = (data || []).map(item => ({

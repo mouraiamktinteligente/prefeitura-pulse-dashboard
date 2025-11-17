@@ -99,7 +99,8 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
                 <div className="bg-green-500/5 border-l-4 border-l-green-500 rounded-lg p-4 text-center">
                   <p className="text-green-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
                   <p className="text-blue-300 text-xs mt-2">
-                    Selecione outra data para visualizar os insights
+                    Data selecionada: {dataSelecionada.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    {prefeituraFiltro && ` • Prefeitura: ${prefeituraFiltro}`}
                   </p>
                 </div>
               ) : (
@@ -187,10 +188,14 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
                 <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
                   <p className="text-orange-300 text-sm">🔄 Carregando dados...</p>
                 </div>
-              ) : radioPorCidade.length === 0 ? (
-                <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
-                  <p className="text-orange-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
-                </div>
+    ) : radioPorCidade.length === 0 ? (
+      <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
+        <p className="text-orange-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
+        <p className="text-blue-300 text-xs mt-2">
+          Data selecionada: {dataSelecionada.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          {prefeituraFiltro && ` • Prefeitura: ${prefeituraFiltro}`}
+        </p>
+      </div>
               ) : (
                 <div className="space-y-4">
                   {radioPorCidade.map((cidadeData) => (
@@ -276,10 +281,14 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
                 <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
                   <p className="text-cyan-300 text-sm">🔄 Carregando dados...</p>
                 </div>
-              ) : webPorCidade.length === 0 ? (
-                <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
-                  <p className="text-cyan-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
-                </div>
+    ) : webPorCidade.length === 0 ? (
+      <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
+        <p className="text-cyan-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
+        <p className="text-blue-300 text-xs mt-2">
+          Data selecionada: {dataSelecionada.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          {prefeituraFiltro && ` • Prefeitura: ${prefeituraFiltro}`}
+        </p>
+      </div>
               ) : (
                 <div className="space-y-4">
                   {webPorCidade.map((cidadeData) => (
