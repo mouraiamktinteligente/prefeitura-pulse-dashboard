@@ -818,8 +818,8 @@ export type Database = {
           prefeito: string
           processado: boolean | null
           relevancia: number | null
-          resumo: string | null
           resumo_ia: string | null
+          resumo_noticia: string | null
           sentimento: string | null
           status_scraping: string | null
           tags: string[] | null
@@ -850,8 +850,8 @@ export type Database = {
           prefeito: string
           processado?: boolean | null
           relevancia?: number | null
-          resumo?: string | null
           resumo_ia?: string | null
+          resumo_noticia?: string | null
           sentimento?: string | null
           status_scraping?: string | null
           tags?: string[] | null
@@ -882,8 +882,8 @@ export type Database = {
           prefeito?: string
           processado?: boolean | null
           relevancia?: number | null
-          resumo?: string | null
           resumo_ia?: string | null
+          resumo_noticia?: string | null
           sentimento?: string | null
           status_scraping?: string | null
           tags?: string[] | null
@@ -1166,7 +1166,9 @@ export type Database = {
           created_at: string
           data_hora: string | null
           id: string
+          instagram_prefeitura: string | null
           nomes: string | null
+          prefeitura: string | null
           radio: string | null
           relevante: boolean | null
           resumo: string | null
@@ -1176,7 +1178,9 @@ export type Database = {
           created_at?: string
           data_hora?: string | null
           id?: string
+          instagram_prefeitura?: string | null
           nomes?: string | null
+          prefeitura?: string | null
           radio?: string | null
           relevante?: boolean | null
           resumo?: string | null
@@ -1186,7 +1190,9 @@ export type Database = {
           created_at?: string
           data_hora?: string | null
           id?: string
+          instagram_prefeitura?: string | null
           nomes?: string | null
+          prefeitura?: string | null
           radio?: string | null
           relevante?: boolean | null
           resumo?: string | null
@@ -1406,6 +1412,66 @@ export type Database = {
         }
         Relationships: []
       }
+      resumo_radio: {
+        Row: {
+          alerta_enviado: boolean | null
+          alerta_visualizado: boolean | null
+          contador_alerta: number | null
+          created_at: string
+          hora_acao: string | null
+          id: number
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          numeros_enviado: Json | null
+          prefeito: string | null
+          prefeitura: string | null
+          radio: string | null
+          resumo: string | null
+          sentiment: string | null
+          sentiment_score: string | null
+          tema: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
+          created_at?: string
+          hora_acao?: string | null
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          numeros_enviado?: Json | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          radio?: string | null
+          resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
+          tema?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
+          created_at?: string
+          hora_acao?: string | null
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          numeros_enviado?: Json | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          radio?: string | null
+          resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
+          tema?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       resumo_semanal_whatsapp: {
         Row: {
           boatos_desinformacao_e_criticas: string | null
@@ -1442,6 +1508,39 @@ export type Database = {
           panorama_geral_da_semana?: string | null
           percepcao_e_sentimento_publico?: string | null
           temas_e_narrativas_relevantes?: string | null
+        }
+        Relationships: []
+      }
+      resumo_web: {
+        Row: {
+          created_at: string
+          id: number
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          prefeito: string | null
+          prefeitura: string | null
+          resumo: string | null
+          tema: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          resumo?: string | null
+          tema?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          resumo?: string | null
+          tema?: string | null
         }
         Relationships: []
       }
