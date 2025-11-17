@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Globe, Radio, MessageCircle, CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { useResumoWhatsapp } from '@/hooks/useResumoWhatsapp';
+import { useResumoRadio } from '@/hooks/useResumoRadio';
+import { useResumoWeb } from '@/hooks/useResumoWeb';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,8 @@ interface WebInsightsProps {
 export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
   const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada, prefeituraFiltro);
+  const { radioPorCidade, isLoading: isLoadingRadio } = useResumoRadio(dataSelecionada, prefeituraFiltro);
+  const { webPorCidade, isLoading: isLoadingWeb } = useResumoWeb(dataSelecionada, prefeituraFiltro);
   
   const [isWhatsappExpanded, setIsWhatsappExpanded] = useState(true);
   const [isRadioExpanded, setIsRadioExpanded] = useState(false);
@@ -157,7 +161,7 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
           )}
         </div>
 
-        {/* 2. Radio Section - SEGUNDO (EM CONSTRUÇÃO) */}
+        {/* 2. Rádio Section - SEGUNDO */}
         <div className="mb-6">
           <div 
             className="flex items-center justify-between mb-3 cursor-pointer group"
@@ -167,7 +171,7 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
               <Radio className="w-5 h-5 text-orange-400" />
               <h3 className="text-white font-semibold text-base">Insights Rádio</h3>
               <Badge className="bg-orange-500/20 text-orange-300 border border-orange-500 text-xs">
-                Em construção
+                {radioPorCidade.reduce((total, cidade) => total + cidade.alertas.length, 0)} alertas
               </Badge>
             </div>
             {isRadioExpanded ? (
@@ -178,16 +182,75 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
           </div>
           
           {isRadioExpanded && (
-            <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center animate-fade-in">
-              <p className="text-orange-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
-              <p className="text-blue-300 text-xs mt-2">
-                Em breve você poderá monitorar insights de rádio
-              </p>
-            </div>
+            <>
+              {isLoadingRadio ? (
+                <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
+                  <p className="text-orange-300 text-sm">🔄 Carregando dados...</p>
+                </div>
+              ) : radioPorCidade.length === 0 ? (
+                <div className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4 text-center">
+                  <p className="text-orange-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {radioPorCidade.map((cidadeData) => (
+                    <div key={cidadeData.cidade} className="bg-orange-500/5 border-l-4 border-l-orange-500 rounded-lg p-4">
+                      <div className="mb-3 pb-2 border-b border-orange-500/30">
+                        <h4 className="text-white font-semibold text-sm flex items-center gap-2">
+                          📍 {cidadeData.cidade}
+                          <Badge className="bg-orange-600/30 text-orange-300 text-xs">
+                            {cidadeData.alertas.length} alerta{cidadeData.alertas.length > 1 ? 's' : ''}
+                          </Badge>
+                        </h4>
+                      </div>
+
+                      <div className="space-y-3">
+                        {cidadeData.alertas.map((alerta) => (
+                          <div key={alerta.id} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-200">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h5 className="text-orange-300 font-medium text-sm flex items-center gap-1">
+                                📻 {alerta.radio || 'Rádio não identificada'}
+                              </h5>
+                              {alerta.sentiment && (
+                                <Badge className={`text-xs ${
+                                  alerta.sentiment === 'Positivo' ? 'bg-green-500/20 text-green-300 border-green-500' :
+                                  alerta.sentiment === 'Negativo' ? 'bg-red-500/20 text-red-300 border-red-500' :
+                                  'bg-gray-500/20 text-gray-300 border-gray-500'
+                                }`}>
+                                  {alerta.sentiment} {alerta.sentiment_score && `(${alerta.sentiment_score})`}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <p className="text-blue-200 text-xs leading-relaxed mb-2">
+                              {alerta.resumo}
+                            </p>
+
+                            {alerta.tema && (
+                              <div className="mb-2">
+                                <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/50 text-xs">
+                                  🏷️ {alerta.tema}
+                                </Badge>
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-end mt-2 pt-2 border-t border-orange-500/20">
+                              <span className="text-orange-400 text-xs">
+                                📅 {alerta.data_formatada}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* 3. Web Section - TERCEIRO (EM CONSTRUÇÃO) */}
+        {/* 3. Web Section - TERCEIRO */}
         <div className="mb-4">
           <div 
             className="flex items-center justify-between mb-3 cursor-pointer group"
@@ -197,7 +260,7 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
               <Globe className="w-5 h-5 text-cyan-400" />
               <h3 className="text-white font-semibold text-base">Alertas Web</h3>
               <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500 text-xs">
-                Em construção
+                {webPorCidade.reduce((total, cidade) => total + cidade.alertas.length, 0)} alertas
               </Badge>
             </div>
             {isWebExpanded ? (
@@ -208,12 +271,56 @@ export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
           </div>
           
           {isWebExpanded && (
-            <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center animate-fade-in">
-              <p className="text-cyan-300 text-sm">🔄 Funcionalidade em desenvolvimento</p>
-              <p className="text-blue-300 text-xs mt-2">
-                Em breve você poderá monitorar alertas da web
-              </p>
-            </div>
+            <>
+              {isLoadingWeb ? (
+                <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
+                  <p className="text-cyan-300 text-sm">🔄 Carregando dados...</p>
+                </div>
+              ) : webPorCidade.length === 0 ? (
+                <div className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4 text-center">
+                  <p className="text-cyan-300 text-sm">📅 Nenhum dado encontrado para esta data</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {webPorCidade.map((cidadeData) => (
+                    <div key={cidadeData.cidade} className="bg-cyan-500/5 border-l-4 border-l-cyan-500 rounded-lg p-4">
+                      <div className="mb-3 pb-2 border-b border-cyan-500/30">
+                        <h4 className="text-white font-semibold text-sm flex items-center gap-2">
+                          📍 {cidadeData.cidade}
+                          <Badge className="bg-cyan-600/30 text-cyan-300 text-xs">
+                            {cidadeData.alertas.length} alerta{cidadeData.alertas.length > 1 ? 's' : ''}
+                          </Badge>
+                        </h4>
+                      </div>
+
+                      <div className="space-y-3">
+                        {cidadeData.alertas.map((alerta) => (
+                          <div key={alerta.id} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all duration-200">
+                            <p className="text-blue-200 text-xs leading-relaxed mb-2">
+                              {alerta.resumo}
+                            </p>
+
+                            {alerta.tema && (
+                              <div className="mb-2">
+                                <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/50 text-xs">
+                                  🏷️ {alerta.tema}
+                                </Badge>
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-end mt-2 pt-2 border-t border-cyan-500/20">
+                              <span className="text-cyan-400 text-xs">
+                                📅 {alerta.data_formatada}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </CardContent>
