@@ -22,10 +22,18 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
   const [isLoading, setIsLoading] = useState(true);
 
   const extrairNomeCidade = (prefeitura: string): string => {
-    return prefeitura
-      .replace(/^Prefeitura Municipal de /i, '')
-      .replace(/^Prefeitura de /i, '')
+    if (!prefeitura) return 'Sem Cidade';
+    
+    // Remover "Prefeitura", "Municipal" e preposições do início
+    let cidade = prefeitura
+      .replace(/^Prefeitura\s+/i, '')
+      .replace(/^Municipal\s+/i, '')
+      .replace(/^de\s+/i, '')
+      .replace(/^do\s+/i, '')
+      .replace(/^da\s+/i, '')
       .trim();
+    
+    return cidade || prefeitura;
   };
 
   const formatarData = (dataISO: string): string => {
@@ -76,8 +84,8 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
         
         // Filtro por prefeitura se fornecido
         if (prefeituraFiltro) {
-          const nomeCidadeTratado = extrairNomeCidade(prefeituraFiltro);
-          query = query.or(`prefeitura.ilike.%${nomeCidadeTratado}%,prefeitura.ilike.%${prefeituraFiltro}%`);
+          query = query.ilike('prefeitura', `%${prefeituraFiltro}%`);
+          console.log('🔎 [WhatsApp] Filtro aplicado:', prefeituraFiltro);
         }
         
         const { data, error } = await query.order('created_at', { ascending: false });

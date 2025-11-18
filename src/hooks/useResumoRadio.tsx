@@ -26,15 +26,16 @@ export const useResumoRadio = (dataSelecionada?: Date, prefeituraFiltro?: string
   const extrairNomeCidade = (prefeitura: string): string => {
     if (!prefeitura) return 'Sem Cidade';
     
-    const prefeituraLower = prefeitura.toLowerCase();
-    if (prefeituraLower.includes('prefeitura') || prefeituraLower.includes('municipal')) {
-      const match = prefeitura.match(/(?:prefeitura|municipal)\s+(?:de|do|da)?\s*(.+)/i);
-      if (match && match[1]) {
-        return match[1].trim();
-      }
-    }
+    // Remover "Prefeitura", "Municipal" e preposições do início
+    let cidade = prefeitura
+      .replace(/^Prefeitura\s+/i, '')
+      .replace(/^Municipal\s+/i, '')
+      .replace(/^de\s+/i, '')
+      .replace(/^do\s+/i, '')
+      .replace(/^da\s+/i, '')
+      .trim();
     
-    return prefeitura;
+    return cidade || prefeitura;
   };
 
   const formatarData = (dataISO: string): string => {
@@ -85,8 +86,8 @@ export const useResumoRadio = (dataSelecionada?: Date, prefeituraFiltro?: string
           .lte('created_at', fimDia.toISOString());
         
         if (prefeituraFiltro) {
-          const nomeCidadeTratado = extrairNomeCidade(prefeituraFiltro);
-          query = query.or(`prefeitura.ilike.%${nomeCidadeTratado}%,prefeitura.ilike.%${prefeituraFiltro}%`);
+          query = query.ilike('prefeitura', `%${prefeituraFiltro}%`);
+          console.log('🔎 [Rádio] Filtro aplicado:', prefeituraFiltro);
         }
         
         const { data, error } = await query.order('created_at', { ascending: false });
