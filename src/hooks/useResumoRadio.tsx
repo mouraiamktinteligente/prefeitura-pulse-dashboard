@@ -23,20 +23,6 @@ export const useResumoRadio = (dataSelecionada?: Date, prefeituraFiltro?: string
   const [radioPorCidade, setRadioPorCidade] = useState<RadioPorCidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const extrairNomeCidade = (prefeitura: string): string => {
-    if (!prefeitura) return 'Sem Cidade';
-    
-    // Remover "Prefeitura", "Municipal" e preposições do início
-    let cidade = prefeitura
-      .replace(/^Prefeitura\s+/i, '')
-      .replace(/^Municipal\s+/i, '')
-      .replace(/^de\s+/i, '')
-      .replace(/^do\s+/i, '')
-      .replace(/^da\s+/i, '')
-      .trim();
-    
-    return cidade || prefeitura;
-  };
 
   const formatarData = (dataISO: string): string => {
     const data = new Date(dataISO);
@@ -86,8 +72,8 @@ export const useResumoRadio = (dataSelecionada?: Date, prefeituraFiltro?: string
           .lte('created_at', fimDia.toISOString());
         
         if (prefeituraFiltro) {
-          query = query.ilike('prefeitura', `%${prefeituraFiltro}%`);
-          console.log('🔎 [Rádio] Filtro aplicado:', prefeituraFiltro);
+          query = query.eq('instagram_prefeitura', prefeituraFiltro);
+          console.log('🔎 [Rádio] Filtro aplicado (instagram_prefeitura):', prefeituraFiltro);
         }
         
         const { data, error } = await query.order('created_at', { ascending: false });
@@ -104,7 +90,7 @@ export const useResumoRadio = (dataSelecionada?: Date, prefeituraFiltro?: string
 
         const dadosProcessados = (data || []).map(item => ({
           ...item,
-          cidade: extrairNomeCidade(item.prefeitura || ''),
+          cidade: item.prefeitura || 'Sem Prefeitura',
           data_formatada: formatarData(item.created_at)
         }));
 

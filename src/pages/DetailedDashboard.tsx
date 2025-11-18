@@ -136,7 +136,7 @@ const DetailedDashboard = () => {
           {/* Right Column */}
           <div className="space-y-6">
             <MaliciousComments profile={selectedClient?.instagram_prefeitura} />
-            <WebInsights prefeituraFiltro={selectedClient?.nome_completo} />
+            <WebInsights prefeituraFiltro={selectedClient?.instagram_prefeitura} />
           </div>
         </div>
         
