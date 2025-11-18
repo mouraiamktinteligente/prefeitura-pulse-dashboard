@@ -13,12 +13,13 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface WebInsightsProps {
-  prefeituraFiltro?: string;
+  prefeituraFiltro?: string; // instagram_prefeitura para rádio e web
+  nomePrefeituraCompleto?: string; // nome completo para whatsapp
 }
 
-export const WebInsights = ({ prefeituraFiltro }: WebInsightsProps) => {
+export const WebInsights = ({ prefeituraFiltro, nomePrefeituraCompleto }: WebInsightsProps) => {
   const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
-  const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada, prefeituraFiltro);
+  const { whatsappPorCidade, isLoading: isLoadingWhatsapp } = useResumoWhatsapp(dataSelecionada, nomePrefeituraCompleto);
   const { radioPorCidade, isLoading: isLoadingRadio } = useResumoRadio(dataSelecionada, prefeituraFiltro);
   const { webPorCidade, isLoading: isLoadingWeb } = useResumoWeb(dataSelecionada, prefeituraFiltro);
   

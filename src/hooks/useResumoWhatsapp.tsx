@@ -17,7 +17,7 @@ interface WhatsappPorCidade {
   grupos: ResumoWhatsapp[];
 }
 
-export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: string) => {
+export const useResumoWhatsapp = (dataSelecionada?: Date, nomePrefeituraCompleto?: string) => {
   const [whatsappPorCidade, setWhatsappPorCidade] = useState<WhatsappPorCidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,9 +69,9 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
           .lte('created_at', fimDia.toISOString());
         
         // Filtro por prefeitura se fornecido
-        if (prefeituraFiltro) {
-          query = query.eq('prefeitura', prefeituraFiltro);
-          console.log('🔎 [WhatsApp] Filtro aplicado (prefeitura):', prefeituraFiltro);
+        if (nomePrefeituraCompleto) {
+          query = query.ilike('prefeitura', `%${nomePrefeituraCompleto}%`);
+          console.log('🔎 [WhatsApp] Filtro aplicado (prefeitura nome completo):', nomePrefeituraCompleto);
         }
         
         const { data, error } = await query.order('created_at', { ascending: false });
@@ -82,8 +82,8 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
         }
 
         console.log('✅ [WhatsApp] Registros retornados:', data?.length || 0);
-        if (prefeituraFiltro) {
-          console.log('🔎 [WhatsApp] Filtro de prefeitura aplicado:', prefeituraFiltro);
+        if (nomePrefeituraCompleto) {
+          console.log('🔎 [WhatsApp] Filtro de prefeitura aplicado:', nomePrefeituraCompleto);
         }
 
         const dadosProcessados: ResumoWhatsapp[] = (data || []).map(item => ({
@@ -102,7 +102,7 @@ export const useResumoWhatsapp = (dataSelecionada?: Date, prefeituraFiltro?: str
     };
 
     fetchResumoWhatsapp();
-  }, [dataSelecionada, prefeituraFiltro]);
+  }, [dataSelecionada, nomePrefeituraCompleto]);
 
   return { whatsappPorCidade, isLoading };
 };
