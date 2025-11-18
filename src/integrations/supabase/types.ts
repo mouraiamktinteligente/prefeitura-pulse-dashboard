@@ -1513,34 +1513,58 @@ export type Database = {
       }
       resumo_web: {
         Row: {
+          alerta_enviado: boolean | null
+          alerta_visualizado: boolean | null
+          contador_alerta: number | null
           created_at: string
+          hora_acao: string | null
           id: number
           instagram_prefeito: string | null
           instagram_prefeitura: string | null
+          numeros_enviado: Json | null
           prefeito: string | null
           prefeitura: string | null
           resumo: string | null
+          sentiment: string | null
+          sentiment_score: string | null
           tema: string | null
+          updated_at: string | null
         }
         Insert: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
           created_at?: string
+          hora_acao?: string | null
           id?: number
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
+          numeros_enviado?: Json | null
           prefeito?: string | null
           prefeitura?: string | null
           resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
           tema?: string | null
+          updated_at?: string | null
         }
         Update: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
           created_at?: string
+          hora_acao?: string | null
           id?: number
           instagram_prefeito?: string | null
           instagram_prefeitura?: string | null
+          numeros_enviado?: Json | null
           prefeito?: string | null
           prefeitura?: string | null
           resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: string | null
           tema?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
