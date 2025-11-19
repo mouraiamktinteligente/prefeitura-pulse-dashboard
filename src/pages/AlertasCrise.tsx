@@ -131,40 +131,45 @@ const AlertasCrise = () => {
                   Alertas Ativos ({alertasAtivos.length})
                 </h2>
                 {alertasAtivos.map(alerta => (
-                  <Card key={alerta.id} className="bg-red-50 border-red-300 mb-3">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="w-5 h-5 text-red-600" />
-                            <CardTitle className="text-lg">{alerta.prefeitura}</CardTitle>
-                            <Badge variant="destructive">ATIVO</Badge>
-                            {alerta.sentiment_score && (
-                              <Badge variant="outline">Score: {alerta.sentiment_score}</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {format(new Date(alerta.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                          </p>
+                  <div key={alerta.id} className="bg-red-500/10 border-l-4 border-l-red-500 rounded-lg p-4 mb-3 shadow-md hover:shadow-lg transition-shadow">
+                    {/* Linha 1: Título + Badges */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="w-5 h-5 text-red-400" />
+                          <h3 className="text-lg font-semibold text-white">{alerta.prefeitura}</h3>
+                          <Badge className="bg-red-600 text-white border-red-500">ATIVO</Badge>
+                          {alerta.sentiment_score && (
+                            <Badge className="bg-red-600/30 text-red-200 border border-red-500/50">
+                              Score: {alerta.sentiment_score}
+                            </Badge>
+                          )}
                         </div>
-                        <Badge variant="secondary">{alerta.origem || 'Não especificado'}</Badge>
+                        <p className="text-sm text-blue-300">
+                          {format(new Date(alerta.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {alerta.tema && (
-                          <div>
-                            <p className="text-sm font-semibold text-gray-700">Tema:</p>
-                            <p className="text-sm text-gray-600">{alerta.tema}</p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-semibold text-gray-700">Resumo:</p>
-                          <p className="text-sm text-gray-600">{alerta.resumo}</p>
-                        </div>
+                      <Badge className="bg-blue-700/50 text-blue-200 border-blue-500/50">
+                        {alerta.origem || 'Não especificado'}
+                      </Badge>
+                    </div>
+
+                    {/* Linha 2: Tema */}
+                    {alerta.tema && (
+                      <div className="mb-3 pt-3 border-t border-red-500/30">
+                        <p className="text-red-300 text-xs font-medium mb-1">Tema:</p>
+                        <Badge className="bg-red-600/30 text-red-200 border border-red-500/50">
+                          {alerta.tema}
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+
+                    {/* Linha 3: Resumo */}
+                    <div className="pt-3 border-t border-red-500/30">
+                      <p className="text-red-300 text-xs font-medium mb-1">Resumo:</p>
+                      <p className="text-blue-100 text-sm leading-relaxed">{alerta.resumo}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -176,58 +181,71 @@ const AlertasCrise = () => {
                   Alertas Resolvidos ({alertasResolvidos.length})
                 </h2>
                 {alertasResolvidos.map(alerta => (
-                  <Card key={alerta.id} className="bg-white border-gray-300 mb-3">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            <CardTitle className="text-lg">{alerta.prefeitura}</CardTitle>
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                              RESOLVIDO
+                  <div key={alerta.id} className="bg-green-500/10 border-l-4 border-l-green-500 rounded-lg p-4 mb-3 shadow-md hover:shadow-lg transition-shadow">
+                    {/* Linha 1: Título + Badges */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle2 className="w-5 h-5 text-green-400" />
+                          <h3 className="text-lg font-semibold text-white">{alerta.prefeitura}</h3>
+                          <Badge className="bg-green-600 text-white border-green-500">RESOLVIDO</Badge>
+                          {alerta.sentiment_score && (
+                            <Badge className="bg-green-600/30 text-green-200 border border-green-500/50">
+                              Score: {alerta.sentiment_score}
                             </Badge>
-                            {alerta.sentiment_score && (
-                              <Badge variant="secondary">Score: {alerta.sentiment_score}</Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <span>
-                              Criado: {format(new Date(alerta.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                            </span>
-                            {alerta.hora_acao && (
-                              <span>
-                                Resolvido: {format(new Date(alerta.hora_acao), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                              </span>
-                            )}
-                            <span className="font-semibold text-blue-600">
-                              Tempo de resposta: {calcularTempoResposta(alerta.created_at, alerta.hora_acao)}
-                            </span>
-                          </div>
+                          )}
                         </div>
-                        <Badge variant="secondary">{alerta.origem || 'Não especificado'}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {alerta.tema && (
-                          <div>
-                            <p className="text-sm font-semibold text-gray-700">Tema:</p>
-                            <p className="text-sm text-gray-600">{alerta.tema}</p>
+                        
+                        {/* Datas e Tempo de Resposta */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-blue-300">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-green-400" />
+                            <span>Criado: {format(new Date(alerta.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                           </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-semibold text-gray-700">Resumo:</p>
-                          <p className="text-sm text-gray-600">{alerta.resumo}</p>
+                          {alerta.hora_acao && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-green-400" />
+                                <span>Resolvido: {format(new Date(alerta.hora_acao), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                              </div>
+                              <Badge className="bg-green-600 text-white">
+                                ⏱️ {calcularTempoResposta(alerta.created_at, alerta.hora_acao)}
+                              </Badge>
+                            </>
+                          )}
                         </div>
-                        {alerta.acao_tomada && (
-                          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                            <p className="text-sm font-semibold text-blue-800 mb-1">Ação Tomada:</p>
-                            <p className="text-sm text-blue-700">{alerta.acao_tomada}</p>
-                          </div>
-                        )}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <Badge className="bg-blue-700/50 text-blue-200 border-blue-500/50">
+                        {alerta.origem || 'Não especificado'}
+                      </Badge>
+                    </div>
+
+                    {/* Linha 2: Tema */}
+                    {alerta.tema && (
+                      <div className="mb-3 pt-3 border-t border-green-500/30">
+                        <p className="text-green-300 text-xs font-medium mb-1">Tema:</p>
+                        <Badge className="bg-green-600/30 text-green-200 border border-green-500/50">
+                          {alerta.tema}
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* Linha 3: Resumo */}
+                    <div className="pt-3 border-t border-green-500/30">
+                      <p className="text-green-300 text-xs font-medium mb-1">Resumo:</p>
+                      <p className="text-blue-100 text-sm leading-relaxed">{alerta.resumo}</p>
+                    </div>
+
+                    {/* Linha 4: Ação Tomada */}
+                    {alerta.acao_tomada && (
+                      <div className="mt-3 pt-3 border-t border-green-500/30">
+                        <div className="bg-green-600/20 border border-green-500/50 rounded-lg p-3">
+                          <p className="text-green-300 text-xs font-medium mb-2">✅ Ação Tomada:</p>
+                          <p className="text-blue-100 text-sm leading-relaxed">{alerta.acao_tomada}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
