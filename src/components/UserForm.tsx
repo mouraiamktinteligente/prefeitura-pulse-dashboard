@@ -42,6 +42,8 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
     email: user?.email || '',
     senha: '',
     whatsapp: user?.whatsapp || '',
+    responsavel_alerta_crise: (user as any)?.responsavel_alerta_crise || '',
+    whatsapp_responsavel_crise: (user as any)?.whatsapp_responsavel_crise || '',
     endereco_cep: user?.endereco_cep || '',
     endereco_rua: user?.endereco_rua || '',
     endereco_numero: user?.endereco_numero || '',
@@ -279,6 +281,54 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
                 onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: formatPhone(e.target.value) }))}
                 placeholder="(11) 99999-9999"
               />
+            </div>
+          </div>
+
+          {/* Responsável Alerta de Crise */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 border-b pb-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <h3 className="font-semibold">Responsável por Alertas de Crise</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="responsavel_alerta_crise" className="text-slate-700 dark:text-slate-300">
+                  Nome do Responsável
+                </Label>
+                <Input
+                  id="responsavel_alerta_crise"
+                  value={formData.responsavel_alerta_crise}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    responsavel_alerta_crise: e.target.value 
+                  }))}
+                  placeholder="Nome completo do responsável"
+                  className="bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Pessoa designada para receber e gerenciar alertas críticos
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="whatsapp_responsavel_crise" className="text-slate-700 dark:text-slate-300">
+                  WhatsApp do Responsável
+                </Label>
+                <Input
+                  id="whatsapp_responsavel_crise"
+                  value={formData.whatsapp_responsavel_crise}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    whatsapp_responsavel_crise: formatPhone(e.target.value) 
+                  }))}
+                  placeholder="(11) 99999-9999"
+                  className="bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Contato direto para notificações urgentes
+                </p>
+              </div>
             </div>
           </div>
 
