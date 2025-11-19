@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Crown, Users, Building, Eye, EyeOff, Globe, AlertCircle } from "lucide-react";
+import { Crown, Users, Building, Eye, EyeOff, Globe, AlertCircle, Home, BarChart3, Megaphone, AlertTriangle, CheckSquare, UserPlus, Shield, FileText } from "lucide-react";
 import { validateCPF, validateCNPJ, formatCPF, formatCNPJ, formatCEP, formatPhone, searchCEP } from "@/utils/validation";
 import { UsuarioSistema } from "@/hooks/useUsers";
 import { useClients } from "@/hooks/useClients";
@@ -23,11 +23,38 @@ interface UserFormProps {
 
 const defaultPermissions = {
   acesso_dashboard: false,
-  acesso_clientes: false,
-  acesso_relatorios: false,
+  acesso_analise_pesquisa: false,
   acesso_marketing: false,
+  acesso_alertas_crise: false,
+  acesso_gestao_tarefas: false,
+  acesso_clientes: false,
   acesso_usuarios: false,
-  acesso_logs: false
+  acesso_logs: false,
+  acesso_movimentacoes: false
+};
+
+const permissionLabels: Record<string, string> = {
+  acesso_dashboard: 'Dashboard',
+  acesso_analise_pesquisa: 'Análise de Pesquisa',
+  acesso_marketing: 'Marketing',
+  acesso_alertas_crise: 'Alertas de Crise',
+  acesso_gestao_tarefas: 'Gestão de Tarefas',
+  acesso_clientes: 'Gestão de Clientes',
+  acesso_usuarios: 'Usuários da Plataforma',
+  acesso_logs: 'Logs de Acesso',
+  acesso_movimentacoes: 'Registro de Movimentações'
+};
+
+const permissionIcons: Record<string, any> = {
+  acesso_dashboard: Home,
+  acesso_analise_pesquisa: BarChart3,
+  acesso_marketing: Megaphone,
+  acesso_alertas_crise: AlertTriangle,
+  acesso_gestao_tarefas: CheckSquare,
+  acesso_clientes: UserPlus,
+  acesso_usuarios: Users,
+  acesso_logs: Shield,
+  acesso_movimentacoes: FileText
 };
 
 export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
@@ -490,24 +517,28 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
           {formData.tipo_usuario === 'usuario' && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Permissões</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {Object.entries(defaultPermissions).map(([key, value]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={key}
-                      checked={formData.permissoes[key] || false}
-                      onCheckedChange={(checked) => 
-                        setFormData(prev => ({
-                          ...prev,
-                          permissoes: { ...prev.permissoes, [key]: checked }
-                        }))
-                      }
-                    />
-                    <Label htmlFor={key} className="text-sm">
-                      {key.replace('acesso_', '').replace('_', ' ').toUpperCase()}
-                    </Label>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(defaultPermissions).map(([key, value]) => {
+                  const Icon = permissionIcons[key];
+                  return (
+                    <div key={key} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={key}
+                        checked={formData.permissoes[key] || false}
+                        onCheckedChange={(checked) => 
+                          setFormData(prev => ({
+                            ...prev,
+                            permissoes: { ...prev.permissoes, [key]: checked }
+                          }))
+                        }
+                      />
+                      {Icon && <Icon className="h-4 w-4 text-gray-400" />}
+                      <Label htmlFor={key} className="text-sm cursor-pointer">
+                        {permissionLabels[key] || key}
+                      </Label>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
