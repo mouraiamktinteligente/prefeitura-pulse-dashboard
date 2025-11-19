@@ -1,4 +1,4 @@
-import { BarChart3, Megaphone, CheckSquare, UserPlus, FileText, Home, Users, Shield, LogOut } from "lucide-react";
+import { BarChart3, Megaphone, CheckSquare, UserPlus, FileText, Home, Users, Shield, LogOut, AlertTriangle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -35,6 +35,11 @@ const menuItems = [
     title: "Marketing",
     icon: Megaphone,
     url: "/marketing",
+  },
+  {
+    title: "Alertas de Crise",
+    icon: AlertTriangle,
+    url: "/alertas-crise",
   },
   {
     title: "Gestão de tarefas",
