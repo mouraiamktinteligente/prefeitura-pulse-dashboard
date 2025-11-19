@@ -122,22 +122,16 @@ export function AppSidebar() {
     <Sidebar className="border-r border-blue-700/50 bg-blue-800/90 backdrop-blur-sm">
       <SidebarHeader className="p-4">
         <div 
-          className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate('/dashboard')}
         >
-          <div className="w-8 h-8 flex items-center justify-center">
+          <div className="w-16 h-16 flex items-center justify-center">
             <img 
               src="/lovable-uploads/22b7d1a7-2484-4be4-ad97-58b9760ac566.png" 
-              alt="IA Logo" 
-              className="w-8 h-8 object-contain" 
+              alt="MourIA Logo" 
+              className="w-16 h-16 object-contain" 
             />
           </div>
-          {!isCollapsed && (
-            <div>
-              <h2 className="text-white font-semibold text-sm">Dashboard</h2>
-              <p className="text-blue-300 text-xs">MourIA Marketing</p>
-            </div>
-          )}
         </div>
       </SidebarHeader>
 
