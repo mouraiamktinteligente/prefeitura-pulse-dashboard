@@ -125,11 +125,11 @@ export function AppSidebar() {
           className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate('/dashboard')}
         >
-          <div className="w-16 h-16 flex items-center justify-center">
+          <div className="w-32 h-32 flex items-center justify-center">
             <img 
               src="/lovable-uploads/22b7d1a7-2484-4be4-ad97-58b9760ac566.png" 
               alt="MourIA Logo" 
-              className="w-16 h-16 object-contain" 
+              className="w-32 h-32 object-contain" 
             />
           </div>
         </div>
