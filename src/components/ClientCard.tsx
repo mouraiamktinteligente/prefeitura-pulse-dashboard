@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Instagram } from 'lucide-react';
+import { Instagram, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,9 @@ import type { Cliente } from '@/hooks/useClients';
 import { SentimentAnalysis } from './SentimentAnalysis';
 import { useClientMetrics } from '@/hooks/useClientMetrics';
 import { useInstagramPosts } from '@/hooks/useInstagramPosts';
+import { useAlertasAtivos } from '@/hooks/useAlertasCrise';
+import { AlertaCriseModal } from './AlertaCriseModal';
+import { Button } from '@/components/ui/button';
 
 
 interface ClientCardProps {
@@ -17,9 +20,15 @@ interface ClientCardProps {
 }
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [selectedAlertIndex, setSelectedAlertIndex] = useState(0);
+  
   const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
   const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
+  const { data: alertas } = useAlertasAtivos(client.instagram_prefeitura, client.instagram_prefeito);
   const navigate = useNavigate();
+  
+  const temAlertaAtivo = (alertas && alertas.length > 0);
 
   // Debug logs for ClientCard
   console.log('🎯 ClientCard render:', {
@@ -61,7 +70,9 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
       {/* Header com nome da prefeitura e esfera de status */}
       <CardHeader className="pb-2 text-center">
         <div className="flex items-center justify-center gap-2">
-          <div className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0" />
+          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+            temAlertaAtivo ? 'bg-red-500 animate-pulse' : 'bg-green-500'
+          }`} />
           <CardTitle className="text-white text-lg font-bold">
             {client.nome_completo}
           </CardTitle>
@@ -72,6 +83,24 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           </p>
         )}
       </CardHeader>
+
+      {/* Botão de Alerta de Crise */}
+      {temAlertaAtivo && (
+        <div className="px-4 pb-2">
+          <Button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedAlertIndex(0);
+              setShowAlertModal(true);
+            }}
+            className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg"
+            size="sm"
+          >
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            Criar Ação ({alertas?.length})
+          </Button>
+        </div>
+      )}
 
       <CardContent className="space-y-3 pb-4 flex flex-col">
         {/* Gráfico de Análise de Sentimento com dados reais */}
@@ -150,6 +179,13 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           </div>
         </div>
       </CardContent>
+      
+      {/* Modal de Alerta de Crise */}
+      <AlertaCriseModal 
+        open={showAlertModal}
+        onOpenChange={setShowAlertModal}
+        alerta={alertas?.[selectedAlertIndex] || null}
+      />
     </Card>
   );
 };

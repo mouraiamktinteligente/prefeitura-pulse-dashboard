@@ -20,6 +20,7 @@ import ClientDetails from "./pages/ClientDetails";
 import AnalisePesquisa from "./pages/AnalisePesquisa";
 import Marketing from "./pages/Marketing";
 import RegistroMovimentacoes from "./pages/RegistroMovimentacoes";
+import AlertasCrise from "./pages/AlertasCrise";
 import { RealtimeNotifications } from "@/components/RealtimeNotifications";
 
 const queryClient = new QueryClient();
@@ -95,6 +96,14 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <AppLayout>
             <Marketing />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/alertas-crise" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AlertasCrise />
           </AppLayout>
         </ProtectedRoute>
       } />

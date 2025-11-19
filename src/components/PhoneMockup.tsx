@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import type { Cliente } from '@/hooks/useClients';
+import { useAlertasAtivos } from '@/hooks/useAlertasCrise';
 
 interface PhoneMockupProps {
   client: Cliente;
@@ -11,12 +12,33 @@ interface PhoneMockupProps {
 export const PhoneMockup: React.FC<PhoneMockupProps> = ({ client, onClick, children }) => {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
+  
+  // Buscar alertas ativos do cliente
+  const { data: alertas } = useAlertasAtivos(
+    client.instagram_prefeitura,
+    client.instagram_prefeito
+  );
+  
+  const temAlertaAtivo = (alertas && alertas.length > 0);
 
   // URL da imagem do mockup do iPhone no Storage
   const mockupImageUrl = `https://oztosavtfiifjaahpagf.supabase.co/storage/v1/object/public/banco_imagens_mockup/apple-iphone-16-pro-max`;
 
   return (
     <div className="relative inline-block group cursor-pointer" onClick={onClick}>
+      {/* Luz pulsante vermelha para alerta de crise */}
+      {temAlertaAtivo && (
+        <div className="absolute -top-2 -right-2 z-50">
+          <div className="relative">
+            {/* Luz pulsante */}
+            <div className="w-6 h-6 bg-red-500 rounded-full animate-ping absolute"></div>
+            <div className="w-6 h-6 bg-red-600 rounded-full relative flex items-center justify-center shadow-lg shadow-red-500/50">
+              <span className="text-white text-xs font-bold">!</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Container do iPhone */}
       <div className="relative w-80 h-[600px] mx-auto">
         {/* Imagem do iPhone de fundo */}

@@ -49,6 +49,7 @@ export type Database = {
       }
       alerta_crise_notificacao: {
         Row: {
+          acao_tomada: string | null
           alerta_enviado: boolean | null
           alerta_visualizado: boolean | null
           contador_alerta: number | null
@@ -69,6 +70,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          acao_tomada?: string | null
           alerta_enviado?: boolean | null
           alerta_visualizado?: boolean | null
           contador_alerta?: number | null
@@ -89,6 +91,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          acao_tomada?: string | null
           alerta_enviado?: boolean | null
           alerta_visualizado?: boolean | null
           contador_alerta?: number | null
