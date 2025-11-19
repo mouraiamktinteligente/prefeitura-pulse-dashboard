@@ -56,25 +56,29 @@ export const useAlertasCriseMes = (
   mes?: number, 
   ano?: number, 
   instagramPrefeitura?: string | null,
-  instagramPrefeito?: string | null
+  instagramPrefeito?: string | null,
+  isAdminMaster?: boolean
 ) => {
   return useQuery({
-    queryKey: ['alertas-mes', mes, ano, instagramPrefeitura, instagramPrefeito],
+    queryKey: ['alertas-mes', mes, ano, instagramPrefeitura, instagramPrefeito, isAdminMaster],
     queryFn: async () => {
       let query = supabase
         .from('alerta_crise_notificacao')
         .select('*')
         .order('created_at', { ascending: false });
       
-      // Filtrar por perfis da prefeitura (se fornecidos)
-      if (instagramPrefeitura || instagramPrefeito) {
-        const conditions = [];
-        if (instagramPrefeitura) conditions.push(`instagram_prefeitura.eq.${instagramPrefeitura}`);
-        if (instagramPrefeito) conditions.push(`instagram_prefeito.eq.${instagramPrefeito}`);
-        query = query.or(conditions.join(','));
+      // Se não for admin master, filtrar por perfis da prefeitura
+      if (!isAdminMaster) {
+        if (instagramPrefeitura || instagramPrefeito) {
+          const conditions = [];
+          if (instagramPrefeitura) conditions.push(`instagram_prefeitura.eq.${instagramPrefeitura}`);
+          if (instagramPrefeito) conditions.push(`instagram_prefeito.eq.${instagramPrefeito}`);
+          query = query.or(conditions.join(','));
+        }
       }
+      // Se for admin master, busca todos os alertas sem filtro de perfil
       
-      // Se mes e ano forem especificados, filtrar
+      // Filtro de data (aplicado para todos)
       if (mes && ano) {
         const startDate = new Date(ano, mes - 1, 1).toISOString();
         const endDate = new Date(ano, mes, 0, 23, 59, 59).toISOString();
@@ -90,7 +94,8 @@ export const useAlertasCriseMes = (
       if (error) throw error;
       return data as AlertaCrise[];
     },
-    enabled: !!(instagramPrefeitura || instagramPrefeito) // Só executa se houver perfis para filtrar
+    // Admin master sempre pode executar query, outros só se tiverem perfis
+    enabled: isAdminMaster ? true : !!(instagramPrefeitura || instagramPrefeito)
   });
 };
 
