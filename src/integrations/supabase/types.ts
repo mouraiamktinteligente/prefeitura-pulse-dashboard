@@ -657,6 +657,42 @@ export type Database = {
         }
         Relationships: []
       }
+      instancias_whatsapp: {
+        Row: {
+          conectado: string | null
+          created_at: string
+          id: number
+          id_instancia: string | null
+          nome_instancia: string | null
+          responsavel: string | null
+          token_instancia: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          conectado?: string | null
+          created_at?: string
+          id?: number
+          id_instancia?: string | null
+          nome_instancia?: string | null
+          responsavel?: string | null
+          token_instancia?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          conectado?: string | null
+          created_at?: string
+          id?: number
+          id_instancia?: string | null
+          nome_instancia?: string | null
+          responsavel?: string | null
+          token_instancia?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       linkweb_monitoramento_cliente: {
         Row: {
           created_at: string
