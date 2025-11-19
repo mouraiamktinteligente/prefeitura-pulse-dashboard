@@ -47,6 +47,69 @@ export type Database = {
         }
         Relationships: []
       }
+      alerta_crise_notificacao: {
+        Row: {
+          alerta_enviado: boolean | null
+          alerta_visualizado: boolean | null
+          contador_alerta: number | null
+          created_at: string
+          hora_acao: string | null
+          id: number
+          instagram_prefeito: string | null
+          instagram_prefeitura: string | null
+          midia: string | null
+          numeros_enviado: Json | null
+          origem: string | null
+          prefeito: string | null
+          prefeitura: string | null
+          resumo: string | null
+          sentiment: string | null
+          sentiment_score: number | null
+          tema: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
+          created_at?: string
+          hora_acao?: string | null
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          midia?: string | null
+          numeros_enviado?: Json | null
+          origem?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: number | null
+          tema?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alerta_enviado?: boolean | null
+          alerta_visualizado?: boolean | null
+          contador_alerta?: number | null
+          created_at?: string
+          hora_acao?: string | null
+          id?: number
+          instagram_prefeito?: string | null
+          instagram_prefeitura?: string | null
+          midia?: string | null
+          numeros_enviado?: Json | null
+          origem?: string | null
+          prefeito?: string | null
+          prefeitura?: string | null
+          resumo?: string | null
+          sentiment?: string | null
+          sentiment_score?: number | null
+          tema?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       alertas_comentarios: {
         Row: {
           created_at: string
