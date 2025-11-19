@@ -52,14 +52,27 @@ export const useAlertasAtivos = (instagramPrefeitura?: string, instagramPrefeito
 };
 
 // Buscar todos os alertas (para página de histórico)
-export const useAlertasCriseMes = (mes?: number, ano?: number) => {
+export const useAlertasCriseMes = (
+  mes?: number, 
+  ano?: number, 
+  instagramPrefeitura?: string | null,
+  instagramPrefeito?: string | null
+) => {
   return useQuery({
-    queryKey: ['alertas-mes', mes, ano],
+    queryKey: ['alertas-mes', mes, ano, instagramPrefeitura, instagramPrefeito],
     queryFn: async () => {
       let query = supabase
         .from('alerta_crise_notificacao')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      // Filtrar por perfis da prefeitura (se fornecidos)
+      if (instagramPrefeitura || instagramPrefeito) {
+        const conditions = [];
+        if (instagramPrefeitura) conditions.push(`instagram_prefeitura.eq.${instagramPrefeitura}`);
+        if (instagramPrefeito) conditions.push(`instagram_prefeito.eq.${instagramPrefeito}`);
+        query = query.or(conditions.join(','));
+      }
       
       // Se mes e ano forem especificados, filtrar
       if (mes && ano) {
@@ -76,7 +89,8 @@ export const useAlertasCriseMes = (mes?: number, ano?: number) => {
       const { data, error } = await query;
       if (error) throw error;
       return data as AlertaCrise[];
-    }
+    },
+    enabled: !!(instagramPrefeitura || instagramPrefeito) // Só executa se houver perfis para filtrar
   });
 };
 
