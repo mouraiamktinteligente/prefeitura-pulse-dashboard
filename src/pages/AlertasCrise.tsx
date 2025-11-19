@@ -35,21 +35,21 @@ const AlertasCrise = () => {
   const alertasResolvidos = alertas?.filter(a => a.alerta_visualizado) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-950 p-6">
+    <div className="min-h-screen bg-gray-900 p-6">
       <div className="container mx-auto space-y-6">
         {/* Header com Filtros */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Alertas de Crise</h1>
-            <p className="text-blue-300">
+            <p className="text-gray-400">
               Histórico de alertas e ações tomadas
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-blue-800/50 backdrop-blur-sm p-4 rounded-lg border border-blue-700">
-            <Filter className="w-5 h-5 text-blue-300" />
+          <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm p-4 rounded-lg border border-gray-700">
+            <Filter className="w-5 h-5 text-gray-300" />
             <Select value={String(mesSelecionado)} onValueChange={(v) => setMesSelecionado(Number(v))}>
-              <SelectTrigger className="w-[140px] bg-blue-700/50 text-white border-blue-600">
+              <SelectTrigger className="w-[140px] bg-gray-700/50 text-white border-gray-600">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -62,7 +62,7 @@ const AlertasCrise = () => {
             </Select>
 
             <Select value={String(anoSelecionado)} onValueChange={(v) => setAnoSelecionado(Number(v))}>
-              <SelectTrigger className="w-[100px] bg-blue-700/50 text-white border-blue-600">
+              <SelectTrigger className="w-[100px] bg-gray-700/50 text-white border-gray-600">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -78,14 +78,14 @@ const AlertasCrise = () => {
 
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-blue-800/50 backdrop-blur-sm border-blue-700">
+          <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-300 text-sm">Total de Alertas</p>
+                  <p className="text-gray-400 text-sm">Total de Alertas</p>
                   <p className="text-3xl font-bold text-white">{alertas?.length || 0}</p>
                 </div>
-                <AlertTriangle className="w-12 h-12 text-blue-400" />
+                <AlertTriangle className="w-12 h-12 text-gray-400" />
               </div>
             </CardContent>
           </Card>
