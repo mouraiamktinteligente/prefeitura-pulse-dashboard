@@ -1740,12 +1740,14 @@ export type Database = {
           nome_responsavel: string | null
           permissoes: string | null
           razao_social: string | null
+          responsavel_alerta_crise: string | null
           senha_hash: string | null
           status_conexao: string
           tipo_pessoa: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
           updated_at: string
           whatsapp: string | null
+          whatsapp_responsavel_crise: string | null
         }
         Insert: {
           ativo?: boolean | null
@@ -1765,12 +1767,14 @@ export type Database = {
           nome_responsavel?: string | null
           permissoes?: string | null
           razao_social?: string | null
+          responsavel_alerta_crise?: string | null
           senha_hash?: string | null
           status_conexao?: string
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_responsavel_crise?: string | null
         }
         Update: {
           ativo?: boolean | null
@@ -1790,12 +1794,14 @@ export type Database = {
           nome_responsavel?: string | null
           permissoes?: string | null
           razao_social?: string | null
+          responsavel_alerta_crise?: string | null
           senha_hash?: string | null
           status_conexao?: string
           tipo_pessoa?: Database["public"]["Enums"]["tipo_pessoa"] | null
           tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"]
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_responsavel_crise?: string | null
         }
         Relationships: [
           {
