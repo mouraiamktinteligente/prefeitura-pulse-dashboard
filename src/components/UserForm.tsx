@@ -286,14 +286,14 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
 
           {/* Responsável Alerta de Crise */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 border-b pb-2">
+            <div className="flex items-center gap-2 text-white border-b border-gray-700 pb-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
               <h3 className="font-semibold">Responsável por Alertas de Crise</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="responsavel_alerta_crise" className="text-slate-700 dark:text-slate-300">
+                <Label htmlFor="responsavel_alerta_crise">
                   Nome do Responsável
                 </Label>
                 <Input
@@ -304,15 +304,14 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
                     responsavel_alerta_crise: e.target.value 
                   }))}
                   placeholder="Nome completo do responsável"
-                  className="bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600"
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Pessoa designada para receber e gerenciar alertas críticos
                 </p>
               </div>
               
               <div>
-                <Label htmlFor="whatsapp_responsavel_crise" className="text-slate-700 dark:text-slate-300">
+                <Label htmlFor="whatsapp_responsavel_crise">
                   WhatsApp do Responsável
                 </Label>
                 <Input
@@ -323,9 +322,8 @@ export const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
                     whatsapp_responsavel_crise: formatPhone(e.target.value) 
                   }))}
                   placeholder="(11) 99999-9999"
-                  className="bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600"
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Contato direto para notificações urgentes
                 </p>
               </div>
