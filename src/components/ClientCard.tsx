@@ -21,7 +21,6 @@ interface ClientCardProps {
 
 export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
   const [showAlertModal, setShowAlertModal] = useState(false);
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState(0);
   
   const { metrics } = useClientMetrics(client.instagram_prefeitura || undefined);
   const { latestPost, loading: postLoading, error: postError } = useInstagramPosts(client.instagram_prefeitura || undefined);
@@ -90,7 +89,6 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           <Button 
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedAlertIndex(0);
               setShowAlertModal(true);
             }}
             className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg"
@@ -181,10 +179,10 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
       </CardContent>
       
       {/* Modal de Alerta de Crise */}
-      <AlertaCriseModal 
+      <AlertaCriseModal
         open={showAlertModal}
         onOpenChange={setShowAlertModal}
-        alerta={alertas?.[selectedAlertIndex] || null}
+        alertas={alertas || []}
       />
     </Card>
   );
