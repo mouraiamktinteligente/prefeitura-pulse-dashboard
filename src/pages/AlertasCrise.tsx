@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Clock, CheckCircle2, Calendar, Filter, Building2 } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle2, Calendar, Filter, Building2, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAlertasCriseMes, calcularTempoResposta } from '@/hooks/useAlertasCrise';
@@ -14,13 +14,14 @@ const AlertasCrise = () => {
   const [anoSelecionado, setAnoSelecionado] = useState(hoje.getFullYear());
   
   // Buscar dados do cliente vinculado ao usuário
-  const { clientData, loading: loadingClient } = useClientData();
+  const { clientData, loading: loadingClient, isAdminMaster } = useClientData();
   
   const { data: alertas, isLoading } = useAlertasCriseMes(
     mesSelecionado, 
     anoSelecionado,
     clientData?.instagram_prefeitura,
-    clientData?.instagram_prefeito
+    clientData?.instagram_prefeito,
+    isAdminMaster
   );
 
   const meses = [
@@ -61,7 +62,14 @@ const AlertasCrise = () => {
             <p className="text-gray-400">
               Histórico de alertas e ações tomadas
             </p>
-            {clientData && (
+            {isAdminMaster ? (
+              <div className="flex items-center gap-2 mt-2">
+                <Shield className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-purple-400">
+                  Acesso Geral (Todas as Prefeituras)
+                </span>
+              </div>
+            ) : clientData && (
               <div className="flex items-center gap-2 mt-2">
                 <Building2 className="w-4 h-4 text-blue-400" />
                 <span className="text-sm text-blue-400">{clientData.nome_completo}</span>

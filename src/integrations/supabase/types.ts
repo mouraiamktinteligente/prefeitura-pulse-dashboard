@@ -1774,7 +1774,7 @@ export type Database = {
           id: string
           nome_completo: string
           nome_responsavel: string | null
-          permissoes: string | null
+          permissoes: Json | null
           razao_social: string | null
           responsavel_alerta_crise: string | null
           senha_hash: string | null
@@ -1801,7 +1801,7 @@ export type Database = {
           id?: string
           nome_completo: string
           nome_responsavel?: string | null
-          permissoes?: string | null
+          permissoes?: Json | null
           razao_social?: string | null
           responsavel_alerta_crise?: string | null
           senha_hash?: string | null
@@ -1828,7 +1828,7 @@ export type Database = {
           id?: string
           nome_completo?: string
           nome_responsavel?: string | null
-          permissoes?: string | null
+          permissoes?: Json | null
           razao_social?: string | null
           responsavel_alerta_crise?: string | null
           senha_hash?: string | null

@@ -9,10 +9,17 @@ interface ClientData {
   instagram_prefeito: string | null;
 }
 
-export const useClientData = () => {
+interface UseClientDataReturn {
+  clientData: ClientData | null;
+  loading: boolean;
+  isAdminMaster: boolean;
+}
+
+export const useClientData = (): UseClientDataReturn => {
   const { user } = useAuth();
   const [clientData, setClientData] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdminMaster, setIsAdminMaster] = useState(false);
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -22,14 +29,22 @@ export const useClientData = () => {
       }
 
       try {
-        // Buscar o usuário no sistema para pegar o cliente_id
+        // Buscar o usuário no sistema para pegar o cliente_id e tipo_usuario
         const { data: userData, error: userError } = await supabase
           .from('usuarios_sistema')
-          .select('cliente_id')
+          .select('cliente_id, tipo_usuario')
           .eq('email', user.email)
           .single();
 
         if (userError) throw userError;
+
+        // Detectar se é admin master (administrador sem cliente_id)
+        if (userData.tipo_usuario === 'administrador' && !userData.cliente_id) {
+          setIsAdminMaster(true);
+          setClientData(null);
+          setLoading(false);
+          return;
+        }
 
         // Se o usuário tem cliente_id, buscar os dados do cliente
         if (userData?.cliente_id) {
@@ -52,5 +67,5 @@ export const useClientData = () => {
     fetchClientData();
   }, [user]);
 
-  return { clientData, loading };
+  return { clientData, loading, isAdminMaster };
 };
