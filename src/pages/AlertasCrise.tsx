@@ -2,17 +2,26 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Clock, CheckCircle2, Calendar, Filter } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle2, Calendar, Filter, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAlertasCriseMes, calcularTempoResposta } from '@/hooks/useAlertasCrise';
+import { useClientData } from '@/hooks/useClientData';
 
 const AlertasCrise = () => {
   const hoje = new Date();
   const [mesSelecionado, setMesSelecionado] = useState(hoje.getMonth() + 1);
   const [anoSelecionado, setAnoSelecionado] = useState(hoje.getFullYear());
   
-  const { data: alertas, isLoading } = useAlertasCriseMes(mesSelecionado, anoSelecionado);
+  // Buscar dados do cliente vinculado ao usuário
+  const { clientData, loading: loadingClient } = useClientData();
+  
+  const { data: alertas, isLoading } = useAlertasCriseMes(
+    mesSelecionado, 
+    anoSelecionado,
+    clientData?.instagram_prefeitura,
+    clientData?.instagram_prefeito
+  );
 
   const meses = [
     { value: 1, label: 'Janeiro' },
@@ -34,6 +43,14 @@ const AlertasCrise = () => {
   const alertasAtivos = alertas?.filter(a => !a.alerta_visualizado) || [];
   const alertasResolvidos = alertas?.filter(a => a.alerta_visualizado) || [];
 
+  if (loadingClient) {
+    return (
+      <div className="min-h-screen bg-gray-900 p-6 flex items-center justify-center">
+        <div className="text-white">Carregando dados do cliente...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="container mx-auto space-y-6">
@@ -44,6 +61,12 @@ const AlertasCrise = () => {
             <p className="text-gray-400">
               Histórico de alertas e ações tomadas
             </p>
+            {clientData && (
+              <div className="flex items-center gap-2 mt-2">
+                <Building2 className="w-4 h-4 text-blue-400" />
+                <span className="text-sm text-blue-400">{clientData.nome_completo}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm p-4 rounded-lg border border-gray-700">
