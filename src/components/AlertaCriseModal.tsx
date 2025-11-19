@@ -64,11 +64,21 @@ export const AlertaCriseModal: React.FC<AlertaCriseModalProps> = ({
   if (!alertaAtual || alertas.length === 0) return null;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange} modal={true}>
       <DialogContent 
-        className="max-w-2xl max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-red-100"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        className="max-w-2xl max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-red-100 [&>button]:hidden"
+        onInteractOutside={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
