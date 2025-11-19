@@ -54,10 +54,17 @@ export const AlertaCriseModal: React.FC<AlertaCriseModalProps> = ({
     onOpenChange(false);
   };
 
+  // Intercepta tentativas de fechamento não autorizadas
+  const handleOpenChange = (newOpen: boolean) => {
+    // Bloqueia qualquer tentativa de fechamento
+    // Só fecha quando os botões chamarem onOpenChange diretamente
+    return;
+  };
+
   if (!alertaAtual || alertas.length === 0) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
         className="max-w-2xl max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-red-500 scrollbar-track-red-100"
         onInteractOutside={(e) => e.preventDefault()}
